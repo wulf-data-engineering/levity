@@ -1,0 +1,22 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lambda_http = "0.13.0"
+aws_lambda_events = { version = "0.15.1", default-features = false, features = ["sqs", "cognito"] }
+
+tokio = { version = "1", features = ["macros"] }
+
+[[bin]]
+name = "hello"
+path = "src/hello.rs"
+
+[[bin]]
+name = "cognito-handler"
+path = "src/cognito-handler.rs"
+
+[[bin]]
+name = "message-handler"
+path = "src/message-handler.rs"
