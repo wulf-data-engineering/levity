@@ -1,4 +1,5 @@
-# localstack and Cognito local files
+/**/.idea/
+# localstack and seed files for cognito-local
 local/localstack-volume
 local/cognito-local-volume/db/clients.json
 local/cognito-local-volume/db/local_userPool.json

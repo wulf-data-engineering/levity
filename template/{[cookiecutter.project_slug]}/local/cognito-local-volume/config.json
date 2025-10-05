@@ -1,0 +1,10 @@
+{
+  "LambdaClient": {
+    "endpoint": "http://localhost:9000",
+    "region": "eu-central-1",
+    "credentials": {
+      "accessKeyId": "local",
+      "secretAccessKey": "local"
+    }
+  }
+}
