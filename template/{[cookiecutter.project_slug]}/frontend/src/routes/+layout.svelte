@@ -1,14 +1,18 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
+    import * as auth from '$lib/auth';
 
 	onMount(async () => {
 		// If the static splash was injected (only on the fallback file), remove it.
 		document.getElementById('cf-splash')?.remove();
 		document.getElementById('cf-splash-style')?.remove();
-	});
 
-	let { children } = $props();
+        await auth.configureAuth();
+    });
+
+
+    let { children } = $props();
 </script>
 
 <svelte:head>

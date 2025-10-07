@@ -24,6 +24,8 @@ const localUserPoolId: string = 'local_userPool';
 const localUserPoolClientId: string = 'local_userPoolClient';
 const localEndpoint: string = 'http://localhost:9229';
 
+let configured = false;
+
 /**
  * Configure Amplify Auth from environment variables.
  * Uses local Cognito mock values if none are provided.
@@ -31,6 +33,8 @@ const localEndpoint: string = 'http://localhost:9229';
  * Called in onMount of the base layout.
  */
 export async function configureAuth() {
+	if (configured) return;
+
 	const userPoolId: string = import.meta.env.VITE_USER_POOL_ID || localUserPoolId;
 	const userPoolClientId: string =
 		import.meta.env.VITE_USER_POOL_CLIENT_ID || localUserPoolClientId;
@@ -58,9 +62,10 @@ export async function configureAuth() {
 	amplify.set(amplifyApi);
 	auth.set(authApi);
 
-	console.log('[auth] Amplify configured', { userPoolId, userPoolClientId, endpoint });
-
 	await loadCurrentUser();
+
+	configured = true;
+	console.log('[auth] Amplify configured', { userPoolId, userPoolClientId, endpoint });
 }
 
 export async function loadCurrentUser() {
