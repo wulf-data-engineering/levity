@@ -12,8 +12,8 @@
 
 <div
 	bind:this={ref}
-	data-slot="card-title"
-	class={cn("font-semibold leading-none", className)}
+	data-slot="input-otp-group"
+	class={cn("flex items-center", className)}
 	{...restProps}
 >
 	{@render children?.()}

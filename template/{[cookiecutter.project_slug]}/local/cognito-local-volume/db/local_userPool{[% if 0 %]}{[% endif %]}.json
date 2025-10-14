@@ -18,7 +18,7 @@
       "UserLastModifiedDate": "2025-10-01T10:00:01.000Z",
       "Username": "00000000-0000-0000-0000-000000000000",
       "UserStatus": "CONFIRMED",
-      "ConfirmationCode": "123456"
+      "ConfirmationCode": "{[cookiecutter.dev_confirmation_code]}"
     }
   },
   "Options": {

@@ -7,6 +7,7 @@
     import {Button} from "$lib/components/ui/button";
     import {Label} from "$lib/components/ui/label";
     import {Input} from "$lib/components/ui/input";
+    import * as InputOTP from "$lib/components/ui/input-otp";
     import * as Card from "$lib/components/ui/card";
     import {toast} from "svelte-sonner";
 
@@ -28,40 +29,66 @@
     }
 
     async function signUp() {
-        indicateLoading();
-        try {
-            const result = await auth.signUp(email, password);
-            if (result.isSignUpComplete) complete('Signed Up' ,'Successfully signed up and signed in.');
-            else complete('Signed Up', 'Successfully signed up. Confirmation required.');
-            console.log('Signed up:', result);
-        } catch (err) {
-            console.error('Error signing up:', err);
-            handleError(err);
-        }
+        const result = await auth.signUp(email, password);
+        if (result.isSignUpComplete)
+            handleSignedIn('Successfully signed up and signed in.')
+        else if (result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
+            complete('Next Step', 'Please complete the sign-up process.');
+            confirmState = true;
+        } else
+            complete('Next Step', `${result.nextStep.signUpStep} is not implemented.`, true);
+        console.log('Signed up:', result);
+    }
+
+    async function confirmSignUp() {
+        const result = await auth.confirmSignUp(email, password, otp);
+        if (result.isSignUpComplete)
+            handleSignedIn('Successfully signed up and signed in.')
+        else
+            complete('Next Step', `${result.nextStep.signUpStep} is not implemented.`, true);
     }
 
     async function signIn() {
-        indicateLoading();
-        try {
-            const result = await auth.signIn(email, password);
-            if (result.isSignedIn) {
-                // Redirect to the originally requested page
-                const redirectTo = page.url.searchParams.get('redirectTo');
-                if (redirectTo)
-                    await goto(redirectTo);
-                else
-                    complete('Signed In', 'Successfully signed in.');
-            } else
-                complete('Next Step', 'Please complete the sign-up process.', true);
-            console.log('Signed in:', result);
-        } catch (err) {
-            console.error('Error signing in:', err);
-            handleError(err);
+        const result = await auth.signIn(email, password);
+        if (result.isSignedIn) {
+            handleSignedIn('Successfully signed in.');
+        } else if (result.nextStep.signInStep === 'CONFIRM_SIGN_UP') {
+            complete('Next Step', 'Please complete the sign-up process.');
+            confirmState = true;
+            mode = 'signUp';
+        } else if (result.nextStep.signInStep === 'RESET_PASSWORD') {
+            complete('Next Step', 'Password reset is not implemented.', true);
+        } else if (result.nextStep.signInStep.startsWith('CONFIRM_SIGN_')) {
+            complete('Next Step', 'Please complete the sign-in process.');
+            confirmState = true;
+        } else {
+            complete('Next Step', `${result.nextStep.signInStep} is not implemented.`, true);
         }
+        console.log('Signed in:', result);
+    }
+
+    async function confirmSignIn() {
+        const result = await auth.confirmSignIn(otp);
+        if (result.isSignedIn)
+            handleSignedIn('Successfully signed in.');
+        else
+            complete('Next Step', `${result.nextStep.signInStep} is not implemented.`, true);
+    }
+
+    async function handleSignedIn(message: string) {
+        otp = '';
+        password = '';
+        mode = 'signIn';
+        confirmState = false;
+        // Redirect to the originally requested page
+        const redirectTo = page.url.searchParams.get('redirectTo');
+        if (redirectTo)
+            await goto(redirectTo);
+        else
+            complete('Signed In', message);
     }
 
     async function signOut() {
-        indicateLoading();
         try {
             await auth.signOut();
             complete('Singed Out', 'Successfully signed out.');
@@ -74,14 +101,35 @@
     }
 
     let mode: 'signIn' | 'signUp' = $state('signIn');
-    let loading = $state(false);
-    let email = $state(dev ? 'test@wulf.technology' : '');
-    let password = $state(dev ? 'Password123!' : '');
+    let confirmState = $state(false);
 
-    function handleSubmit(e: Event) {
+    let loading = $state(false);
+
+    let email = $state(dev ? '{[cookiecutter.test_user_email]}' : ''); // erased at build time
+    let password = $state(dev ? '{[cookiecutter.test_user_password]}' : ''); // erased at build time
+    let otp = $state(dev ? '{[cookiecutter.dev_confirmation_code]}' : ''); // erased at build time
+
+    async function handleSubmit(e: Event) {
         e.preventDefault();
-        if (mode === 'signIn') signIn();
-        else signUp();
+        indicateLoading();
+        try {
+            if (mode === 'signIn') {
+                if (confirmState)
+                    await confirmSignIn();
+                else
+                    await signIn();
+            } else {
+                if (confirmState)
+                    await confirmSignUp();
+                else
+                    await signUp();
+            }
+        } catch (err) {
+            console.error('Error signing in:', err);
+            handleError(err);
+        } finally {
+            loading = false;
+        }
     }
 
     function toggle(newMode: 'signIn' | 'signUp') {
@@ -93,14 +141,13 @@
 </script>
 
 <svelte:head>
-    <title>Home</title>
-    <meta name="description" content="A Tool-Set frontend application."/>
+    <title>{[cookiecutter.project_name]}</title>
 </svelte:head>
 
 <div class="m-auto max-w-4xl px-8 p-5">
     <div>
         <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-            Welcome to the tool set frontend
+            {[cookiecutter.project_name]}
         </h1>
         <p class="text-muted-foreground text-xl leading-7 [&:not(:first-child)]:mt-6">
             This is a sample landing page.
@@ -128,9 +175,39 @@
 
             <Card.Footer class="flex-col gap-2">
                 <Button onclick={signOut} disabled={loading} variant="outline" class="w-full">Sign Out</Button>
-                {#if loading}
-                    Please wait…
-                {/if}
+            </Card.Footer>
+
+        {:else if confirmState}
+
+            <Card.Header>
+                <Card.Title>{mode === 'signIn' ? 'Sign In' : 'Sign Up'}</Card.Title>
+                <Card.Description>{mode === 'signIn' ? 'Sign in to your account' : 'Create a new account'}</Card.Description>
+            </Card.Header>
+
+            <Card.Content onsubmit={handleSubmit}>
+                <form>
+                    <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center">
+                        {#snippet children({cells})}
+                            <InputOTP.Group>
+                                {#each cells.slice(0, 3) as cell (cell)}
+                                    <InputOTP.Slot {cell}/>
+                                {/each}
+                            </InputOTP.Group>
+                            <InputOTP.Separator/>
+                            <InputOTP.Group>
+                                {#each cells.slice(3, 6) as cell (cell)}
+                                    <InputOTP.Slot {cell}/>
+                                {/each}
+                            </InputOTP.Group>
+                        {/snippet}
+                    </InputOTP.Root>
+                </form>
+            </Card.Content>
+
+            <Card.Footer class="flex-col gap-2">
+                <Button type="submit" disabled={loading} class="w-full" onclick={handleSubmit}>
+                    {mode === 'signIn' ? 'Confirm Sign In' : 'Confirm Sign Up'}
+                </Button>
             </Card.Footer>
 
         {:else if $currentUser === null}
@@ -159,22 +236,20 @@
 
             <Card.Footer class="flex-col gap-2">
                 <Button type="submit" disabled={loading} class="w-full" onclick={handleSubmit}>
-                    {#if loading}
-                        Please wait…
-                    {:else}
-                        {mode === 'signIn' ? 'Sign In' : 'Sign Up'}
-                    {/if}
+                    {mode === 'signIn' ? 'Sign In' : 'Sign Up'}
                 </Button>
 
-                <p>
-                    {#if mode === 'signIn'}
-                        Don’t have an account?
-                        <Button variant="link" onclick={toggle('signUp')}>Sign up</Button>
-                    {:else}
-                        Already have an account?
-                        <Button variant="link" onclick={toggle('signIn')}>Sign in</Button>
-                    {/if}
-                </p>
+                {#if !confirmState}
+                    <p>
+                        {#if mode === 'signIn'}
+                            Don’t have an account?
+                            <Button variant="link" onclick={toggle('signUp')}>Sign up</Button>
+                        {:else}
+                            Already have an account?
+                            <Button variant="link" onclick={toggle('signIn')}>Sign in</Button>
+                        {/if}
+                    </p>
+                {/if}
 
             </Card.Footer>
         {:else}

@@ -102,6 +102,25 @@ export async function signUp(email: string, password: string) {
 }
 
 /**
+ * Confirms user sign up with given OTP code.
+ * If sign up is completed, the user is also signed in.
+ */
+export async function confirmSignUp(email: string, password: string, otp: string) {
+	if (get(currentUser)) await signOut();
+
+	const user = await get(auth).confirmSignUp({
+		username: email,
+		confirmationCode: otp
+	});
+	if (!user.isSignUpComplete) {
+		console.warn('User is not completely signed up in after confirm:', user.nextStep);
+	} else {
+		await signIn(email, password);
+	}
+	return user;
+}
+
+/**
  * Signs in the user with given credentials.
  */
 export async function signIn(username: string, password: string) {
@@ -114,6 +133,23 @@ export async function signIn(username: string, password: string) {
 	});
 	if (!user.isSignedIn) {
 		console.warn('User is not signed in after signIn:', user.nextStep);
+	} else {
+		await loadCurrentUser();
+	}
+	return user;
+}
+
+/**
+ * Confirms user sign in with given OTP code.
+ */
+export async function confirmSignIn(otp: string) {
+	if (get(currentUser)) await signOut();
+
+	const user = await get(auth).confirmSignIn({
+		challengeResponse: otp
+	});
+	if (!user.isSignedIn) {
+		console.warn('User is not completely signed in in after confirm:', user.nextStep);
 	} else {
 		await loadCurrentUser();
 	}
