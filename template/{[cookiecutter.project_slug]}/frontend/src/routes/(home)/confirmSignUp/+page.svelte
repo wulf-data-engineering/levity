@@ -11,7 +11,6 @@
     import {get} from 'svelte/store';
 
     let submitting = $state(false);
-    let suggestResend = $state(false);
 
     let email: string;
 
@@ -46,7 +45,6 @@
             console.error('Error confirming sign up:', err);
             if (err instanceof Error && err.name === 'CodeMismatchException') {
                 toastError('Confirmation Failed', 'The provided confirmation code is incorrect.');
-                suggestResend = true;
             } else if (err instanceof Error && err.name === 'ExpiredCodeException') {
                 try {
                     await get(auth.authApi).resendSignUpCode({username: email!});
@@ -56,7 +54,6 @@
                         toastError('Confirmation Failed', 'Cognito local might not support resending codes.'); // erased at build time
                     else
                         toastError('Confirmation Failed', 'The provided confirmation code has expired.');
-                    suggestResend = true;
                 }
             } else
                 toastError('Confirmation Failed', 'Sign up could not be confirmed.');
@@ -75,7 +72,6 @@
             toastError('Error', 'Could not resend confirmation code.');
         } finally {
             submitting = false;
-            suggestResend = false;
         }
     }
 
@@ -88,8 +84,8 @@
     </Card.Header>
 
     <Card.Content>
-        <form onsubmit={handleSubmit}>
-            <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center">
+        <form id="form" onsubmit={handleSubmit}>
+            <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center" required>
                 {#snippet children({cells})}
                     <InputOTP.Group>
                         {#each cells as cell (cell)}
@@ -102,11 +98,11 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button variant={suggestResend ? "outline" : "default"} disabled={submitting} class="w-full"
-                onclick={handleSubmit}>
+        <Button variant="default" disabled={submitting} class="w-full"
+                type="submit" form="form">
             Confirm Sign Up
         </Button>
-        <Button variant={suggestResend ? "default" : "outline"} disabled={submitting} class="w-full"
+        <Button variant="outline" disabled={submitting} class="w-full"
                 onclick={resendCode}>
             Resend Code
         </Button>

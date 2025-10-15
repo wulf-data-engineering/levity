@@ -20,7 +20,6 @@
     let otp = $state(page.url.searchParams.get("otp") || (dev ? '123456' : '')); // erased at build time
 
     let submitting = $state(false);
-    let suggestResend = $state(false);
 
     async function handleSubmit(e: Event) {
         e.preventDefault();
@@ -38,14 +37,12 @@
             console.error('Error confirming reset password:', err);
             if (err instanceof Error && err.name === 'CodeMismatchException') {
                 toastError('Password Reset', 'The provided confirmation code is incorrect.');
-                suggestResend = true;
             } else if (err instanceof Error && err.name === 'ExpiredCodeException') {
                 try {
                     await get(authApi).resetPassword({username: email});
                     toastError('Code Sent', 'The provided confirmation code has expired. A new confirmation code has been sent to your email.');
                 } catch {
                     toastError('Password Reset', 'The provided confirmation code has expired.');
-                    suggestResend = true;
                 }
             } else
                 toastError('Password Reset', 'Password reset failed.');
@@ -57,7 +54,7 @@
     async function resendCode() {
         try {
             submitting = true;
-            suggestResend = !await requestPasswordReset(email);
+            await requestPasswordReset(email);
         } finally {
             submitting = false;
         }
@@ -73,9 +70,9 @@
     </Card.Header>
 
     <Card.Content>
-        <form onsubmit={handleSubmit}>
+        <form id="form" onsubmit={handleSubmit}>
             <div class="flex flex-col gap-6">
-                <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center">
+                <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center" required>
                     {#snippet children({cells})}
                         <InputOTP.Group>
                             {#each cells as cell (cell)}
@@ -96,7 +93,7 @@
                 </div>
                 <div class="grid gap-2">
                     <div class="flex items-center">
-                        <Label for="password">Confirm</Label>
+                        <Label for="confirm">Confirm</Label>
                     </div>
                     <Input id="confirm" type="password" bind:value={confirm} required/>
                 </div>
@@ -105,11 +102,11 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button variant={suggestResend ? "outline" : "default"} type="submit" disabled={submitting} class="w-full"
-                onclick={handleSubmit}>
+        <Button variant="default" disabled={submitting} class="w-full"
+                type="submit" form="form">
             Reset Password
         </Button>
-        <Button variant={suggestResend ? "default" : "outline"} type="submit" disabled={submitting} class="w-full"
+        <Button variant="outline" disabled={submitting} class="w-full"
                 onclick={resendCode}>
             Resend Code
         </Button>

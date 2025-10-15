@@ -116,7 +116,7 @@
         </Card.Header>
 
         <Card.Content>
-            <form onsubmit={handleSubmit}>
+            <form id="form" onsubmit={handleSubmit}>
                 <div class="flex flex-col gap-6">
                     <div class="grid gap-2">
                         <Label for="email">Email</Label>
@@ -134,7 +134,7 @@
         </Card.Content>
 
         <Card.Footer class="flex-col gap-2">
-            <Button disabled={loading} class="w-full" onclick={handleSubmit}>Sign In</Button>
+            <Button disabled={loading} class="w-full" type="submit" form="form">Sign In</Button>
             <Button disabled={loading} class="w-full" href={`/resetPassword?email=${encodeURIComponent(email)}`}
                     variant="outline">Password Forgotten?
             </Button>

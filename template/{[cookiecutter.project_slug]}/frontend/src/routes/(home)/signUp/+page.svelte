@@ -49,7 +49,7 @@
     </Card.Header>
 
     <Card.Content>
-        <form onsubmit={handleSubmit}>
+        <form id="form" onsubmit={handleSubmit}>
             <div class="flex flex-col gap-6">
                 <div class="grid gap-2">
                     <Label for="email">Email</Label>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="grid gap-2">
                     <div class="flex items-center">
-                        <Label for="password">Confirm</Label>
+                        <Label for="confirm">Confirm</Label>
                     </div>
                     <Input id="confirm" type="password" bind:value={confirm} required/>
                 </div>
@@ -72,7 +72,7 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button type="submit" disabled={submitting} class="w-full" onclick={handleSubmit}>
+        <Button disabled={submitting} class="w-full" type="submit" form="form">
             Sign Up
         </Button>
         <p>
