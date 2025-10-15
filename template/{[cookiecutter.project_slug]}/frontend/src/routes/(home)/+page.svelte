@@ -12,10 +12,6 @@
     import {onMount} from "svelte";
 
     // TODO: Verify password configuration
-    // TODO: Password forgotten page
-    // TODO: Enter new password page
-    // TODO: Auto reset in case of PasswordResetRequiredException
-    // TODO: Change password page?
 
     async function signOut() {
         try {
@@ -42,8 +38,8 @@
             autofocusPassword = true;
         } else if (dev) {
             // erased at build time
-            email = '{[cookiecutter.test_user_email]}';
-            password = '{[cookiecutter.test_user_password]}';
+            email = 'test@wulf.technology';
+            password = 'Password123!';
         }
     });
 
@@ -52,6 +48,12 @@
     async function handleSubmit(e: Event) {
         e.preventDefault();
         loading = true;
+
+        const resetRequired = async () => {
+            toastError('Sign In Failed', 'Password reset is required.');
+            await goto(`/resetPassword?email=${encodeURIComponent(email)}`);
+        };
+
         try {
             const result = await auth.signIn(email, password);
             console.log('Sign in:', result);
@@ -66,7 +68,7 @@
                 toastSuccess('Next Step', 'Please complete the sign-up process.');
                 await goto(`/confirmSignUp?email=${encodeURIComponent(email)}`);
             } else if (result.nextStep.signInStep === 'RESET_PASSWORD')
-                toastError('Sign In Failed', 'Password reset is required. Password reset is not implemented.');
+                await resetRequired();
             else
                 toastError('Next Step', `${result.nextStep.signInStep} is not implemented.`);
         } catch (err) {
@@ -74,7 +76,7 @@
             if (err instanceof Error && (err.name === 'NotAuthorizedException' || err.name === 'UserNotFoundException' || err.name === 'InvalidPasswordException'))
                 toastError('Sign In Failed', 'Incorrect email or password.');
             else if (err instanceof Error && err.name === 'PasswordResetRequiredException')
-                toastError('Sign In Failed', 'Password reset is required. Password reset is not implemented.');
+                await resetRequired();
             else
                 toastError('Sign In Failed', 'An error occurred during sign in.');
         } finally {
@@ -133,6 +135,9 @@
 
         <Card.Footer class="flex-col gap-2">
             <Button disabled={loading} class="w-full" onclick={handleSubmit}>Sign In</Button>
+            <Button disabled={loading} class="w-full" href={`/resetPassword?email=${encodeURIComponent(email)}`}
+                    variant="outline">Password Forgotten?
+            </Button>
             <p>
                 Don’t have an account?
                 <a href="/signUp">Sign up</a>

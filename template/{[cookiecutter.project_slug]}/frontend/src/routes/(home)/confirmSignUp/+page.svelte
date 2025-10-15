@@ -49,7 +49,7 @@
                 suggestResend = true;
             } else if (err instanceof Error && err.name === 'ExpiredCodeException') {
                 try {
-                    await get(auth.auth).resendSignUpCode({username: email!});
+                    await get(auth.authApi).resendSignUpCode({username: email!});
                     toastError('Code Sent', 'The provided confirmation code has expired. A new confirmation code has been sent to your email.');
                 } catch {
                     if (dev)
@@ -68,7 +68,7 @@
     async function resendCode() {
         try {
             submitting = true;
-            await get(auth.auth).resendSignUpCode({username: email!});
+            await get(auth.authApi).resendSignUpCode({username: email!});
             toastSuccess('Code Sent', 'A new confirmation code has been sent to your email.');
         } catch (err) {
             console.error('Error resending code:', err);

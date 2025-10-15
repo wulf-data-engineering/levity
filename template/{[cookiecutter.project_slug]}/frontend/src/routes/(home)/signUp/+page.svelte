@@ -31,7 +31,7 @@
             console.error('Error signing up:', err);
             if (err instanceof Error && err.name === 'UsernameExistsException')
                 toastError('Sign Up Failed', 'The Email address is already registered.');
-            else if (err instanceof Error && err.name.includes('InvalidPasswordException'))
+            else if (err instanceof Error && err.name === 'InvalidPasswordException')
                 toastError('Sign Up Failed', 'Password does not meet the required policy.');
             else
                 toastError('Sign Up Failed', 'An error occurred during sign up.');

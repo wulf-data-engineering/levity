@@ -3,14 +3,14 @@ import { writable, derived, get } from 'svelte/store';
 import { dev } from '$app/environment';
 import type { Amplify } from 'aws-amplify';
 import type { GetCurrentUserOutput } from 'aws-amplify/auth';
-import type * as AuthAPI from 'aws-amplify/auth';
+import type * as Auth from 'aws-amplify/auth';
 
 export type Amplify = typeof Amplify;
-export type Auth = typeof AuthAPI;
+export type AuthApi = typeof Auth;
 
 // Holds the Auth namespace once the client loads Amplify
 export const amplify = writable<Amplify>(undefined);
-export const auth = writable<Auth>(undefined);
+export const authApi = writable<AuthApi>(undefined);
 
 // Tri-state user: value (signed in), null (signed out), undefined (loading)
 export type CurrentUser = GetCurrentUserOutput | null | undefined;
@@ -38,10 +38,10 @@ export async function configureAuth() {
 	const endpoint: string | undefined =
 		import.meta.env.VITE_COGNITO_ENDPOINT || (dev && 'http://localhost:9229');
 
-	const amplifyApi: Amplify = (await import('aws-amplify')).Amplify;
-	const authApi: Auth = await import('aws-amplify/auth');
+	const importedAmplify: Amplify = (await import('aws-amplify')).Amplify;
+	const importedAuthApi: AuthApi = await import('aws-amplify/auth');
 
-	amplifyApi.configure(
+	importedAmplify.configure(
 		{
 			Auth: {
 				Cognito: {
@@ -54,8 +54,8 @@ export async function configureAuth() {
 		{ ssr: false }
 	);
 
-	amplify.set(amplifyApi);
-	auth.set(authApi);
+	amplify.set(importedAmplify);
+	authApi.set(importedAuthApi);
 
 	await loadCurrentUser();
 
@@ -65,14 +65,14 @@ export async function configureAuth() {
 
 export async function loadCurrentUser() {
 	try {
-		currentUser.set(await get(auth).getCurrentUser());
+		currentUser.set(await get(authApi).getCurrentUser());
 	} catch {
 		currentUser.set(null);
 	}
 }
 
 async function performAutoSignIn() {
-	await get(auth).autoSignIn();
+	await get(authApi).autoSignIn();
 	await loadCurrentUser();
 }
 
@@ -84,7 +84,7 @@ async function performAutoSignIn() {
 export async function signUp(email: string, password: string, autoSignIn: boolean = true) {
 	if (get(isSignedIn)) await signOut();
 
-	const result = await get(auth).signUp({
+	const result = await get(authApi).signUp({
 		username: email,
 		password: password,
 		options: {
@@ -112,7 +112,7 @@ export async function signUp(email: string, password: string, autoSignIn: boolea
  * If confirmation completes with auto signs in in production, the user is also signed in.
  */
 export async function confirmSignUp(email: string, otp: string) {
-	const result = await get(auth).confirmSignUp({
+	const result = await get(authApi).confirmSignUp({
 		username: email,
 		confirmationCode: otp
 	});
@@ -131,7 +131,7 @@ export async function confirmSignUp(email: string, otp: string) {
  * Signs in the user with given credentials.
  */
 export async function signIn(username: string, password: string) {
-	const user = await get(auth).signIn({
+	const user = await get(authApi).signIn({
 		username: username,
 		password: password,
 		options: {
@@ -150,6 +150,6 @@ export async function signIn(username: string, password: string) {
  * Signs out the current user.
  */
 export async function signOut() {
-	await get(auth).signOut({ global: false });
+	await get(authApi).signOut({ global: false });
 	currentUser.set(null);
 }
