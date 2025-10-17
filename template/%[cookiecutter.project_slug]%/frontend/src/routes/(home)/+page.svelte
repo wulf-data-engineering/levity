@@ -39,8 +39,8 @@
             autofocusPassword = true;
         } else if (dev) {
             // erased at build time
-            email = 'test@wulf.technology';
-            password = 'Password123!';
+            email = '%[ cookiecutter.test_user_email ]%';
+            password = '%[ cookiecutter.test_user_password ]%';
         }
     });
 

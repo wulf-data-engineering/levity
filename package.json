@@ -7,7 +7,7 @@
     "new": "cookiecutter template",
     "test": "echo \"No tool-set tests yet.\"",
     "lint": "npm run check:frontend && npm run lint:frontend",
-    "lint:frontend": "echo 'Linting frontend files...' && rm -rf tmp/lint/frontend && mkdir -p tmp/lint/  && cp -r template/{[cookiecutter.project_slug]}/frontend/ tmp/lint/frontend/ && cd tmp/lint/frontend && npm install && npm run lint && cd ../../../ && rm -rf tmp/lint/frontend && echo 'Frontend linting complete.'",
+    "lint:frontend": "echo 'Linting frontend files...' && rm -rf tmp/lint/frontend && mkdir -p tmp/lint/  && cp -r template/%[cookiecutter.project_slug]%/frontend/ tmp/lint/frontend/ && cd tmp/lint/frontend && npm install && npm run lint && cd ../../../ && rm -rf tmp/lint/frontend && echo 'Frontend linting complete.'",
     "check:frontend": "npx prettier --check \"template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierrc --ignore-path template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierignore",
     "format": "npm run format:frontend",
     "format:frontend": "npx prettier --write \"template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierrc --ignore-path template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierignore"

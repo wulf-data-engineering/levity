@@ -15,7 +15,6 @@
     let submitting = $state(false);
 
     async function handleSubmit() {
-        alert('Submitting');
         submitting = true;
         try {
             const result = await auth.signUp(email, password);

@@ -43,8 +43,8 @@ cdklocal deploy
 
 Infrastructure is deployed against **localstack**.  
 Cognito is not deployed automatically because **cognito-local** is used for local
-development. But there is an initial user pool, a client and a test user _{[cookiecutter.test_user_email]}_
-with password _{[cookiecutter.test_user_password]}_.  
+development. But there is an initial user pool, a client and a test user _%[cookiecutter.test_user_email]%_
+with password _%[cookiecutter.test_user_password]%_.  
 The lambdas are forwarded to **cargo lambda watch**.  
 
 ## Frontend

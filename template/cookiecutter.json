@@ -1,6 +1,6 @@
 {
   "project_name": "Tool-Set Project",
-  "project_slug": "{[ cookiecutter.project_name.lower().replace(' ', '-') ]}",
+  "project_slug": "%[ cookiecutter.project_name.lower().replace(' ', '-') ]%",
   "project_description": "A Tool-Set application.",
   "author": "Wulf Data Engineering GmbH",
   "author_email": "christoph@wulf.technology",
@@ -11,7 +11,7 @@
     "Apache-2.0",
     "empty"
   ],
-  "copyright_initial_year": "{[% now 'utc', '%Y' %]}",
+  "copyright_initial_year": "%%[ now 'utc', '%Y' ]%%",
   "test_user_email": "test@wulf.technology",
   "test_user_password": "Password123!",
 
@@ -42,11 +42,11 @@
   ],
 
   "_jinja2_env_vars": {
-    "block_start_string": "{[%",
-    "block_end_string": "%]}",
-    "variable_start_string": "{[",
-    "variable_end_string": "]}",
-    "comment_start_string": "{[#",
-    "comment_end_string": "#]}"
+    "block_start_string": "%%[",
+    "block_end_string": "]%%",
+    "variable_start_string": "%[",
+    "variable_end_string": "]%",
+    "comment_start_string": "%[#",
+    "comment_end_string": "#]%"
   }
 }

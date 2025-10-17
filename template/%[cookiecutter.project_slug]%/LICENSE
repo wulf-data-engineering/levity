@@ -1,7 +1,7 @@
-{[%- if cookiecutter.license == "MIT" -%]}
+%%[- if cookiecutter.license == "MIT" -]%%
 MIT License
 
-Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]}
+Copyright (c) %[ cookiecutter.copyright_initial_year ]% %[ cookiecutter.author ]%
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-{[%- elif cookiecutter.license == "BSD-3-Clause" -%]}
+%%[- elif cookiecutter.license == "BSD-3-Clause" -]%%
 
 3-Clause BSD License
 
-Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]}
+Copyright (c) %[ cookiecutter.copyright_initial_year ]% %[ cookiecutter.author ]%
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -51,13 +51,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{[%- elif cookiecutter.license == "GPL-3.0-only" -%]}
+%%[- elif cookiecutter.license == "GPL-3.0-only" -]%%
 
 GNU GPL v3.0
 
-{[ cookiecutter.project_name ]}: {[ cookiecutter.project_description ]}
+%[ cookiecutter.project_name ]%: %[ cookiecutter.project_description ]%
 
-Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]}
+Copyright (c) %[ cookiecutter.copyright_initial_year ]% %[ cookiecutter.author ]%
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -71,9 +71,9 @@ You may obtain a copy of the License at
 
   http://www.gnu.org/licenses/
 
-{[%- elif cookiecutter.license == "Apache-2.0" -%]}
+%%[- elif cookiecutter.license == "Apache-2.0" -]%%
 
-Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]}
+Copyright (c) %[ cookiecutter.copyright_initial_year ]% %[ cookiecutter.author ]%
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -87,8 +87,8 @@ Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]
    See the License for the specific language governing permissions and
    limitations under the License.
 
-{[% else %]}
+%%[ else ]%%
 
-Copyright (c) {[ cookiecutter.copyright_initial_year ]} {[ cookiecutter.author ]}
+Copyright (c) %[ cookiecutter.copyright_initial_year ]% %[ cookiecutter.author ]%
 
-{[% endif %]}
+%%[ endif ]%%

@@ -8,11 +8,11 @@
         },
         {
           "Name": "email",
-          "Value": "{[cookiecutter.test_user_email]}"
+          "Value": "%[cookiecutter.test_user_email]%"
         }
       ],
       "Enabled": true,
-      "Password": "{[cookiecutter.test_user_password]}",
+      "Password": "%[cookiecutter.test_user_password]%",
       "RefreshTokens": [],
       "UserCreateDate": "2025-10-01T10:00:00.000Z",
       "UserLastModifiedDate": "2025-10-01T10:00:01.000Z",

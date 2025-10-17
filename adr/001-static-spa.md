@@ -60,7 +60,7 @@ Rules of thumb:
 
 ## 3. Tool-Set Support
 
-The Cookiecutter template `templates/{[cookiecutter.project_slug]}` scaffolds the monorepo with the folder `frontend`
+The Cookiecutter template `templates/%[cookiecutter.project_slug]%` scaffolds the monorepo with the folder `frontend`
 with the SvelteKit application prepared for SSG with unit using vitest and end-to-end tests using Playwright.
 
 ### Future enhancements (tracked separately):
