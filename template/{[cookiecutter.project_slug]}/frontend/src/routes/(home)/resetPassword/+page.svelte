@@ -1,10 +1,11 @@
 <script lang="ts">
     import {page} from "$app/state";
     import {Button} from "$lib/components/ui/button";
-    import {Label} from "$lib/components/ui/label";
-    import {Input} from "$lib/components/ui/input";
     import * as Card from "$lib/components/ui/card";
     import {requestPasswordReset} from "./request";
+    import {ValidatedInput} from "$lib/components/validatedInput";
+    import {validateEmail} from "$lib/validation";
+    import {ValidatedForm} from "$lib/components/validatedForm";
 
     let email = $state(page.url.searchParams.get("email") || '');
 
@@ -29,14 +30,17 @@
     </Card.Header>
 
     <Card.Content>
-        <form id="form" onsubmit={handleSubmit}>
+        <ValidatedForm id="form" onsubmit={handleSubmit}>
             <div class="flex flex-col gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" bind:value={email} required/>
-                </div>
+                <ValidatedInput
+                        id="email"
+                        label="Email"
+                        type="email"
+                        bind:value={email}
+                        validations={[validateEmail]}
+                        required/>
             </div>
-        </form>
+        </ValidatedForm>
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">

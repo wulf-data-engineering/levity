@@ -2,10 +2,11 @@
     import * as auth from '$lib/auth';
     import {goto} from "$app/navigation";
     import {Button} from "$lib/components/ui/button";
-    import {Label} from "$lib/components/ui/label";
-    import {Input} from "$lib/components/ui/input";
     import * as Card from "$lib/components/ui/card";
     import {toastError, toastSuccess} from "../toasts";
+    import {ValidatedInput} from "$lib/components/validatedInput";
+    import {ValidatedForm} from "$lib/components/validatedForm";
+    import {validateEmail, validateNewPassword} from "$lib/validation";
 
     let email = $state('');
     let password = $state('');
@@ -13,8 +14,8 @@
 
     let submitting = $state(false);
 
-    async function handleSubmit(e: Event) {
-        e.preventDefault();
+    async function handleSubmit() {
+        alert('Submitting');
         submitting = true;
         try {
             const result = await auth.signUp(email, password);
@@ -49,26 +50,35 @@
     </Card.Header>
 
     <Card.Content>
-        <form id="form" onsubmit={handleSubmit}>
+        <ValidatedForm id="form" onsubmit={handleSubmit}>
             <div class="flex flex-col gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" bind:value={email} required/>
-                </div>
-                <div class="grid gap-2">
-                    <div class="flex items-center">
-                        <Label for="password">Password</Label>
-                    </div>
-                    <Input id="password" type="password" bind:value={password} required/>
-                </div>
-                <div class="grid gap-2">
-                    <div class="flex items-center">
-                        <Label for="confirm">Confirm</Label>
-                    </div>
-                    <Input id="confirm" type="password" bind:value={confirm} required/>
-                </div>
+                <ValidatedInput
+                        id="email"
+                        label="Email"
+                        type="email"
+                        bind:value={email}
+                        validations={[validateEmail]}
+                        required/>
+
+                <ValidatedInput
+                        id="password"
+                        label="Password"
+                        type="password"
+                        bind:value={password}
+                        validations={[validateNewPassword]}
+                        info="at least 8 characters, a number, a symbol, an uppercase and a lowercase letter"
+                        required/>
+
+                <ValidatedInput
+                        id="confirm"
+                        label="Confirm"
+                        type="password"
+                        bind:value={confirm}
+                        validations={[
+                            (v) => v === password ? null : "Password does not match its repetition."
+                        ]}/>
             </div>
-        </form>
+        </ValidatedForm>
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">

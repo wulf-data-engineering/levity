@@ -5,11 +5,12 @@
     import {page} from "$app/state";
     import {goto} from "$app/navigation";
     import {Button} from "$lib/components/ui/button";
-    import {Label} from "$lib/components/ui/label";
-    import {Input} from "$lib/components/ui/input";
     import * as Card from "$lib/components/ui/card";
     import {toastError, toastSuccess} from "./toasts";
     import {onMount} from "svelte";
+    import {validateEmail} from "$lib/validation";
+    import {ValidatedInput} from "$lib/components/validatedInput";
+    import {ValidatedForm} from "$lib/components/validatedForm";
 
     // TODO: Verify password configuration
 
@@ -46,7 +47,6 @@
     let loading = $state(false);
 
     async function handleSubmit(e: Event) {
-        e.preventDefault();
         loading = true;
 
         const resetRequired = async () => {
@@ -116,21 +116,26 @@
         </Card.Header>
 
         <Card.Content>
-            <form id="form" onsubmit={handleSubmit}>
+            <ValidatedForm id="form" onsubmit={handleSubmit}>
                 <div class="flex flex-col gap-6">
-                    <div class="grid gap-2">
-                        <Label for="email">Email</Label>
-                        <Input id="email" type="email" autofocus={!autofocusPassword} bind:value={email} required/>
-                    </div>
-                    <div class="grid gap-2">
-                        <div class="flex items-center">
-                            <Label for="password">Password</Label>
-                        </div>
-                        <Input id="password" type="password" autofocus={autofocusPassword} bind:value={password}
-                               required/>
-                    </div>
+                    <ValidatedInput
+                            id="email"
+                            label="Email"
+                            type="email"
+                            bind:value={email}
+                            autofocus={!autofocusPassword}
+                            validations={[validateEmail]}
+                            required/>
+
+                    <ValidatedInput
+                            id="password"
+                            label="Password"
+                            type="password"
+                            bind:value={password}
+                            autofocus={autofocusPassword}
+                            required/>
                 </div>
-            </form>
+            </ValidatedForm>
         </Card.Content>
 
         <Card.Footer class="flex-col gap-2">

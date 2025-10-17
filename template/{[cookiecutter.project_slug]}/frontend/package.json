@@ -62,6 +62,7 @@
 		"@aws-amplify/auth": "^6.16.0",
 		"@storybook/addon-essentials": "^9.0.0-alpha.12",
 		"@storybook/addon-svelte-csf": "^5.0.10",
+    "@storybook/addon-docs": "^9.1.12",
 		"@storybook/sveltekit": "^9.1.10",
 		"amazon-cognito-identity-js": "^6.3.15",
 		"aws-amplify": "^6.15.6"

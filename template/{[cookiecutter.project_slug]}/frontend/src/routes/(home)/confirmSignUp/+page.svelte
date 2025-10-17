@@ -9,6 +9,7 @@
     import {page} from "$app/state";
     import {onMount} from 'svelte';
     import {get} from 'svelte/store';
+    import {ValidatedForm} from "$lib/components/validatedForm";
 
     let submitting = $state(false);
 
@@ -27,7 +28,6 @@
     let otp = $state(dev ? '123456' : ''); // erased at build time
 
     async function handleSubmit(e: Event) {
-        e.preventDefault();
         submitting = true;
         try {
             const result = await auth.confirmSignUp(email, otp);
@@ -84,7 +84,7 @@
     </Card.Header>
 
     <Card.Content>
-        <form id="form" onsubmit={handleSubmit}>
+        <ValidatedForm id="form" onsubmit={handleSubmit}>
             <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center" required>
                 {#snippet children({cells})}
                     <InputOTP.Group>
@@ -94,7 +94,7 @@
                     </InputOTP.Group>
                 {/snippet}
             </InputOTP.Root>
-        </form>
+        </ValidatedForm>
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
