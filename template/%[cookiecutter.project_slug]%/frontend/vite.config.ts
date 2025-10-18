@@ -17,5 +17,20 @@ export default defineConfig({
 				}
 			}
 		]
+	},
+	server: {
+		proxy: {
+			// On dev redirect "/api/..." to cargo lambda watch "/lambda-url/.../"
+			'/api': {
+				target: 'http://localhost:9000',
+				changeOrigin: true,
+				secure: false,
+				rewrite: (path) => {
+					const withoutApi = path.replace(/^\/api/, '');
+					const target = `/lambda-url${withoutApi}/`;
+					return target;
+				}
+			}
+		}
 	}
 });

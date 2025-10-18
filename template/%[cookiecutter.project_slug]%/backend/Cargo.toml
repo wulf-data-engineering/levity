@@ -7,12 +7,16 @@ edition = "2021"
 lambda_runtime = "0.14.4"
 lambda_http = "0.17.0"
 aws_lambda_events = { version = "0.18.0", default-features = false, features = ["sqs", "cognito"] }
-
-tokio = { version = "1", features = ["macros"] }
+serde = { version = "1.0.226", features = ["derive"] }
+tokio = { version = "1.48.0", features = ["macros"] }
+serde_json = "1.0.145"
+anyhow = "1.0.100"
+aws-config = "1.8.8"
+aws-sdk-cognitoidentityprovider = "1.100.0"
 
 [[bin]]
-name = "hello"
-path = "src/hello.rs"
+name = "password-policy"
+path = "src/password-policy.rs"
 
 [[bin]]
 name = "cognito-handler"

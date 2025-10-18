@@ -9,18 +9,41 @@
     import {get} from "svelte/store";
     import {requestPasswordReset} from "../resetPassword/request";
     import {page} from "$app/state";
-    import {validateEmail, validateNewPassword} from "$lib/validation";
+    import {type PasswordPolicy, validateEmail, validateNewPassword, validatePasswordRepetition} from "$lib/validation";
     import {ValidatedInput} from "$lib/components/validatedInput";
     import {ValidatedForm} from "$lib/components/validatedForm";
+    import {onMount} from "svelte";
 
-    let email = $state(page.url.searchParams.get("email") || '');
+    let email = $state('');
     let password = $state('');
     let confirm = $state('');
 
-    let otp = $state(page.url.searchParams.get("otp") || (dev ? '123456' : '')); // erased at build time
+    let otp = $state(dev ? '123456' : ''); // erased at build time
 
     let submitting = $state(false);
-    let submitted = $state(false);
+
+    let passwordPolicy: PasswordPolicy | null = null;
+
+    onMount(() => {
+        const urlEmail = page.url.searchParams.get('email');
+        if (urlEmail) {
+            email = urlEmail;
+        }
+
+        const urlOtp = page.url.searchParams.get('otp');
+        if (urlOtp) {
+            otp = urlOtp;
+        }
+
+        fetch('/api/password-policy')
+            .then(res => res.json())
+            .then(data => {
+                passwordPolicy = data as PasswordPolicy;
+            })
+            .catch(err => {
+                console.error('Error loading password policy:', err);
+            });
+    })
 
     async function handleSubmit(e: Event) {
         e.preventDefault();
@@ -88,26 +111,21 @@
                         label="Email"
                         type="email"
                         bind:value={email}
-                        validations={[validateEmail]}
-                        required/>
+                        validations={[validateEmail]}/>
 
                 <ValidatedInput
                         id="password"
                         label="Password"
                         type="password"
                         bind:value={password}
-                        validations={[validateNewPassword]}
-                        info="At least 8 characters, a number, a symbol, an uppercase and a lowercase letter"
-                        required/>
+                        validations={[(v) => validateNewPassword(passwordPolicy, v)]}/>
 
                 <ValidatedInput
                         id="confirm"
                         label="Confirm"
                         type="password"
                         bind:value={confirm}
-                        validations={[
-                            (v) => v === password ? null : "Password does not match its repetition."
-                        ]}/>
+                        validations={[(v) => validatePasswordRepetition(password, v)]}/>
             </div>
         </ValidatedForm>
     </Card.Content>

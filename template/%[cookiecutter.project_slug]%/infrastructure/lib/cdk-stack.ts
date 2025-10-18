@@ -14,12 +14,6 @@ export class CdkLocalstackDemoStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    cargoLambdaFunction(this, "HelloFunction", {
-      functionName: "hello-function",
-      manifestPath: join(__dirname, "..", "backend"),
-      binaryName: "hello",
-    });
-
     const queue = new sqs.Queue(this, "SomeQueue", {
       queueName: "some-queue",
     });
@@ -36,5 +30,10 @@ export class CdkLocalstackDemoStack extends cdk.Stack {
     messageHandler.addEventSource(
       new cdk.aws_lambda_event_sources.SqsEventSource(queue, {}),
     );
+
+    cargoLambdaFunction(this, "PasswordPolicyFunction", {
+      functionName: "password-policy",
+      manifestPath: join(__dirname, "..", "backend"),
+    });
   }
 }

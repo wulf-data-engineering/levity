@@ -6,13 +6,31 @@
     import {toastError, toastSuccess} from "../toasts";
     import {ValidatedInput} from "$lib/components/validatedInput";
     import {ValidatedForm} from "$lib/components/validatedForm";
-    import {validateEmail, validateNewPassword} from "$lib/validation";
+    import {validateEmail, validateNewPassword, validatePasswordRepetition, type PasswordPolicy} from "$lib/validation";
+    import {onMount} from "svelte";
 
     let email = $state('');
     let password = $state('');
     let confirm = $state('');
 
     let submitting = $state(false);
+
+    let passwordPolicy: PasswordPolicy | null = null;
+
+    onMount(() => {
+        fetch('/api/password-policy')
+            .then(res => res.json())
+            .then(data => {
+                passwordPolicy = data as PasswordPolicy;
+            })
+            .catch(err => {
+                console.error('Error loading password policy:', err);
+            });
+    });
+
+    // TODO: Als nächstes eine API für die Cognito Passwort-Richtlinien erstellen und laden:
+    // - JSON -> Protobuf
+    // - API Gateway api/lambdaName, 1 min. cache
 
     async function handleSubmit() {
         submitting = true;
@@ -56,26 +74,21 @@
                         label="Email"
                         type="email"
                         bind:value={email}
-                        validations={[validateEmail]}
-                        required/>
+                        validations={[validateEmail]}/>
 
                 <ValidatedInput
                         id="password"
                         label="Password"
                         type="password"
                         bind:value={password}
-                        validations={[validateNewPassword]}
-                        info="at least 8 characters, a number, a symbol, an uppercase and a lowercase letter"
-                        required/>
+                        validations={[(v) => validateNewPassword(passwordPolicy, v)]}/>
 
                 <ValidatedInput
                         id="confirm"
                         label="Confirm"
                         type="password"
                         bind:value={confirm}
-                        validations={[
-                            (v) => v === password ? null : "Password does not match its repetition."
-                        ]}/>
+                        validations={[(v) => validatePasswordRepetition(password, v)]}/>
             </div>
         </ValidatedForm>
     </Card.Content>

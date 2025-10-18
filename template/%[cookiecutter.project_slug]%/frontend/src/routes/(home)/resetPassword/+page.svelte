@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {onMount} from "svelte";
     import {page} from "$app/state";
     import {Button} from "$lib/components/ui/button";
     import * as Card from "$lib/components/ui/card";
@@ -7,9 +8,16 @@
     import {validateEmail} from "$lib/validation";
     import {ValidatedForm} from "$lib/components/validatedForm";
 
-    let email = $state(page.url.searchParams.get("email") || '');
+    let email = $state('');
 
     let submitting = $state(false);
+
+    onMount(() => {
+        const urlEmail = page.url.searchParams.get('email');
+        if (urlEmail) {
+            email = urlEmail;
+        }
+    });
 
     async function handleSubmit(e: Event) {
         e.preventDefault();
