@@ -1,9 +1,10 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import protoPlugin from './vite-plugin-protobuf';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [tailwindcss(), sveltekit(), protoPlugin()],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
@@ -27,8 +28,7 @@ export default defineConfig({
 				secure: false,
 				rewrite: (path) => {
 					const withoutApi = path.replace(/^\/api/, '');
-					const target = `/lambda-url${withoutApi}/`;
-					return target;
+					return `/lambda-url${withoutApi}/`;
 				}
 			}
 		}

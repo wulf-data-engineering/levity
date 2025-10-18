@@ -1,6 +1,9 @@
 test-results
 node_modules
 
+# Protobuf files
+src/lib/proto
+
 # Output
 .output
 .vercel

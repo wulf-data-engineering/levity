@@ -1,6 +1,7 @@
 {
   "project_name": "Tool-Set Project",
   "project_slug": "%[ cookiecutter.project_name.lower().replace(' ', '-') ]%",
+  "package_name": "%[ cookiecutter.project_slug.replace('-', '_') ]%",
   "project_description": "A Tool-Set application.",
   "author": "Wulf Data Engineering GmbH",
   "author_email": "christoph@wulf.technology",
@@ -18,6 +19,7 @@
   "__prompts__": {
     "project_name": "Select the name of your project",
     "project_slug": "Select the slug for folder name and identifiers",
+    "package_name": "Select the package name",
     "project_description": "One line to give a brief idea of what the project does",
     "author": "Your or your organization's name",
     "author_email": "Your or your organization's email",

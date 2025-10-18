@@ -12,8 +12,6 @@
     import {ValidatedInput} from "$lib/components/validatedInput";
     import {ValidatedForm} from "$lib/components/validatedForm";
 
-    // TODO: Verify password configuration
-
     async function signOut() {
         try {
             loading = true;

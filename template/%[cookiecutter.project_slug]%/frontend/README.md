@@ -28,7 +28,7 @@ The application is rendered with **static-site generation (SSG)** via `@sveltejs
 - `npm run preview`: Previews the production build locally.
 - `npm run prepare`: Synchronizes SvelteKit's generated types (usually run automatically by npm).
 - `npm run format`: Formats all files with Prettier.
-- `npm run proto:gen`: Generates code from protobuf definitions _(not yet implemented)_.
+- `npm run gen:proto`: Generates code from protobuf definitions.
 
 ## Testing
 

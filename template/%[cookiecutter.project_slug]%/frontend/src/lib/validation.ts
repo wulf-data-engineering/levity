@@ -19,7 +19,7 @@ export function validateEmail(value: string) {
 	else return null;
 }
 
-export type PasswordPolicy = {
+type PasswordPolicy = {
 	minimumLength: number;
 	requireUppercase: boolean;
 	requireLowercase: boolean;

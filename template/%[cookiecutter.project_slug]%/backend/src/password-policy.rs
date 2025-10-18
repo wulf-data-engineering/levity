@@ -1,18 +1,11 @@
 use anyhow::{anyhow, Context, Result};
 use aws_sdk_cognitoidentityprovider as cognito_idp;
-use backend::{json_response, load_aws_cognito_config};
+use backend::{write_response, load_aws_cognito_config};
 use lambda_http::{run, service_fn, tracing, Body, Error, Request, Response};
-use serde::Serialize;
+use protocol_macro::protocols;
 
-#[derive(Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct PasswordPolicy {
-    minimum_length: i32,
-    require_uppercase: bool,
-    require_lowercase: bool,
-    require_numbers: bool,
-    require_symbols: bool,
-}
+#[protocols("%[cookiecutter.package_name]%")]
+pub mod protocols {}
 
 #[derive(Clone)]
 struct AppState {
@@ -51,9 +44,9 @@ async fn main() -> Result<(), Error> {
     .await
 }
 
-async fn password_policy_handler(_req: Request, state: AppState) -> Result<Response<Body>, Error> {
+async fn password_policy_handler(req: Request, state: AppState) -> Result<Response<Body>, Error> {
     let policy = get_password_policy(&state).await?;
-    json_response(policy)
+    write_response(&policy, &req)
 }
 
 async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
@@ -78,7 +71,7 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
         .ok_or_else(|| anyhow!("DescribeUserPool: missing password_policy"))?;
 
     Ok(PasswordPolicy {
-        minimum_length: p.minimum_length().unwrap_or(8),
+        minimum_length: p.minimum_length().unwrap_or(6),
         require_uppercase: p.require_uppercase,
         require_lowercase: p.require_lowercase,
         require_numbers: p.require_numbers,

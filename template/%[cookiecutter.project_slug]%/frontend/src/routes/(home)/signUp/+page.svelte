@@ -6,8 +6,10 @@
     import {toastError, toastSuccess} from "../toasts";
     import {ValidatedInput} from "$lib/components/validatedInput";
     import {ValidatedForm} from "$lib/components/validatedForm";
-    import {validateEmail, validateNewPassword, validatePasswordRepetition, type PasswordPolicy} from "$lib/validation";
+    import {validateEmail, validateNewPassword, validatePasswordRepetition} from "$lib/validation";
     import {onMount} from "svelte";
+    import {protocolLoad} from "$lib/protocols";
+    import {PasswordPolicy} from "$lib/proto/password-policy";
 
     let email = $state('');
     let password = $state('');
@@ -18,19 +20,14 @@
     let passwordPolicy: PasswordPolicy | null = null;
 
     onMount(() => {
-        fetch('/api/password-policy')
-            .then(res => res.json())
+        protocolLoad('/api/password-policy', PasswordPolicy)
             .then(data => {
-                passwordPolicy = data as PasswordPolicy;
+                passwordPolicy = data;
             })
             .catch(err => {
-                console.error('Error loading password policy:', err);
+                console.error('Error loading password policy via protocolFetch:', err);
             });
     });
-
-    // TODO: Als nächstes eine API für die Cognito Passwort-Richtlinien erstellen und laden:
-    // - JSON -> Protobuf
-    // - API Gateway api/lambdaName, 1 min. cache
 
     async function handleSubmit() {
         submitting = true;
