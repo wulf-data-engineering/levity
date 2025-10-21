@@ -6,7 +6,7 @@ use tracing_subscriber;
 ///
 /// This lambda reacts on Cognito's lifecycle events.
 /// The default version just enables auto-confirm of users signing up in development
-/// (except Email addresses of form foo+confirm@bar.baz which need confirmation on dev, too).
+/// (except Email addresses of form [...]confirm@bar.baz which need confirmation on dev, too).
 ///
 /// If you add more cases, make sure to add them to local/cognito-local-volume/config.json
 ///
@@ -38,14 +38,14 @@ fn auto_confirm(_: &CognitoEventUserPoolsPreSignupRequest) -> bool {
     false
 }
 
-// On development mode just require confirm for Email addresses of form foo+confirm@bar.baz
+// On development mode just require confirm for Email addresses of form [...]confirm@bar.baz
 #[cfg(debug_assertions)]
 fn auto_confirm(request: &CognitoEventUserPoolsPreSignupRequest) -> bool {
     !request
         .user_attributes
         .get("email")
         .iter()
-        .any(|email| email.contains("+confirm@"))
+        .any(|email| email.contains("confirm@"))
 }
 
 #[tokio::main]

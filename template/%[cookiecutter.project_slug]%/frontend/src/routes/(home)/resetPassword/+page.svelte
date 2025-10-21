@@ -52,7 +52,7 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button disabled={submitting} class="w-full" type="submit" form="form">
+        <Button id="reset-password-btn" disabled={submitting} class="w-full" type="submit" form="form">
             Reset Password
         </Button>
     </Card.Footer>

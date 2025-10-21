@@ -91,12 +91,12 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button disabled={submitting} class="w-full" type="submit" form="form">
+        <Button id="sign-up-btn" disabled={submitting} class="w-full" type="submit" form="form">
             Sign Up
         </Button>
         <p>
             Already have an account?
-            <a href="/">Sign in</a>
+            <a id="sign-in-link" href="/">Sign in</a>
         </p>
     </Card.Footer>
 </Card.Root>

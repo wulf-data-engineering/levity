@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {authApi} from '$lib/auth';
+    import {authApi, signIn} from '$lib/auth';
     import {goto} from "$app/navigation";
     import {Button} from "$lib/components/ui/button";
     import * as Card from "$lib/components/ui/card";
@@ -9,10 +9,13 @@
     import {get} from "svelte/store";
     import {requestPasswordReset} from "../resetPassword/request";
     import {page} from "$app/state";
-    import {type PasswordPolicy, validateEmail, validateNewPassword, validatePasswordRepetition} from "$lib/validation";
+    import {validateEmail, validateNewPassword, validatePasswordRepetition} from "$lib/validation";
     import {ValidatedInput} from "$lib/components/validatedInput";
     import {ValidatedForm} from "$lib/components/validatedForm";
     import {onMount} from "svelte";
+    import {protocolLoad} from "$lib/protocols";
+    import {PasswordPolicy} from "$lib/proto/password-policy";
+
 
     let email = $state('');
     let password = $state('');
@@ -35,13 +38,12 @@
             otp = urlOtp;
         }
 
-        fetch('/api/password-policy')
-            .then(res => res.json())
+        protocolLoad('/api/password-policy', PasswordPolicy)
             .then(data => {
-                passwordPolicy = data as PasswordPolicy;
+                passwordPolicy = data;
             })
             .catch(err => {
-                console.error('Error loading password policy:', err);
+                console.error('Error loading password policy via protocolFetch:', err);
             });
     })
 
@@ -49,13 +51,13 @@
         e.preventDefault();
         submitting = true;
         try {
-            const result = await get(authApi).confirmResetPassword({
+            await get(authApi).confirmResetPassword({
                 username: email,
                 newPassword: password,
                 confirmationCode: otp,
             });
-            console.log('Confirm Reset Password:', result);
             toastSuccess('Password Reset', 'Your password has been reset successfully.');
+            await signIn(email, password);
             await goto('/')
         } catch (err) {
             console.error('Error confirming reset password:', err);
@@ -96,7 +98,7 @@
     <Card.Content>
         <ValidatedForm id="form" onsubmit={handleSubmit}>
             <div class="flex flex-col gap-6">
-                <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center" required>
+                <InputOTP.Root id="otp" maxlength={6} bind:value={otp} class="justify-center" required>
                     {#snippet children({cells})}
                         <InputOTP.Group>
                             {#each cells as cell (cell)}
@@ -131,11 +133,11 @@
     </Card.Content>
 
     <Card.Footer class="flex-col gap-2">
-        <Button variant="default" disabled={submitting} class="w-full"
+        <Button id="reset-password-btn" variant="default" disabled={submitting} class="w-full"
                 type="submit" form="form">
             Reset Password
         </Button>
-        <Button variant="outline" disabled={submitting} class="w-full"
+        <Button id="resend-code-btn" variant="outline" disabled={submitting} class="w-full"
                 onclick={resendCode}>
             Resend Code
         </Button>

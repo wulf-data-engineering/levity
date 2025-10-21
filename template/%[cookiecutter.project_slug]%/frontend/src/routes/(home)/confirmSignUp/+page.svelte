@@ -27,7 +27,7 @@
 
     let otp = $state(dev ? '123456' : ''); // erased at build time
 
-    async function handleSubmit(e: Event) {
+    async function handleSubmit() {
         submitting = true;
         try {
             const result = await auth.confirmSignUp(email, otp);
@@ -85,7 +85,7 @@
 
     <Card.Content>
         <ValidatedForm id="form" onsubmit={handleSubmit}>
-            <InputOTP.Root maxlength={6} bind:value={otp} class="justify-center" required>
+            <InputOTP.Root id="otp" maxlength={6} bind:value={otp} class="justify-center" required>
                 {#snippet children({cells})}
                     <InputOTP.Group>
                         {#each cells as cell (cell)}

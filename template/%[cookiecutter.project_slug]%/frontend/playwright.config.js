@@ -39,7 +39,8 @@ export default defineConfig({
 	/* Configure projects for major browsers */
 	projects: process.env.CI ? allProjects : [chrome],
 	webServer: {
-		command: 'npm run build && npm run preview',
-		port: 4173
+		command: 'npm run dev',
+		port: 5173,
+		reuseExistingServer: true
 	}
 });

@@ -103,7 +103,7 @@
         </Card.Content>
 
         <Card.Footer class="flex-col gap-2">
-            <Button onclick={signOut} disabled={loading} variant="outline" class="w-full">Sign Out</Button>
+            <Button id="sign-out-btn" onclick={signOut} disabled={loading} variant="outline" class="w-full">Sign Out</Button>
         </Card.Footer>
 
     {:else if $currentUser === null}
@@ -137,13 +137,14 @@
         </Card.Content>
 
         <Card.Footer class="flex-col gap-2">
-            <Button disabled={loading} class="w-full" type="submit" form="form">Sign In</Button>
-            <Button disabled={loading} class="w-full" href={`/resetPassword?email=${encodeURIComponent(email)}`}
+            <Button id="sign-in-btn" disabled={loading} class="w-full" type="submit" form="form">Sign In</Button>
+            <Button id="password-forgotten-btn" disabled={loading} class="w-full"
+                    href={`/resetPassword?email=${encodeURIComponent(email)}`}
                     variant="outline">Password Forgotten?
             </Button>
             <p>
                 Don’t have an account?
-                <a href="/signUp">Sign up</a>
+                <a id="sign-up-link" href="/signUp">Sign up</a>
             </p>
         </Card.Footer>
     {:else}

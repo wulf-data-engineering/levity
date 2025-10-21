@@ -2,7 +2,24 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, LitStr};
 
-/// Attribute macro: #[protocols("example.hello")]
+///
+/// This macro supports loading a package of protocols into the scope of a Rust file.
+///
+/// Usage:
+///
+/// ```
+/// #[protocols("%[cookiecutter.package_name]%")]
+/// pub mod protocols {}
+///
+/// async fn handler(req: Request) -> Result<Response<Body>, Error> {
+///     let response = SomeProtocolStruct {
+///        some_field_defined_in_protocol_buffers: 42
+///     }
+//     write_response(&response, &req)
+// }
+///
+/// ```
+///
 #[proc_macro_attribute]
 pub fn protocols(attr: TokenStream, item: TokenStream) -> TokenStream {
     let proto_package = parse_macro_input!(attr as LitStr);
