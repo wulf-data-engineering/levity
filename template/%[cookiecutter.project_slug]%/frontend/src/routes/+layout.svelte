@@ -3,9 +3,9 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import * as auth from '$lib/auth';
-    import { Toaster } from "$lib/components/ui/sonner/";
+	import { Toaster } from '$lib/components/ui/sonner/';
 
-    onMount(async () => {
+	onMount(async () => {
 		// If the static splash was injected (only on the fallback file), remove it.
 		document.getElementById('cf-splash')?.remove();
 		document.getElementById('cf-splash-style')?.remove();
@@ -19,7 +19,7 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Toaster/>
+<Toaster />
 
 {@render children?.()}
 

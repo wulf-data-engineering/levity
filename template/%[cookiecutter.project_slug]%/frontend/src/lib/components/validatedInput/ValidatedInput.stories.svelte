@@ -1,15 +1,15 @@
 <script module>
-    import {defineMeta} from '@storybook/addon-svelte-csf';
-    import {ValidatedInput} from ".";
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import { ValidatedInput } from '.';
 
-    const {Story} = defineMeta({
-        title: 'Example/ValidatedInput',
-        component: ValidatedInput,
-        tags: ['autodocs'],
-        args: {
-            placeholder: 'Type something...'
-        }
-    });
+	const { Story } = defineMeta({
+		title: 'Example/ValidatedInput',
+		component: ValidatedInput,
+		tags: ['autodocs'],
+		args: {
+			placeholder: 'Type something...'
+		}
+	});
 </script>
 
 <!--
@@ -25,17 +25,28 @@ They are just shown when the input field has been touched (focused and blurred) 
 submitted once.
 -->
 
-<Story name="Default" args={{ id: 'default' }}/>
+<Story name="Default" args={{ id: 'default' }} />
 
-<Story name="Labeled" args={{ id: 'label', label: 'Label'}}/>
+<Story name="Labeled" args={{ id: 'label', label: 'Label' }} />
 
-<Story name="Info" args={{ id: 'info', info: "We'll never share your Email address."}}/>
+<Story name="Info" args={{ id: 'info', info: "We'll never share your Email address." }} />
 
-<Story name="Required" args={{ id: 'required', required: true }}/>
+<Story name="Required" args={{ id: 'required', required: true }} />
 
-<Story name="Validated"
-       args={{ id: 'validated', validations: [(v) => (!v || !v.includes('@')) ? 'Email address required.' : ''] }}/>
+<Story
+	name="Validated"
+	args={{
+		id: 'validated',
+		validations: [(v) => (!v || !v.includes('@') ? 'Email address required.' : '')]
+	}}
+/>
 
-<Story name="Complete"
-       args={{ id: 'complete', label: 'Email', info: "We'll never share your Email address.", validations: [(v) => (!v || !v.includes('@')) ? 'Email address required.' : ''] }}/>
-
+<Story
+	name="Complete"
+	args={{
+		id: 'complete',
+		label: 'Email',
+		info: "We'll never share your Email address.",
+		validations: [(v) => (!v || !v.includes('@') ? 'Email address required.' : '')]
+	}}
+/>

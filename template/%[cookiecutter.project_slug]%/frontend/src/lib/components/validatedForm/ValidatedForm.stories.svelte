@@ -1,18 +1,18 @@
 <script module>
-    import {defineMeta} from '@storybook/addon-svelte-csf';
-    import {ValidatedForm} from ".";
-    import {ValidatedInput} from "../validatedInput";
-    import {fn} from 'storybook/test';
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import { ValidatedForm } from '.';
+	import { ValidatedInput } from '../validatedInput';
+	import { fn } from 'storybook/test';
 
-    const {Story} = defineMeta({
-        render,
-        title: 'Example/ValidatedForm',
-        component: ValidatedForm,
-        tags: ['autodocs'],
-        args: {
-            onsubmit: fn()
-        }
-    });
+	const { Story } = defineMeta({
+		render,
+		title: 'Example/ValidatedForm',
+		component: ValidatedForm,
+		tags: ['autodocs'],
+		args: {
+			onsubmit: fn()
+		}
+	});
 </script>
 
 <!--
@@ -26,21 +26,27 @@ It focuses the first invalid input field if validation fails.
 To test the behavior, press the "submit" button to see that all invalid fields show their error message.
 -->
 
-
 {#snippet render(args)}
-    <ValidatedForm {...args}>{args.children}
-        <div class="flex flex-col gap-6">
-            <ValidatedInput id="noValidation" label="No Validation"></ValidatedInput>
-            <ValidatedInput id="email" label="Email" type="email"
-                            validations={[(v) => v && v.includes('@') ? null : 'Email is required']}></ValidatedInput>
-            <ValidatedInput id="minLength" label="Min. Length"
-                            validations={[(v) => !v || v.length < 6 ? 'Min. length 6' : null]}></ValidatedInput>
-            <ValidatedInput id="required" label="Required" required></ValidatedInput>
+	<ValidatedForm {...args}
+		>{args.children}
+		<div class="flex flex-col gap-6">
+			<ValidatedInput id="noValidation" label="No Validation"></ValidatedInput>
+			<ValidatedInput
+				id="email"
+				label="Email"
+				type="email"
+				validations={[(v) => (v && v.includes('@') ? null : 'Email is required')]}
+			></ValidatedInput>
+			<ValidatedInput
+				id="minLength"
+				label="Min. Length"
+				validations={[(v) => (!v || v.length < 6 ? 'Min. length 6' : null)]}
+			></ValidatedInput>
+			<ValidatedInput id="required" label="Required" required></ValidatedInput>
 
-            <input type="submit" value="Submit"/>
-        </div>
-    </ValidatedForm>
+			<input type="submit" value="Submit" />
+		</div>
+	</ValidatedForm>
 {/snippet}
 
-
-<Story name="Validated Form" args={{ id: 'default' }}/>
+<Story name="Validated Form" args={{ id: 'default' }} />

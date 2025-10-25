@@ -11,7 +11,7 @@ The application is rendered with **static-site generation (SSG)** via `@sveltejs
 
 **Playwright** is used for end-to-end and UI testing in `e2e/`.
 
-**shadcn/svelte** is used for UI components and styling installing its components in `src/lib/components/ui/`. 
+**shadcn/svelte** is used for UI components and styling installing its components in `src/lib/components/ui/`.
 
 **Storybook** is used for a UI component library, see `.storybook`.
 
