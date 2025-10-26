@@ -22,15 +22,27 @@ jobs:
           key: pip-cache-cookiecutter
       - name: Install cookiecutter
         run: pip install cookiecutter
-      - name: Generate template instance
-        id: generate
+      - name: Generate test template instance
         run: |
-          cookiecutter template/ --no-input --no-input project_name="Template-Instance" --output-dir .
-      - name: Upload template instance
+          # Overwrite defaults to make sure defaults are not part of the seeded template due to copy & paste
+          cookiecutter --no-input --output-dir . template/ \
+            project_name="Test Instance" \
+            project_description="Some sample application." \
+            author="GitHub Actions" \
+            author_email="git@hub.actions" \
+            test_user_email="test@hub.actions" \
+            test_user_password="Test456$"
+      - name: Verify template contains no default values
+        run: |
+          python scripts/check_defaults.py --template template/cookiecutter.json --generated test-instance \
+            -c project_slug "tool-set-project" \
+            -c package_name "tool_set_project" \
+            --ignore license
+      - name: Upload test template instance
         uses: actions/upload-artifact@v5
         with:
-          name: template-instance
-          path: template-instance/
+          name: test-instance
+          path: test-instance/
           include-hidden-files: true # for .prettierignore etc.
   test-backend:
     name: Test Backend in Template
@@ -38,17 +50,17 @@ jobs:
     needs: seed-template
     defaults:
       run:
-        working-directory: ./template-instance/backend
+        working-directory: ./test-instance/backend
     steps:
-      - name: Download template instance
+      - name: Download test template instance
         uses: actions/download-artifact@v6
         with:
-          name: template-instance
-          path: ./template-instance
+          name: test-instance
+          path: ./test-instance
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: pull-request
-          workspaces: ./template-instance/backend -> target
+          workspaces: ./test-instance/backend -> target
       - name: Install Rust
         run: rustup toolchain install stable
       - name: Install Protoc
@@ -72,7 +84,7 @@ jobs:
           echo "check outcome:  ${{ steps.check.outcome }}"
           echo "clippy outcome:  ${{ steps.clippy.outcome }}"
           echo "tests outcome:  ${{ steps.tests.outcome }}"
-          
+
           # If any step outcome is 'failure' then fail the job
           for s in "${{ steps.format.outcome }}" "${{ steps.check.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}"; do
             if [ "$s" = "failure" ]; then
@@ -80,7 +92,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "All checks passed."
   test-frontend:
     name: Test Frontend in Template
@@ -88,13 +100,13 @@ jobs:
     needs: seed-template
     defaults:
       run:
-        working-directory: ./template-instance/frontend
+        working-directory: ./test-instance/frontend
     steps:
-      - name: Download template instance
+      - name: Download test template instance
         uses: actions/download-artifact@v6
         with:
-          name: template-instance
-          path: ./template-instance
+          name: test-instance
+          path: ./test-instance
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -104,8 +116,8 @@ jobs:
         with:
           path: |
             ~/.npm
-            template-instance/frontend/node_modules/
-          key: node-modules-cache-${{ hashFiles('template-instance/frontend/package.json') }} # template doesn't include a lock file
+            test-instance/frontend/node_modules/
+          key: node-modules-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
           restore-keys: node-modules-cache-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -131,7 +143,6 @@ jobs:
           echo "lint outcome:   ${{ steps.lint.outcome }}"
           echo "check outcome:  ${{ steps.check.outcome }}"
           echo "tests outcome:  ${{ steps.tests.outcome }}"
-          
           # If any step outcome is 'failure' then fail the job
           for s in "${{ steps.lint.outcome }}" "${{ steps.check.outcome }}" "${{ steps.tests.outcome }}"; do
             if [ "$s" = "failure" ]; then
