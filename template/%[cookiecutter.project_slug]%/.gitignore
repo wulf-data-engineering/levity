@@ -1,4 +1,5 @@
 /**/.idea/
+/**/.DS_Store
 # localstack and seed files for cognito-local
 local/localstack-volume
 local/cognito-local-volume/db/clients.json

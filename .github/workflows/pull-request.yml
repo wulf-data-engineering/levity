@@ -11,12 +11,8 @@ jobs:
       instance-path: ${{ steps.set-path.outputs.path }}
     steps:
       - uses: actions/checkout@v5
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: pip-cache-cookiecutter
@@ -57,14 +53,13 @@ jobs:
         with:
           name: test-instance
           path: ./test-instance
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: pull-request
           workspaces: ./test-instance/backend -> target
-      - name: Install Rust
-        run: rustup toolchain install stable
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+          cache-on-failure: true
       - name: Check formatting
         id: format
         run: cargo fmt -- --check
@@ -107,20 +102,20 @@ jobs:
         with:
           name: test-instance
           path: ./test-instance
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: '20'
       - name: Restore cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             test-instance/frontend/node_modules/
-          key: node-modules-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
-          restore-keys: node-modules-cache-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+          key: node-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
+          restore-keys: node-cache-
       - name: Install dependencies
         run: npm i
       - name: Generate Protocol Buffer files
@@ -129,7 +124,7 @@ jobs:
         id: lint
         run: npm run lint
         continue-on-error: true
-      - name: Check TypeScript
+      - name: Check Svelte with TypeScript
         id: check
         run: npm run check
         continue-on-error: true
@@ -150,5 +145,113 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "All checks passed."
+  test-e2e:
+    name: Test end-to-end in Template
+    runs-on: ubuntu-latest
+    needs:
+      - test-backend
+      - test-frontend
+    env:
+      CI: "true"
+    steps:
+      - name: Download test template instance
+        uses: actions/download-artifact@v6
+        with:
+          name: test-instance
+          path: ./test-instance
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: pull-request
+          workspaces: ./test-instance/backend -> target
+          cache-on-failure: true
+      - name: Install Rust
+        run: rustup toolchain install stable
+      - name: Install latest cargo-lambda binary
+        run: |
+          TAG=$(curl -s https://api.github.com/repos/cargo-lambda/cargo-lambda/releases/latest | jq -r .tag_name)
+          echo "Latest tag is $TAG"
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "x86_64" ]; then
+            ASSET="cargo-lambda-$TAG.x86_64-unknown-linux-musl.tar.gz"
+          elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            ASSET="cargo-lambda-$TAG.aarch64-unknown-linux-musl.tar.gz"
+          else
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+          fi
+          echo "Downloading $ASSET"
+          curl -fL -o /tmp/cargo-lambda.tar.gz \
+            "https://github.com/cargo-lambda/cargo-lambda/releases/download/$TAG/$ASSET"
+          sudo tar -xzf /tmp/cargo-lambda.tar.gz -C /usr/local/bin
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Restore npm cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            test-instance/frontend/node_modules/
+          key: node-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
+          restore-keys: node-cache-
+      - name: Restore Playwright browsers cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: playwright-browsers-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
+          restore-keys: playwright-browsers-
+      - name: Install frontend dependencies and Playwright browsers
+        working-directory: test-instance/frontend/
+        run: |
+          npm i
+          npx playwright install-deps
+          npx playwright install
+          npx playwright --version
+      - name: Generate Protocol Buffer files for frontend
+        working-directory: test-instance/frontend/
+        run: npm run gen:proto
+      - name: Build backend for faster start of cargo lambda watch
+        working-directory: test-instance/backend/
+        run: cargo build
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.4.0
+        with:
+          compose-file: "./test-instance/docker-compose.yml"
+          services-log-level: info
+      - name: Start cargo-lambda watch in background
+        working-directory: test-instance/backend/
+        run: |
+          cargo lambda watch &>/tmp/cargo-lambda-watch.log &
+          CARGO_PID=$!
+          echo "CARGO_PID=$CARGO_PID" >> $GITHUB_ENV
+          echo "Started cargo lambda watch running on pid $CARGO_PID"
+      - name: Run Playwright tests
+        working-directory: test-instance/frontend/
+        run: npm run test:e2e
+      - name: Upload Playwright test results
+        id: upload-playwright
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-test-results
+          path: |
+            test-instance/frontend/test-results/
+            test-instance/frontend/playwright-report/
+            test-instance/frontend/playwright-report/videos/
+            test-instance/frontend/playwright-report/screenshots/
+            /tmp/cargo-lambda-watch.log
+          include-hidden-files: true
+      - name: Playwright report
+        if: failure()
+        run: echo "Playwright report is at ${{ steps.upload-playwright.outputs.artifact-url }}"
+      - name: Stop cargo lambda watch
+        if: always()  # ensure it runs even if previous steps fail
+        run: |
+          echo "Stopping cargo lambda watch at $CARGO_PID"
+          kill $CARGO_PID

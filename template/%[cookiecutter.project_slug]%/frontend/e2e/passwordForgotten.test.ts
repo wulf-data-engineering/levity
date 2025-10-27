@@ -63,6 +63,9 @@ test('password forgotten', async ({ page }) => {
 
 	await expect(email).toHaveValue('%[ cookiecutter.test_user_email ]%');
 
+	// Await loading of the password policy
+	await expect(password).toHaveAttribute('data-policy', 'true');
+
 	// When: submitting without new password
 
 	await password.fill('P');
@@ -70,8 +73,7 @@ test('password forgotten', async ({ page }) => {
 
 	// Then: password is marked as invalid and shows a validation text
 
-	await expect(password).toHaveAttribute('aria-invalid');
-	expect(await password.getAttribute('aria-invalid')).toBe('true');
+	await expect(password).toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordMsg).toBeVisible();
 
 	// When: submitting with valid password but without repetition
@@ -79,10 +81,9 @@ test('password forgotten', async ({ page }) => {
 	await password.fill('%[ cookiecutter.test_user_password ]%');
 	await submit.click();
 
-	// Then: password is marked as invalid and shows a validation text
+	// Then: repetition is marked as invalid and shows a validation text
 
-	await expect(confirm).toHaveAttribute('aria-invalid');
-	expect(await confirm.getAttribute('aria-invalid')).toBe('true');
+	await expect(confirm).toHaveAttribute('aria-invalid', 'true');
 	await expect(confirmMsg).toBeVisible();
 
 	// When: submitting with valid data

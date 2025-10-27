@@ -24,7 +24,7 @@
 
 	let submitting = $state(false);
 
-	let passwordPolicy: PasswordPolicy | null = null;
+	let passwordPolicy: PasswordPolicy | null = $state(null);
 
 	onMount(() => {
 		const urlEmail = page.url.searchParams.get('email');
@@ -120,6 +120,7 @@
 					label="Password"
 					type="password"
 					bind:value={password}
+					data-policy={passwordPolicy ? 'true' : 'false'}
 					validations={[(v) => validateNewPassword(v, passwordPolicy)]}
 				/>
 

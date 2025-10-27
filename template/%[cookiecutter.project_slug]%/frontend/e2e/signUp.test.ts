@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('sign up', async ({ page }) => {
+test('sign up', async ({ page, browser }, testInfo) => {
 	// Given: the home page with sign in box
 
 	const newEmail = '%[ cookiecutter.test_user_email ]%'.replace('@', `+e2e-${new Date().getTime()}-confirm@`);
@@ -42,6 +42,9 @@ test('sign up', async ({ page }) => {
 	await expect(signUp).toBeVisible();
 	await expect(signInLink).toBeVisible();
 
+	// Await loading of the password policy
+	await expect(password).toHaveAttribute('data-policy', 'true');
+
 	// When: clicking the sign-up button without data
 
 	await email.clear();
@@ -51,15 +54,13 @@ test('sign up', async ({ page }) => {
 
 	// Then: fields are marked as invalid and show a validation text
 
-	await expect(email).toHaveAttribute('aria-invalid');
-	expect(await email.getAttribute('aria-invalid')).toBe('true');
+	await expect(email).toHaveAttribute('aria-invalid', 'true');
 	await expect(emailMsg).toBeVisible();
 
-	await expect(password).toHaveAttribute('aria-invalid');
-	expect(await password.getAttribute('aria-invalid')).toBe('true');
+	await expect(password).toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordMsg).toBeVisible();
 
-	// When: submitting with valid Email invalid password
+	// When: submitting with valid Email and invalid password
 
 	await email.fill(newEmail);
 	await password.fill('P');
@@ -68,8 +69,7 @@ test('sign up', async ({ page }) => {
 
 	// Then: password is marked as invalid and shows a validation text
 
-	await expect(password).toHaveAttribute('aria-invalid');
-	expect(await password.getAttribute('aria-invalid')).toBe('true');
+	await expect(password).toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordMsg).toBeVisible();
 
 	// When: submitting with valid password but wrong repetition
@@ -77,10 +77,9 @@ test('sign up', async ({ page }) => {
 	await password.fill('%[ cookiecutter.test_user_password ]%');
 	await submit.click();
 
-	// Then: password is marked as invalid and shows a validation text
+	// Then: repetition is marked as invalid and shows a validation text
 
-	await expect(confirm).toHaveAttribute('aria-invalid');
-	expect(await confirm.getAttribute('aria-invalid')).toBe('true');
+	await expect(confirm).toHaveAttribute('aria-invalid', 'true');
 	await expect(confirmMsg).toBeVisible();
 
 	// When: submitting with valid data
@@ -97,7 +96,10 @@ test('sign up', async ({ page }) => {
 
 	// When: submitting with invalid code
 
-	await otpInput.fill('0'); // replaces last digit
+	if (browser.browserType().name() == 'chromium')
+		await otpInput.fill('0'); // chrome replaces last digit
+	else await otpInput.fill('123450');
+
 	await submit.click();
 
 	// Then: error toast shows up
@@ -106,7 +108,10 @@ test('sign up', async ({ page }) => {
 
 	// When: submitting with code
 
-	await otpInput.fill('6'); // replaces last digit
+	if (browser.browserType().name() == 'chromium')
+		await otpInput.fill('6'); // chrome replaces last digit
+	else await otpInput.fill('123456');
+
 	await submit.click();
 
 	// Then: switches back to home (either showing sign in or signed in state)

@@ -36,9 +36,7 @@ test('sign in', async ({ page }) => {
 
 	// Then: email is marked as invalid and shows a validation text
 
-	await expect(email).toHaveAttribute('aria-invalid');
-	expect(await email.getAttribute('aria-invalid')).toBe('true');
-
+	await expect(email).toHaveAttribute('aria-invalid', 'true');
 	await expect(emailMsg).toBeVisible();
 
 	// When: submitting with incorrect credentials

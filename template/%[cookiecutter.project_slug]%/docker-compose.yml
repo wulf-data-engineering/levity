@@ -5,6 +5,8 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # to connect cargo lambda watch
     environment:
       - DEBUG=0
       - AWS_ACCESS_KEY_ID=test
@@ -17,6 +19,8 @@ services:
     container_name: cognito-local
     ports:
       - "9229:9229"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # to connect cargo lambda watch
     environment:
       - CODE=123456 # fixed code for UI tests
       - AWS_REGION=eu-central-1
