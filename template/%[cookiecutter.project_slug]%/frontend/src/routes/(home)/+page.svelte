@@ -95,7 +95,8 @@
 
 		<Card.Content>
 			<p>
-				You are signed in as {$currentUser.signInDetails?.loginId}. <br />
+				You are signed in as {$currentUser.signInDetails?.loginId}.
+				<br />
 				<small class="text-muted-foreground">{$currentUser.userId}</small>
 			</p>
 		</Card.Content>
@@ -106,8 +107,10 @@
 				onclick={signOut}
 				disabled={loading}
 				variant="outline"
-				class="w-full">Sign Out</Button
+				class="w-full"
 			>
+				Sign Out
+			</Button>
 		</Card.Footer>
 	{:else if $currentUser === null}
 		<Card.Header>
@@ -141,16 +144,17 @@
 		</Card.Content>
 
 		<Card.Footer class="flex-col gap-2">
-			<Button id="sign-in-btn" disabled={loading} class="w-full" type="submit" form="form"
-				>Sign In</Button
-			>
+			<Button id="sign-in-btn" disabled={loading} class="w-full" type="submit" form="form">
+				Sign In
+			</Button>
 			<Button
 				id="password-forgotten-btn"
 				disabled={loading}
 				class="w-full"
 				href={`/resetPassword?email=${encodeURIComponent(email)}`}
 				variant="outline"
-				>Password Forgotten?
+			>
+				Password Forgotten?
 			</Button>
 			<p>
 				Don’t have an account?

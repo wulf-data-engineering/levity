@@ -5,14 +5,9 @@
   "project_description": "A Tool-Set application.",
   "author": "Wulf Data Engineering GmbH",
   "author_email": "christoph@wulf.technology",
-  "license": [
-    "MIT",
-    "BSD-3-Clause",
-    "GPL-3.0-only",
-    "Apache-2.0",
-    "empty"
-  ],
+  "license": ["MIT", "BSD-3-Clause", "GPL-3.0-only", "Apache-2.0", "empty"],
   "copyright_initial_year": "%%[ now 'utc', '%Y' ]%%",
+  "copyright_pat_env_var": "COPYRIGHT_PAT",
   "test_user_email": "test@wulf.technology",
   "test_user_password": "Password123!",
 
@@ -32,6 +27,7 @@
       "empty": "Empty template just with copyright statement"
     },
     "copyright_initial_year": "Initial year for copyright statement",
+    "copyright_pat_env_var": "Reference to GitHub Personal Access Token (PAT) in GitHub Actions secrets (resolves to secrets.<copyright_pat_env_var>) for copyright year update",
     "test_user_email": "Email for initial test user in development",
     "test_user_password": "Initial password for the test user"
   },

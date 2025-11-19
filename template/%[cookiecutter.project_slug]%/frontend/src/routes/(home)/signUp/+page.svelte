@@ -17,7 +17,7 @@
 
 	let submitting = $state(false);
 
-	let passwordPolicy: PasswordPolicy | null = null;
+	let passwordPolicy: PasswordPolicy | null = $state(null);
 
 	onMount(() => {
 		protocolLoad('/api/password-policy', PasswordPolicy)
@@ -76,6 +76,7 @@
 					label="Password"
 					type="password"
 					bind:value={password}
+					data-policy={passwordPolicy ? 'true' : 'false'}
 					validations={[(v) => validateNewPassword(v, passwordPolicy)]}
 				/>
 

@@ -8,9 +8,9 @@
     "test": "echo \"No tool-set tests yet.\"",
     "lint": "npm run check:frontend && npm run lint:frontend",
     "lint:frontend": "echo 'Linting frontend files...' && rm -rf tmp/lint/frontend && mkdir -p tmp/lint/  && cp -r template/%[cookiecutter.project_slug]%/frontend/ tmp/lint/frontend/ && cd tmp/lint/frontend && npm install && npm run lint && cd ../../../ && rm -rf tmp/lint/frontend && echo 'Frontend linting complete.'",
-    "check:frontend": "npx prettier --check \"template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierrc --ignore-path template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierignore",
+    "check:frontend": "npx prettier --check \"template/%\\[cookiecutter.project_slug\\]%/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/%\\[cookiecutter.project_slug\\]%/frontend/.prettierrc --ignore-path template/%\\[cookiecutter.project_slug\\]%/frontend/.prettierignore",
     "format": "npm run format:frontend",
-    "format:frontend": "npx prettier --write \"template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierrc --ignore-path template/\\{\\[cookiecutter.project_slug\\]\\}/frontend/.prettierignore"
+    "format:frontend": "npx prettier --write \"template/%\\[cookiecutter.project_slug\\]%/frontend/**/*.{js,ts,json,css,md,html,svelte}\" --config template/%\\[cookiecutter.project_slug\\]%/frontend/.prettierrc --ignore-path template/%\\[cookiecutter.project_slug\\]%/frontend/.prettierignore"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +18,7 @@
   "devDependencies": {
     "cookiecutter": "^1.3.0",
     "prettier": "^3.6.2",
-    "prettier-plugin-svelte": "^3.4.0"
+    "prettier-plugin-svelte": "^3.4.0",
+    "prettier-plugin-tailwindcss": "0.7.1"
   }
 }

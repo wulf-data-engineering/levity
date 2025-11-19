@@ -27,8 +27,8 @@ To test the behavior, press the "submit" button to see that all invalid fields s
 -->
 
 {#snippet render(args)}
-	<ValidatedForm {...args}
-		>{args.children}
+	<ValidatedForm {...args}>
+		{args.children}
 		<div class="flex flex-col gap-6">
 			<ValidatedInput id="noValidation" label="No Validation"></ValidatedInput>
 			<ValidatedInput

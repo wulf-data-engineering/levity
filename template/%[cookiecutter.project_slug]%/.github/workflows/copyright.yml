@@ -14,4 +14,4 @@ jobs:
           fetch-depth: 0
       - uses: FantasticFiasco/action-update-license-year@v3
         with:
-          token: ${{ secrets.KIEK_RELEASE_PAT }}
+          token: ${{ secrets.%[ cookiecutter.copyright_pat_env_var ]% }}

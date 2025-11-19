@@ -29,9 +29,9 @@
 		<Alert.Root>
 			<CheckCircle2Icon />
 			<Alert.Title>You are signed in as {currentUser.signInDetails?.loginId}</Alert.Title>
-			<Alert.Description
-				><small class="text-muted-foreground">{currentUser.userId}</small></Alert.Description
-			>
+			<Alert.Description>
+				<small class="text-muted-foreground">{currentUser.userId}</small>
+			</Alert.Description>
 		</Alert.Root>
 
 		<Button variant="outline" onclick={authSignOut}>Sign Out</Button>
