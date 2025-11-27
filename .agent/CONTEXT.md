@@ -37,14 +37,36 @@ Instead of `{{ cookiecutter.project_name }}`, you must use `%[ cookiecutter.proj
 Before implementation check if the feature would make an existing adr obsolete or if a new adr is needed.
 Suggest changes or a new adr and ask user for feedback.
 
+**CRITICAL**: If the user asks for a _plan_, **DO NOT** modify any files yet. Other agents might be planning in parallel. Only modify files after the user approves the plan and you switch to execution mode.
+
 ### 4. Development Workflow
 
 Since this is a template, you cannot run the code directly from `template/`.
 
-1. Consult `workflow/instantiate_template.md` how to generate a temporary instance of the project using `cookiecutter`.
-2. Consult `workflow/develop_feature.md` how to make changes and test them in the temporary instance.
-3. Consult `workflow/backport_changes.md` how to manually apply the changes back to the `template/` directory, ensuring placeholders are preserved.
-4. Make changes to the GitHub workflows of the template itself if needed.
+**CRITICAL**: You must follow the **Test-First Workflow**:
+
+1.  **Instantiate**: Consult `workflow/instantiate_template.md` to generate a temporary instance of the project using `cookiecutter`.
+2.  **Modify Instance**: Consult `workflow/develop_feature.md` to make changes and test them in the temporary instance. **DO NOT** modify `template/` directly yet.
+3.  **Verify**: Ensure your changes work as expected in the instance (run tests, check UI).
+4.  **Ask for Approval**: Ask the user if the changes are ready to be backported.
+5.  **Backport**: Consult `workflow/backport_changes.md` to manually apply the changes back to the `template/` directory, ensuring placeholders are preserved.
+6.  **CI/CD**: Make changes to the GitHub workflows of the template itself if needed.
+
+### 5. Commit Messages
+
+Structure commit messages as follows:
+
+- **Subject Line**: Imperative, starting with upper case, max. 80 characters.
+- **Body**: Separated by a blank line. Provide details, using bullet points if required.
+
+**Example**:
+
+```text
+Add users table
+
+* DynamoDB table with user id as primary key
+* Email address as secondary index
+```
 
 ## Important Paths
 

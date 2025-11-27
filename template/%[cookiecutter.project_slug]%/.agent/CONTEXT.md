@@ -12,6 +12,8 @@ This is a monorepo.
 
 ## Development Workflow
 
+**CRITICAL**: If the user asks for a _plan_, **DO NOT** modify any files yet. Other agents might be planning in parallel. Only modify files after the user approves the plan and you switch to execution mode.
+
 1. Consult `workflow/change_protocols.md` how to add/change the protocols.
 2. Consult `workflow/change_backend.md` how to make changes to the backend & cloud resources.
 3. Consult `workflow/change_frontend.md` how to make changes to the frontend.

@@ -7,6 +7,8 @@ description: Develop and test features in an instantiated project
 This workflow guides you through developing a feature in the generated instance
 for backporting it into the template.
 
+**CRITICAL**: You must develop and verify features in the **instance** first. Do not modify the template directly until verification is complete.
+
 ## Prerequisites
 
 - You must have run the `instantiate_template.md` workflow first.

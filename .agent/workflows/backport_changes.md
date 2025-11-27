@@ -8,10 +8,17 @@ description: Backport changes from the instance to the template source
 
 ## Steps
 
-1.  **Identify Changed Files**
+1.  **Verify Instance State**
+    Ensure that you have fully verified your changes in `tmp/tool-set-project` (ran tests, checked UI, etc.). **Do not backport untested code.**
+
+2.  **Ask for User Approval**
+    Explicitly ask the user: "The features are verified in the instance. Shall I proceed to backport them to the template?"
+    **Wait for the user to say "Yes" or "Proceed".**
+
+3.  **Identify Changed Files**
     List the files you modified in `tmp/tool-set-project`.
 
-2.  **Locate Template File**
+4.  **Locate Template File**
     For each modified file, find the corresponding file in `template/`.
 
     _Mapping Example_:
@@ -19,7 +26,7 @@ description: Backport changes from the instance to the template source
     maps to
     `template/%[cookiecutter.project_slug]%/frontend/src/routes/+page.svelte`
 
-3.  **Apply Changes (Carefully)**
+5.  **Apply Changes (Carefully)**
 
     **DO NOT** simply copy the file over if the original template file contains placeholders like `%[ cookiecutter.project_slug ]%`.
 
@@ -31,14 +38,14 @@ description: Backport changes from the instance to the template source
 
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
 
-4.  **Verify Template Integrity**
+6.  **Verify Template Integrity**
     After backporting, run the `instantiate_template` workflow _again_ to a _new_ location (e.g., `tmp/verification-instance`) and verify that:
     1.  Cookiecutter runs without error.
     2.  The new instance contains your changes.
     3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
 
-5.  **Cleanup**
+7.  **Cleanup**
     Remove temporary instances if desired.
 
-6.  **Ready**
+8.  **Ready**
     You can now suggest a PR.
