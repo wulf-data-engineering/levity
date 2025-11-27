@@ -4,7 +4,7 @@ use backend::{load_aws_cognito_config, write_response};
 use lambda_http::{run, service_fn, tracing, Body, Error, Request, Response};
 use protocol_macro::protocols;
 
-#[protocols("%[cookiecutter.package_name]%")]
+#[protocols("password_policy")]
 pub mod protocols {}
 
 #[derive(Clone)]

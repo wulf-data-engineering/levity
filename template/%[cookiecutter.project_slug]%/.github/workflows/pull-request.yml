@@ -7,6 +7,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-protocols:
+    name: Check Protocols
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Lint protocols
+        uses: bufbuild/buf-lint-action@v1
+        with:
+          input: protocols
+      - name: Check breaking changes
+        uses: bufbuild/buf-breaking-action@v1
+        with:
+          input: protocols
+          against: https://github.com/${{ github.repository }}.git#branch=main,subdir=protocols
   test-backend:
     name: Test Backend
     runs-on: ubuntu-latest
@@ -36,13 +53,13 @@ jobs:
         id: tests
         run: cargo test --lib --bins
       - name: Aggregate results and fail if any failed
-        if: always()   # ensure this runs even if earlier steps failed
+        if: always() # ensure this runs even if earlier steps failed
         run: |
           echo "format outcome:   ${{ steps.format.outcome }}"
           echo "check outcome:  ${{ steps.check.outcome }}"
           echo "clippy outcome:  ${{ steps.clippy.outcome }}"
           echo "tests outcome:  ${{ steps.tests.outcome }}"
-          
+
           # If any step outcome is 'failure' then fail the job
           for s in "${{ steps.format.outcome }}" "${{ steps.check.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}"; do
             if [ "$s" = "failure" ]; then
@@ -50,7 +67,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "All checks passed."
   frontend:
     name: Test Frontend
@@ -63,7 +80,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
       - name: Restore cache
         uses: actions/cache@v3
         with:
@@ -91,12 +108,12 @@ jobs:
         run: npm run test:unit
         continue-on-error: true
       - name: Aggregate results and fail if any failed
-        if: always()   # ensure this runs even if earlier steps failed
+        if: always() # ensure this runs even if earlier steps failed
         run: |
           echo "lint outcome:   ${{ steps.lint.outcome }}"
           echo "check outcome:  ${{ steps.check.outcome }}"
           echo "tests outcome:  ${{ steps.tests.outcome }}"
-          
+
           # If any step outcome is 'failure' then fail the job
           for s in "${{ steps.lint.outcome }}" "${{ steps.check.outcome }}" "${{ steps.tests.outcome }}"; do
             if [ "$s" = "failure" ]; then
@@ -104,5 +121,5 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "All checks passed."

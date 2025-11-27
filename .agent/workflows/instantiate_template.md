@@ -33,5 +33,17 @@ This workflow generates a fresh instance of the project in a temporary directory
     ls -F tmp/tool-set-project/
     ```
 
-4.  **Ready**
-    You can now navigate to `tmp/tool-set-project` and continue with the workflow in `develop_feature.md`.
+4.  **Commit Baseline**
+  
+    Initialize a git repository and make a baseline commit.
+    That helps in tracking changes during feature development.
+
+    ```bash
+    cd tmp/tool-set-project
+    git init
+    git add .
+    git commit -m "Baseline"
+    ```
+    
+5.  **Ready**
+    You can now continue with the workflow in `develop_feature.md`.

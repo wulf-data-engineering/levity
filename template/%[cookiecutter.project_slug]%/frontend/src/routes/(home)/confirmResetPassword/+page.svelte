@@ -14,7 +14,7 @@
 	import { ValidatedForm } from '$lib/components/validatedForm';
 	import { onMount } from 'svelte';
 	import { protocolLoad } from '$lib/protocols';
-	import { PasswordPolicy } from '$lib/proto/password-policy';
+	import { PasswordPolicy } from '$lib/proto/password_policy';
 
 	let email = $state('');
 	let password = $state('');

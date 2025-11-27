@@ -9,7 +9,7 @@
 	import { validateEmail, validateNewPassword, validatePasswordRepetition } from '$lib/validation';
 	import { onMount } from 'svelte';
 	import { protocolLoad } from '$lib/protocols';
-	import { PasswordPolicy } from '$lib/proto/password-policy';
+	import { PasswordPolicy } from '$lib/proto/password_policy';
 
 	let email = $state('');
 	let password = $state('');

@@ -18,6 +18,7 @@ Only clear the values if you need to sign-in as a different user.
 Run localstack and cognito-local:
 
 ```bash
+docker-compose down # cognito-local tends to go into a bad state
 docker-compose up
 ```
 

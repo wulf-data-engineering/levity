@@ -8,7 +8,7 @@ use syn::{parse_macro_input, LitStr};
 /// Usage:
 ///
 /// ```
-/// #[protocols("%[cookiecutter.package_name]%")]
+/// #[protocols("some_package")]
 /// pub mod protocols {}
 ///
 /// async fn handler(req: Request) -> Result<Response<Body>, Error> {
