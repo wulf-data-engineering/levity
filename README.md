@@ -4,10 +4,13 @@ This repository is an **opinionated tool‑set** for building and operating
 * **Serverless backends** in Rust on AWS and
 * **Tauri‑wrapped mobile apps** for iOSs & Android.
 
-It bundles a template with IaC constructs, CI pipelines and AI prompt packs so teams can ship prototypes **fast**
+It bundles a template with IaC constructs, CI pipelines and support for agentic coding so teams can ship prototypes **fast**
 without sacrificing production readiness.
 
 ---
+
+## 🤖 AI Agent Instructions
+If you are an AI agent assisting with this repository, you **MUST** read `.agent/CONTEXT.md` before planning & generating code.
 
 ## Technology palette
 

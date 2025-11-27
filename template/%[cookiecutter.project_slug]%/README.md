@@ -1,8 +1,16 @@
+## 🤖 AI Agent Instructions
+
+If you are an AI agent assisting with this repository, you **MUST** read `.agent/CONTEXT.md` before planning & generating code.
+
+---
+
 # Structure
 
 The project is structured as follows:
+
 - `frontend` contains the SvelteKit frontend application.
 - `backend` contains Lambdas written in Rust.
+- `protocols`: contains API definitions (Protocol Buffers)
 - `infrastructure` contains CDK code to deploy the application to AWS.
 - `local` contains volumes for local development with Docker Compose.
 - `docker-compose.yml` defines services for local development.
@@ -45,7 +53,7 @@ Infrastructure is deployed against **localstack**.
 Cognito is not deployed automatically because **cognito-local** is used for local
 development. But there is an initial user pool, a client and a test user _%[cookiecutter.test_user_email]%_
 with password _%[cookiecutter.test_user_password]%_.  
-The lambdas are forwarded to **cargo lambda watch**.  
+The lambdas are forwarded to **cargo lambda watch**.
 
 ## Frontend
 
