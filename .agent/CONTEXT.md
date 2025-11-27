@@ -19,7 +19,7 @@ The source code for the generated project lives in `template/`.
 
 - `.` is the **template repo/repository**.
 - `template/%[cookiecutter.project_slug]%/` is the **template**.
-- `tmp/tool-set-project/` is a **template instance** when generated.
+- `../wulfpack_test_instances/<project_slug>/` is a **template instance** when generated.
 
 ### 2. Jinja2 Delimiters
 

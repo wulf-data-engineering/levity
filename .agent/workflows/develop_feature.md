@@ -12,43 +12,44 @@ for backporting it into the template.
 ## Prerequisites
 
 - You must have run the `instantiate_template.md` workflow first.
-- Working directory for this workflow is `tmp/tool-set-project` (if default slug is used).
+- You must have run the `instantiate_template.md` workflow first.
+- Working directory for this workflow is `../wulfpack_test_instances/<PROJECT_SLUG>`.
 
 ## Steps
 
 1.  **Navigate to Instance**
     Switch your context to the generated project.
-    _(Note: As an agent, you can just execute commands in `tmp/tool-set-project`)_
+    _(Note: As an agent, you can just execute commands in `../wulfpack_test_instances/<PROJECT_SLUG>`)_
 
 2.  **Install Dependencies**
 
     **Frontend**:
 
     ```bash
-    cd tmp/tool-set-project/frontend
+    cd ../wulfpack_test_instances/<PROJECT_SLUG>/frontend
     npm install
     ```
 
     **Backend**:
 
     ```bash
-    cd tmp/tool-set-project/backend
+    cd ../wulfpack_test_instances/<PROJECT_SLUG>/backend
     cargo update
     ```
 
     **Infrastructure**:
 
     ```bash
-    cd tmp/tool-set-project/infrastructure
+    cd ../wulfpack_test_instances/<PROJECT_SLUG>/infrastructure
     npm install
     ```
 
 3.  **Implement Feature and Verify Feature**
 
-    You **MUST** read the instructions at `tmp/tool-set-project/.agent/CONTEXT.md`
+    You **MUST** read the instructions at `../wulfpack_test_instances/<PROJECT_SLUG>/.agent/CONTEXT.md`
     before making any code changes in the template instance.
 
-    Make your code changes in `tmp/tool-set-project/...`.
+    Make your code changes in `../wulfpack_test_instances/<PROJECT_SLUG>/...`.
     Continuously test the running application.
     Run unit tests and end-to-end tests to verify your changes.
     Depending on the nature of the feature make changes to the `.agent` workflows.
