@@ -12,7 +12,7 @@ This workflow generates a fresh instance of the project in a temporary directory
     Ensure the output directory exists.
 
     ```bash
-    mkdir -p ../wulfpack_test_instances
+    mkdir -p tmp
     ```
 
 2.  **Determine Project Slug**
@@ -26,7 +26,7 @@ This workflow generates a fresh instance of the project in a temporary directory
     ```bash
     # // turbo
     # Replace <PROJECT_SLUG> with your chosen slug
-    cookiecutter template --output-dir ../wulfpack_test_instances --no-input project_slug=<PROJECT_SLUG>
+    cookiecutter template --output-dir tmp --no-input project_slug=<PROJECT_SLUG>
     ```
 
     *Note: This assumes `cookiecutter` is installed. If not, install it via `pip install cookiecutter` or `brew install cookiecutter`.*
@@ -35,7 +35,7 @@ This workflow generates a fresh instance of the project in a temporary directory
     Check if the project was created.
 
     ```bash
-    ls -F ../wulfpack_test_instances/<PROJECT_SLUG>/
+    ls -F tmp/<PROJECT_SLUG>/
     ```
 
 5.  **Commit Baseline**
@@ -44,7 +44,7 @@ This workflow generates a fresh instance of the project in a temporary directory
     That helps in tracking changes during feature development.
 
     ```bash
-    cd ../wulfpack_test_instances/<PROJECT_SLUG>
+    cd tmp/<PROJECT_SLUG>
     git init
     git add .
     git commit -m "Baseline"

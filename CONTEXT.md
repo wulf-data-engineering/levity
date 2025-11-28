@@ -4,7 +4,7 @@
 
 This repository contains a **cookiecutter template** for generating applications in `template/%[cookiecutter.project_slug]%/`.
 
-Consult its `README.md` and its own `.agent/CONTEXT.md` for details on the generated project structure and development workflow.
+Read the template's [CONTEXT.md](template/%[cookiecutter.project_slug]%/CONTEXT.md) for detailed repository architecture and rules.
 
 ## Key Concepts
 
@@ -19,7 +19,9 @@ The source code for the generated project lives in `template/`.
 
 - `.` is the **template repo/repository**.
 - `template/%[cookiecutter.project_slug]%/` is the **template**.
-- `../wulfpack_test_instances/<project_slug>/` is a **template instance** when generated.
+- `tmp/<project_slug>/` is a **template instance** when generated.
+
+> **Note**: The `tmp/` directory is git-ignored. You **MUST** ask the user to "turn off gitignore enforcement" to read/write files in this directory.
 
 ### 2. Jinja2 Delimiters
 
@@ -45,11 +47,11 @@ Since this is a template, you cannot run the code directly from `template/`.
 
 **CRITICAL**: You must follow the **Test-First Workflow**:
 
-1.  **Instantiate**: Consult `workflow/instantiate_template.md` to generate a temporary instance of the project using `cookiecutter`.
-2.  **Modify Instance**: Consult `workflow/develop_feature.md` to make changes and test them in the temporary instance. **DO NOT** modify `template/` directly yet.
+1.  **Instantiate**: Consult `.agent/instantiate_template.md` to generate a temporary instance of the project using `cookiecutter`.
+2.  **Modify Instance**: Consult `.agent/develop_feature.md` to make changes and test them in the temporary instance. **DO NOT** modify `template/` directly yet.
 3.  **Verify**: Ensure your changes work as expected in the instance (run tests, check UI).
 4.  **Ask for Approval**: Ask the user if the changes are ready to be backported.
-5.  **Backport**: Consult `workflow/backport_changes.md` to manually apply the changes back to the `template/` directory, ensuring placeholders are preserved.
+5.  **Backport**: Consult `.agent/backport_changes.md` to manually apply the changes back to the `template/` directory, ensuring placeholders are preserved.
 6.  **CI/CD**: Make changes to the GitHub workflows of the template itself if needed.
 
 ### 5. Commit Messages
@@ -70,6 +72,8 @@ Add users table
 
 ## Important Paths
 
-- `template/`: Source of the template.
-- `template/cookiecutter.json`: Configuration.
-- `.github/workflows/`: CI/CD for the template itself (linting, testing generation).
+- `template/`: Source of the template
+- `template/cookiecutter.json`: Configuration
+- `template/%[cookiecutter.project_slug]%/CONTEXT.md`: AI context for generated projects
+- `.github/workflows/`: CI/CD for the template itself (linting, testing generation)
+- `tmp/`: Temporary instances of generated projects (git-ignored)
