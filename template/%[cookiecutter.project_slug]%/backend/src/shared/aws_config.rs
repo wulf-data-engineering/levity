@@ -28,8 +28,8 @@ fn default_cognito_endpoint() -> Option<String> {
 fn set_default_credentials_provider(config_loader: ConfigLoader) -> ConfigLoader {
     config_loader.credentials_provider(
         aws_credential_types::Credentials::builder()
-            .access_key_id("local")
-            .secret_access_key("local")
+            .access_key_id("test")
+            .secret_access_key("test")
             .provider_name("dev")
             .build(),
     )

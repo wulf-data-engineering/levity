@@ -61,7 +61,7 @@ for backporting it into the template.
     Run unit tests and end-to-end tests to verify your changes.
     Depending on the nature of the feature make changes to the `.agent` rules & workflows.
 
-4.  **Run linters**
+4.  **Run linters and formatters**
     Run the final checks from template/%[cookiecutter.project_slug]%/.agent/rules/backend.md
     Run the final checks from template/%[cookiecutter.project_slug]%/.agent/rules/frontend.md
 

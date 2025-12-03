@@ -2,12 +2,14 @@ import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { backendLambdaApi } from "./backend-lambda";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { DeploymentConfig } from "../../config";
 
 interface ApiProps {
   deploymentConfig: DeploymentConfig;
   userPool: cognito.IUserPool;
+  usersTable: dynamodb.ITable;
 }
 
 /**
@@ -48,6 +50,22 @@ export class Api extends Construct {
         },
       },
     );
+
+    const userProfileFunction = backendLambdaApi(
+      this,
+      "UserProfileFunction",
+      {
+        deploymentConfig: props.deploymentConfig,
+        apiRoot: this.apiRoot,
+        binaryName: "user-profile",
+        environment: {
+          USERS_TABLE_NAME: props.usersTable.tableName,
+          USER_POOL_ID: props.userPool.userPoolId,
+        },
+        authorizer,
+      },
+    );
+    props.usersTable.grantReadData(userProfileFunction);
 
     // Grant the lambda permission to describe the user pool
     props.userPool.grant(

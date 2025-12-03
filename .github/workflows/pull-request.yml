@@ -240,7 +240,8 @@ jobs:
           path: |
             ~/.npm
             test-instance/frontend/node_modules/
-          key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}
+            test-instance/infrastructure/node_modules/
+          key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}-${{ hashFiles('test-instance/infrastructure/package-lock.json') }}
           restore-keys: node-cache-
       - name: Restore Playwright browsers cache
         uses: actions/cache@v4
@@ -256,6 +257,11 @@ jobs:
           npx playwright install-deps
           npx playwright install
           npx playwright --version
+      - name: Install infrastructure dependencies and cdklocal
+        working-directory: test-instance/infrastructure/
+        run: |
+          npm ci
+          npm install -g aws-cdk-local aws-cdk
       - name: Generate Protocol Buffer files for frontend
         working-directory: test-instance/frontend/
         run: npm run gen:proto
@@ -267,6 +273,21 @@ jobs:
         with:
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
+      - name: Deploy CDK to LocalStack
+        working-directory: test-instance/infrastructure/
+        run: |
+          cdklocal bootstrap
+          cdklocal deploy --require-approval never
+          AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws dynamodb list-tables \
+            --endpoint-url=http://localhost:4566 \
+            --region eu-central-1
+          AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws dynamodb list-tables \
+            --endpoint-url=http://localhost:4566 \
+            --region us-east-1
+        env:
+          AWS_REGION: eu-central-1
+          AWS_ENVAR_ALLOWLIST: 'AWS_REGION' # We tell cdklocal NOT to strip these variables
+          CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |

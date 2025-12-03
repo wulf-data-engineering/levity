@@ -7,6 +7,7 @@
 
 	let { data } = $props();
 	let currentUser = data.currentUser!;
+	let userProfile = $derived(data.userProfile);
 
 	async function authSignOut() {
 		await signOut();
@@ -31,6 +32,12 @@
 			<Alert.Title>You are signed in as {currentUser.signInDetails?.loginId}</Alert.Title>
 			<Alert.Description>
 				<small class="text-muted-foreground">{currentUser.userId}</small>
+				{#if userProfile}
+					<div class="mt-2 font-medium">
+						Hello, {userProfile.firstName}
+						{userProfile.lastName}!
+					</div>
+				{/if}
 			</Alert.Description>
 		</Alert.Root>
 

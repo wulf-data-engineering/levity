@@ -3,8 +3,8 @@
     "endpoint": "http://host.docker.internal:9000",
     "region": "eu-central-1",
     "credentials": {
-      "accessKeyId": "local",
-      "secretAccessKey": "local"
+      "accessKeyId": "test",
+      "secretAccessKey": "test"
     }
   },
   "TriggerFunctions": {

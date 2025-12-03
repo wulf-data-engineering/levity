@@ -1,5 +1,5 @@
-
-use backend::CognitoUserPoolEvent;
+use aws_sdk_dynamodb::Client;
+use backend::{load_aws_config, CognitoUserPoolEvent };
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use protocol_macro::protocols;
 
@@ -9,10 +9,7 @@ pub mod protocols {}
 ///
 /// This lambda reacts on Cognito's lifecycle events.
 ///
-/// The default version handles validation of `sign_up_data` in pre-sign up and logging in post confirmation.
-///
-/// It also enables auto-confirm of users signing up in development
-/// (except Email addresses of form [...]confirm@bar.baz which need confirmation on dev, too).
+/// The default version stores sign up data in the users table at post confirmation.
 ///
 /// If you add more cases, make sure to add them to local/cognito-local-volume/config.json
 /// and to infrastructure/lib/constructs/backend/identity.ts
@@ -27,13 +24,25 @@ async fn function_handler(
             // Pre-sign up validation or modification can be done here
         }
         CognitoUserPoolEvent::PostConfirmation(post_confirmation) => {
-            // E.g. write an entry to a database table
-            if let Ok(sign_up_data) = extract_sign_up_data(&post_confirmation.request.client_metadata) {
+            // Write entry to the users table
+            if let Ok(sign_up_data) =
+                extract_sign_up_data(&post_confirmation.request.client_metadata)
+            {
                 verify_not_empty(&sign_up_data)?;
-                
+
                 let user_data = backend::shared::users::UserData {
-                    username: post_confirmation.request.user_attributes.get("sub").cloned().unwrap_or_default(),
-                    email: post_confirmation.request.user_attributes.get("email").cloned().unwrap_or_default(),
+                    username: post_confirmation
+                        .request
+                        .user_attributes
+                        .get("sub")
+                        .cloned()
+                        .unwrap_or_default(),
+                    email: post_confirmation
+                        .request
+                        .user_attributes
+                        .get("email")
+                        .cloned()
+                        .unwrap_or_default(),
                     first_name: sign_up_data.first_name,
                     last_name: sign_up_data.last_name,
                 };
@@ -87,11 +96,10 @@ fn get_table_name() -> String {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt::init();
-
     let table_name = get_table_name();
-    let config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-    let client = aws_sdk_dynamodb::Client::new(&config);
+    let config = load_aws_config().await;
+
+    let client = Client::new(&config);
     let repo = backend::shared::users::UserRepo::new(client, table_name);
 
     run(service_fn(move |event| {
@@ -104,12 +112,55 @@ async fn main() -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::*;
+    use aws_lambda_events::cognito::{
+        CognitoEventUserPoolsPostConfirmation, CognitoEventUserPoolsPostConfirmationRequest,
+    };
+    use wiremock::matchers::{body_string_contains, method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
-    async fn fails_without_sign_up_data() {
-        // This test is no longer relevant for PreSignup as we don't validate there anymore.
-        // But we might want to test PostConfirmation validation.
-        // For now, removing the PreSignup failure test.
+    async fn test_post_confirmation_writes_to_dynamodb() {
+        let server = MockServer::start().await;
+
+        // Mock DynamoDB PutItem
+        Mock::given(method("POST"))
+            .and(path("/"))
+            .and(body_string_contains("DynamoDB_20120810.PutItem"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
+            .mount(&server)
+            .await;
+
+        let shared_config = backend::shared::aws_config::load_aws_config_for_mock(&server).await;
+        let client = aws_sdk_dynamodb::Client::new(&shared_config);
+        let repo = backend::shared::users::UserRepo::new(client, "users".to_string());
+
+        let sign_up_data = serde_json::json!({
+            "first_name": "Test",
+            "last_name": "User"
+        })
+        .to_string();
+
+        let mut client_metadata = std::collections::HashMap::new();
+        client_metadata.insert("sign_up_data".to_string(), sign_up_data);
+
+        let mut user_attributes = std::collections::HashMap::new();
+        user_attributes.insert("sub".to_string(), "test-sub".to_string());
+        user_attributes.insert("email".to_string(), "test@example.com".to_string());
+
+        let event = LambdaEvent::new(
+            CognitoUserPoolEvent::PostConfirmation(CognitoEventUserPoolsPostConfirmation {
+                cognito_event_user_pools_header: Default::default(),
+                request: CognitoEventUserPoolsPostConfirmationRequest {
+                    user_attributes,
+                    client_metadata,
+                    ..Default::default()
+                },
+                response: Default::default(),
+            }),
+            Default::default(),
+        );
+
+        let result = function_handler(event, &repo).await;
+        assert!(result.is_ok());
     }
 }

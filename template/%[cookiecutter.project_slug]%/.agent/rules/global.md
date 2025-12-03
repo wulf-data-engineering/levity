@@ -16,15 +16,17 @@ This is a monorepo.
 
 **CRITICAL**: If the user asks for a _plan_, **DO NOT** modify any files yet. Other agents might be planning or editing in parallel. Only modify files after the user approves the plan, and you switch to execution mode.
 
-
 Consult `.agent/rules/protocols.md` for protocols between frontend and backend.
 
 Consult `.agent/rules/backend.md` for backend development & cloud resources.
 
 Consult `.agent/rules/frontend.md` for frontend development.
 
-Follow `.agent/workflows/try_browser.md` how to try the changes in the browser.
+Follow `.agent/workflows/run-locally.md` how to try the changes in the browser.
 
 Follow `.agent/workflows/test_e2e.md` how to run the end-to-end tests.
 
 During feature development check if deployment workflow needs modifications.
+
+**CRITICAL**: At the end of development run all final checks in `.agent/rules/frontend.md` and `.agent/rules/backend.md` before committing.
+If the user asks for a commit, make sure your ran all the final checks on all changes first.

@@ -7,15 +7,20 @@ description: Backport changes from a template instance to the template source
 ## Steps
 
 1.  **Verify Instance State**
-    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, etc.). **Do not backport untested and unchecked code.**
+    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, ran formatters, etc.).
+    **Do not backport untested and unchecked code.**
+    **Do not backport unformatted code.**
 
-2.  **Ask for User Approval**
+2.  **Ask for User Approval** 
+    State that the feature is complete, you ran all tests, linters and formatters.
     Explicitly ask the user if they want to proceed with the backport.
-    If changes can be verified through the UI suggest to start the UI server.
+    If changes can be verified through the UI suggest to start the UI server and list URLs to the specific pages. 
     **Wait for the user to confirm.**
+    **If the user asks for further changes switch back to the `feature-workflow.md` workflow again.**
 
 3.  **Identify Changed Files**
     List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`.
+    `git status` helps you.
 
 4.  **Locate Template File**
     For each modified file, find the corresponding file in `template/`.
@@ -36,6 +41,7 @@ description: Backport changes from a template instance to the template source
     4.  **Check for Placeholders**: Ensure that any dynamic values (project names, slugs, etc.) are still represented by their Jinja2 tags (`%[ ... ]%`) in the template file.
 
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
+    > Consider the template/cookiecutter.json file for reference on what placeholders with which values are available.
 
     > **Tip**: When staging files in the template directory, use quotes to prevent shell expansion of the wildcards:
     > ```bash
@@ -49,11 +55,12 @@ description: Backport changes from a template instance to the template source
     3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
 
 7.  **Cleanup**
-    Ask if the temporary instance should be removed.
+    **Important:** Suggest that the temporary instance should be removed.
+    **Suggest that even if the user asks you to proceed with a commit.**
 
     ```bash
     rm -rf ../wulfpack-instances/<PROJECT_SLUG>
     ```
 
 8.  **Ready**
-    You can now suggest a PR.
+    You can now suggest a commit and PR.

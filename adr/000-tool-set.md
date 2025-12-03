@@ -32,7 +32,7 @@ The pipeline for a template instance runs
 
 - linting: `cargo check`, `cargo clippy`, `cargo fmt -- --check`; eslint, prettier
 - unit tests: `cargo test`; vitest
-- snapshot tests: `aws-cdk/assertions`, `cdk-watchful snapshot`
+- infrastructure tests: `aws-cdk-lib/assertions`, `cdk-nag`
 - end-to-end tests: playwright tests
 
 In the CI/CD pipeline for the template repository a template instance is generated and tested.
