@@ -19,11 +19,11 @@ Run localstack and cognito-local:
 
 ```bash
 // turbo
-docker-compose down # cognito-local tends to go into a bad state
-docker-compose up
+docker compose down # cognito-local tends to go into a bad state
+docker compose up
 ```
 
-If `docker-compose down` fails to clean up or you see container conflicts, use:
+If `docker compose down` fails to clean up or you see container conflicts, use:
 
 ```bash
 docker rm -f cognito-local localstack-main

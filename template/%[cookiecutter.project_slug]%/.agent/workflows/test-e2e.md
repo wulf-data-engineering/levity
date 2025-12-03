@@ -16,5 +16,6 @@ Run the end-to-end tests with:
 
 ```bash
 // turbo
+npx playwright install
 npm run test:e2e
 ```
