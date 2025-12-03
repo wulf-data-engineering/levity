@@ -74,13 +74,20 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
         removalPolicy: props.deploymentConfig.removalPolicy,
     });
 
+    let code: lambda.Code;
+    if (props.deploymentConfig.skipBuild) {
+        code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
+    } else {
+        code = bundleRustCode(props.binaryName);
+    }
+
     return new lambda.Function(scope, id, {
         ...props,
         functionName: props.functionName || props.binaryName,
         runtime: lambda.Runtime.PROVIDED_AL2023,
         handler: 'bootstrap',
         architecture: lambda.Architecture.ARM_64,
-        code: bundleRustCode(props.binaryName),
+        code,
         logGroup
     })
 }

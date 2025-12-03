@@ -14,6 +14,7 @@ export interface DeploymentConfig {
   autoDeleteObjects: boolean;
   terminationProtection: boolean;
   domain?: DomainConfig;
+  skipBuild?: boolean;
 }
 
 /**
@@ -36,6 +37,8 @@ export interface DeploymentConfig {
  * - API Gateway is omitted (replaced by direct calls to cargo lambda watch)
  */
 export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
+  const skipBuild = scope.node.tryGetContext("skipBuild") === true || scope.node.tryGetContext("skipBuild") === "true";
+
   // Check for Localstack & Lambda Proxy mode
   const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
   const dev = awsEndpointUrl && awsEndpointUrl.startsWith("http://");
@@ -46,6 +49,7 @@ export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       terminationProtection: false,
+      skipBuild,
     };
   }
 
@@ -82,6 +86,7 @@ export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
       autoDeleteObjects: true,
       terminationProtection: false,
       domain,
+      skipBuild,
     };
   }
 
@@ -93,5 +98,6 @@ export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
     autoDeleteObjects: false,
     terminationProtection: true,
     domain,
+    skipBuild,
   };
 }

@@ -7,12 +7,14 @@ import * as path from 'path';
 import {execSync} from 'child_process';
 import * as fs from 'fs';
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import {DeploymentConfig} from "../../config";
 
 interface DeploymentProps {
     siteBucket: s3.IBucket;
     distribution: cloudfront.IDistribution;
     userPool?: cognito.IUserPool
     userPoolClient?: cognito.IUserPoolClient
+    deploymentConfig: DeploymentConfig
 }
 
 export class FrontendDeployment extends Construct {
@@ -27,36 +29,43 @@ export class FrontendDeployment extends Construct {
             userPoolClientId: props.userPoolClient?.userPoolClientId,
         };
 
+        let assetSource: s3deploy.ISource;
+        if (props.deploymentConfig.skipBuild) {
+            assetSource = s3deploy.Source.asset(path.join(process.cwd(), 'stub/frontend'));
+        } else {
+            assetSource = s3deploy.Source.asset(frontendPath, {
+                exclude: ['node_modules', 'build', '.svelte-kit', 'dist', '.git'],
+                bundling: {
+                    image: cdk.DockerImage.fromRegistry('alpine'),
+                    local: {
+                        tryBundle(outputDir: string) {
+                            // FIX: Always build locally, even for LocalStack (AWS_ENDPOINT_URL).
+                            // If we return false, it falls back to Alpine Docker which fails
+                            // because it doesn't have npm/node installed.
+
+                            console.log('Building Svelte Frontend...');
+
+                            // Fail fast if build errors
+                            execSync('npm run build', { cwd: frontendPath, stdio: 'inherit' });
+
+                            const buildPath = path.join(frontendPath, 'build');
+                            if (!fs.existsSync(buildPath)) throw new Error(`Frontend build output missing at ${buildPath}`);
+
+                            execSync(`cp -r ${buildPath}/* ${outputDir}`, { stdio: 'inherit' });
+                            return true;
+                        }
+                    }
+                }
+            });
+        }
+
         new s3deploy.BucketDeployment(this, 'DeploySvelte', {
             destinationBucket: props.siteBucket,
             distribution: props.distribution,
             distributionPaths: ['/*'],
             sources: [
                 // npm run build output
-                s3deploy.Source.asset(frontendPath, {
-                    exclude: ['node_modules', 'build', '.svelte-kit', 'dist', '.git'],
-                    bundling: {
-                        image: cdk.DockerImage.fromRegistry('alpine'),
-                        local: {
-                            tryBundle(outputDir: string) {
-                                // FIX: Always build locally, even for LocalStack (AWS_ENDPOINT_URL).
-                                // If we return false, it falls back to Alpine Docker which fails
-                                // because it doesn't have npm/node installed.
-
-                                console.log('Building Svelte Frontend...');
-
-                                // Fail fast if build errors
-                                execSync('npm run build', { cwd: frontendPath, stdio: 'inherit' });
-
-                                const buildPath = path.join(frontendPath, 'build');
-                                if (!fs.existsSync(buildPath)) throw new Error(`Frontend build output missing at ${buildPath}`);
-
-                                execSync(`cp -r ${buildPath}/* ${outputDir}`, { stdio: 'inherit' });
-                                return true;
-                            }
-                        }
-                    }
-                }),
+                assetSource,
                 // dynamic config
                 s3deploy.Source.jsonData('config.json', runtimeConfig)
             ],

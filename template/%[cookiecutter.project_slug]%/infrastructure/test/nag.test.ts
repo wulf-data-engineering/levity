@@ -15,7 +15,8 @@ test("No Unsuppressed Security Errors", () => {
       "email_sender_address": "noreply@example.com",
       "email_sender_name": "Test Sender",
       "email_replyto": "noreply@example.com",
-      "aws": true
+      "aws": true,
+      "skipBuild": true
     }
   });
   const stack = new Cdk.CdkStack(app, "CdkTestStack");

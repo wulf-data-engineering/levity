@@ -3,9 +3,7 @@ import { Template } from "aws-cdk-lib/assertions";
 import * as Cdk from "../lib/cdk-stack";
 
 test("Snapshot Test", () => {
-  console.log("AWS_ENDPOINT_URL before:", process.env.AWS_ENDPOINT_URL);
   delete process.env.AWS_ENDPOINT_URL;
-  console.log("AWS_ENDPOINT_URL after:", process.env.AWS_ENDPOINT_URL);
   const app = new cdk.App({
     context: {
       "environment": "test",
@@ -16,7 +14,8 @@ test("Snapshot Test", () => {
       "email_sender_address": "noreply@example.com",
       "email_sender_name": "Test Sender",
       "email_replyto": "noreply@example.com",
-      "aws": true
+      "aws": true,
+      "skipBuild": true
     }
   });
   const stack = new Cdk.CdkStack(app, "CdkTestStack");
@@ -37,7 +36,8 @@ test("Infrastructure Created", () => {
       "email_sender_address": "noreply@example.com",
       "email_sender_name": "Test Sender",
       "email_replyto": "noreply@example.com",
-      "aws": true
+      "aws": true,
+      "skipBuild": true
     }
   });
   const stack = new Cdk.CdkStack(app, "CdkTestStack");
@@ -46,6 +46,6 @@ test("Infrastructure Created", () => {
 
   // Verify API Gateway
   template.hasResourceProperties("AWS::ApiGateway::RestApi", {
-    Name: "Api"
+    Name: "RestApi"
   });
 });

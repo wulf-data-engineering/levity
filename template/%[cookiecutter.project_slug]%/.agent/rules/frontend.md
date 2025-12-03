@@ -47,4 +47,6 @@ Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
 
 ## Final Checks
 
+If you modified `frontend/package.json`, run `npm install` in `frontend/` to update the lock file.
+
 At the end of development run `npm run format`, `npm run lint`, `npm run check`.

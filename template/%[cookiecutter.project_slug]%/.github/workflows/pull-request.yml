@@ -108,7 +108,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - name: Install dependencies
-        run: npm i
+        run: npm ci
       - name: Generate Protocol Buffer files
         run: npm run gen:proto
       - name: Check formatting

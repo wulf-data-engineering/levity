@@ -33,7 +33,8 @@ export class Frontend extends Construct {
             siteBucket: storage.siteBucket,
             distribution: distribution.distribution,
             userPool: props.userPool,
-            userPoolClient: props.userPoolClient
+            userPoolClient: props.userPoolClient,
+            deploymentConfig
         });
     }
 }
