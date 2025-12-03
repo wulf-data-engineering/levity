@@ -113,22 +113,9 @@ export async function signUp(
             userAttributes: {
                 email: email
             },
-            clientMetadata: {
-                sign_up_data: JSON.stringify(signUpData)
-            },
             autoSignIn
         }
     });
-    if (!result.isSignUpComplete) {
-        console.log('User is not completely signed up in after signUp:', result.nextStep);
-    } else if (result.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
-        if (dev) {
-            // auto sign in not supported in Cognito local
-            await signIn(email, password);
-        } else {
-            await performAutoSignIn();
-        }
-    }
     return result;
 }
 
@@ -136,15 +123,23 @@ export async function signUp(
  * Confirms user sign up with given OTP code.
  * If confirmation completes with auto signs in in production, the user is also signed in.
  */
-export async function confirmSignUp(email: string, otp: string) {
+export async function confirmSignUp(email: string, otp: string, signUpData: SignUpData) {
     const result = await get(authApi).confirmSignUp({
         username: email,
-        confirmationCode: otp
+        confirmationCode: otp,
+        options: {
+            clientMetadata: {
+                sign_up_data: JSON.stringify(signUpData)
+            }
+        }
     });
     if (!result.isSignUpComplete) {
         console.warn('User is not completely signed up in after confirm:', result.nextStep);
     } else if (result.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
-        if (!dev /* not supported in Cognito local */) {
+        if (dev) {
+            // auto sign in not supported in Cognito local
+            await signIn(email, password);
+        } else {
             await performAutoSignIn();
         }
     }

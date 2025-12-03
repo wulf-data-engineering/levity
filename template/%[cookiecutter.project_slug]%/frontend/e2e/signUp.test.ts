@@ -40,8 +40,6 @@ test('sign up', async ({ page, browser }) => {
 	// Then: switch to sign-up form
 
 	await expect(email).toBeVisible();
-	await expect(firstName).toBeVisible();
-	await expect(lastName).toBeVisible();
 	await expect(password).toBeVisible();
 	await expect(confirm).toBeVisible();
 	await expect(signUp).toBeVisible();
@@ -53,8 +51,6 @@ test('sign up', async ({ page, browser }) => {
 	// When: clicking the sign-up button without data
 
 	await email.clear();
-	await firstName.clear();
-	await lastName.clear();
 	await password.clear();
 	await confirm.clear();
 	await signUp.click();
@@ -64,17 +60,12 @@ test('sign up', async ({ page, browser }) => {
 	await expect(email).toHaveAttribute('aria-invalid', 'true');
 	await expect(emailMsg).toBeVisible();
 
-	await expect(firstName).toHaveAttribute('aria-invalid', 'true');
-	await expect(lastName).toHaveAttribute('aria-invalid', 'true');
-
 	await expect(password).toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordMsg).toBeVisible();
 
 	// When: submitting with valid Email and invalid password
 
 	await email.fill(newEmail);
-	await firstName.fill('Test');
-	await lastName.fill('User');
 	await password.fill('P');
 	await confirm.fill('P');
 	await submit.click();
@@ -86,7 +77,7 @@ test('sign up', async ({ page, browser }) => {
 
 	// When: submitting with valid password but wrong repetition
 
-	await password.fill('%[ cookiecutter.test_user_password ]%');
+	await password.fill('Password123!');
 	await submit.click();
 
 	// Then: repetition is marked as invalid and shows a validation text
@@ -96,23 +87,26 @@ test('sign up', async ({ page, browser }) => {
 
 	// When: submitting with valid data
 
-	await confirm.fill('%[ cookiecutter.test_user_password ]%');
+	await confirm.fill('Password123!');
 	await submit.click();
 
 	// Then: switches to confirm page
 
 	await expect(email).not.toBeVisible();
-	await expect(firstName).not.toBeVisible();
-	await expect(lastName).not.toBeVisible();
 	await expect(password).not.toBeVisible();
 	await expect(confirm).not.toBeVisible();
 	await expect(otp).toBeVisible();
+	await expect(firstName).toBeVisible();
+	await expect(lastName).toBeVisible();
 
 	// When: submitting with invalid code
 
 	if (browser.browserType().name() == 'chromium')
 		await otpInput.fill('0'); // chrome replaces last digit
 	else await otpInput.fill('123450');
+
+	await firstName.fill('Test');
+	await lastName.fill('User');
 
 	await submit.click();
 

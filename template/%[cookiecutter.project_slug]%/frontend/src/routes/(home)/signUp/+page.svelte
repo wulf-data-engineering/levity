@@ -17,8 +17,6 @@
 	import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
 
 	let email = $state('');
-	let firstName = $state('');
-	let lastName = $state('');
 	let password = $state('');
 	let confirm = $state('');
 
@@ -39,15 +37,17 @@
 	async function handleSubmit() {
 		submitting = true;
 		try {
-			const signUpData = { firstName, lastName };
-			const result = await auth.signUp(email, password, signUpData);
+			const result = await auth.signUp(email, password);
 			console.log('Sign up:', result);
 			if (result.isSignUpComplete) {
 				toastSuccess('Signed Up', 'Successfully signed up and signed in.');
 				await goto('/');
 			} else if (result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
 				toastSuccess('Next Step', 'Please complete the sign-up process.');
-				await goto(`/confirmSignUp?email=${encodeURIComponent(email)}`);
+				const params = new URLSearchParams({
+					email
+				});
+				await goto(`/confirmSignUp?${params.toString()}`);
 			} else toastError('Next Step', `${result.nextStep.signUpStep} is not implemented.`);
 		} catch (err) {
 			console.error('Error signing up:', err);
@@ -71,22 +71,6 @@
 	<Card.Content>
 		<ValidatedForm id="form" onsubmit={handleSubmit}>
 			<div class="flex flex-col gap-6">
-				<ValidatedInput
-					id="firstName"
-					label="First Name"
-					type="text"
-					bind:value={firstName}
-					validations={[validateName]}
-				/>
-
-				<ValidatedInput
-					id="lastName"
-					label="Last Name"
-					type="text"
-					bind:value={lastName}
-					validations={[validateName]}
-				/>
-
 				<ValidatedInput
 					id="email"
 					label="Email"

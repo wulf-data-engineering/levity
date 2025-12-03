@@ -18,7 +18,14 @@ aws-config = "1.8.8"
 aws-credential-types = "1.2.8"
 aws_lambda_events = { version = "0.18.0", default-features = false, features = ["sqs", "cognito"] }
 aws-sdk-cognitoidentityprovider = "1.100.0"
+aws-sdk-dynamodb = "1.100.0"
+serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
+schemars = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
 wiremock = "0.6.5"
+
+[dev-dependencies]
+expectorate = "1"
 
 [build-dependencies]
 prost-build = "0.14.1"

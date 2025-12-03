@@ -11,9 +11,16 @@
 	import { get } from 'svelte/store';
 	import { ValidatedForm } from '$lib/components/validatedForm';
 
+	import { SignUpData } from '$lib/proto/sign_up_data/sign_up_data';
+
+	import { validateName } from '$lib/validation';
+	import { ValidatedInput } from '$lib/components/validatedInput';
+
 	let submitting = $state(false);
 
 	let email: string;
+	let firstName = $state('');
+	let lastName = $state('');
 
 	onMount(async () => {
 		let maybeEmail = page.url.searchParams.get('email');
@@ -30,7 +37,8 @@
 	async function handleSubmit() {
 		submitting = true;
 		try {
-			const result = await auth.confirmSignUp(email, otp);
+			const signUpData: SignUpData = { firstName, lastName };
+			const result = await auth.confirmSignUp(email, otp, signUpData);
 			console.log('Confirm Sign Up:', result);
 			if (result.isSignUpComplete) {
 				toastSuccess('Signed Up', 'Successfully signed up');
@@ -84,15 +92,33 @@
 
 	<Card.Content>
 		<ValidatedForm id="form" onsubmit={handleSubmit}>
-			<InputOTP.Root id="otp" maxlength={6} bind:value={otp} class="justify-center" required>
-				{#snippet children({ cells })}
-					<InputOTP.Group>
-						{#each cells as cell (cell)}
-							<InputOTP.Slot {cell} />
-						{/each}
-					</InputOTP.Group>
-				{/snippet}
-			</InputOTP.Root>
+			<div class="flex flex-col gap-6">
+				<ValidatedInput
+					id="firstName"
+					label="First Name"
+					type="text"
+					bind:value={firstName}
+					validations={[validateName]}
+				/>
+
+				<ValidatedInput
+					id="lastName"
+					label="Last Name"
+					type="text"
+					bind:value={lastName}
+					validations={[validateName]}
+				/>
+
+				<InputOTP.Root id="otp" maxlength={6} bind:value={otp} class="justify-center" required>
+					{#snippet children({ cells })}
+						<InputOTP.Group>
+							{#each cells as cell (cell)}
+								<InputOTP.Slot {cell} />
+							{/each}
+						</InputOTP.Group>
+					{/snippet}
+				</InputOTP.Root>
+			</div>
 		</ValidatedForm>
 	</Card.Content>
 
