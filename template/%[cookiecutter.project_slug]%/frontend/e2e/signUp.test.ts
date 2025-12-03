@@ -77,7 +77,7 @@ test('sign up', async ({ page, browser }) => {
 
 	// When: submitting with valid password but wrong repetition
 
-	await password.fill('Password123!');
+	await password.fill('%[ cookiecutter.test_user_password ]%');
 	await submit.click();
 
 	// Then: repetition is marked as invalid and shows a validation text
@@ -87,7 +87,7 @@ test('sign up', async ({ page, browser }) => {
 
 	// When: submitting with valid data
 
-	await confirm.fill('Password123!');
+	await confirm.fill('%[ cookiecutter.test_user_password ]%');
 	await submit.click();
 
 	// Then: switches to confirm page

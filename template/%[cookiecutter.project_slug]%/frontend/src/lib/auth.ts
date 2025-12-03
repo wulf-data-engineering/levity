@@ -96,12 +96,10 @@ async function performAutoSignIn() {
 /**
  * Signs up the user with given credentials and sign-up data.
  * If there is a current user, they are signed out first.
- * If confirmation completes immediately with auto sign in, the user is also signed in.
  */
 export async function signUp(
     email: string,
     password: string,
-    signUpData: SignUpData,
     autoSignIn: boolean = true
 ) {
     if (get(isSignedIn)) await signOut();
@@ -133,13 +131,10 @@ export async function confirmSignUp(email: string, otp: string, signUpData: Sign
             }
         }
     });
-    if (!result.isSignUpComplete) {
+  if (!result.isSignUpComplete) {
         console.warn('User is not completely signed up in after confirm:', result.nextStep);
     } else if (result.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
-        if (dev) {
-            // auto sign in not supported in Cognito local
-            await signIn(email, password);
-        } else {
+        if (!dev /* not supported in Cognito local */) {
             await performAutoSignIn();
         }
     }

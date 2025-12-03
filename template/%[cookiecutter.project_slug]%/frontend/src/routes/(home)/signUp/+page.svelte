@@ -8,7 +8,6 @@
 	import { ValidatedForm } from '$lib/components/validatedForm';
 	import {
 		validateEmail,
-		validateName,
 		validateNewPassword,
 		validatePasswordRepetition
 	} from '$lib/validation';

@@ -37,6 +37,11 @@ description: Backport changes from a template instance to the template source
 
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
 
+    > **Tip**: When staging files in the template directory, use quotes to prevent shell expansion of the wildcards:
+    > ```bash
+    > git add 'template/%[cookiecutter.project_slug]%/...'
+    > ```
+
 6.  **Verify Template Integrity**
     After backporting, run the `instantiate-template.md` workflow _again_ to a _new_ location (e.g., `../wulfpack-instances/<VERIFICATION_SLUG>`) and verify that:
     1.  Cookiecutter runs without error.

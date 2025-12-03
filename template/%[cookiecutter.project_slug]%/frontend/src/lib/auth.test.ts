@@ -88,7 +88,7 @@ describe('auth', () => {
 		expect((await auth.signIn('user-before', 'done')).isSignedIn).toBeTruthy();
 		expect(get(auth.currentUser)).not.toBeNull();
 
-		const signUpOutput = await auth.signUp('email', 'password', { firstName: 'First', lastName: 'Last' });
+		const signUpOutput = await auth.signUp('email', 'password');
 		expect(signUpOutput.isSignUpComplete).toBeFalsy();
 		expect((signUpOutput.nextStep as ConfirmSignUpSignUpStep).codeDeliveryDetails.destination).toBe(
 			'email'
