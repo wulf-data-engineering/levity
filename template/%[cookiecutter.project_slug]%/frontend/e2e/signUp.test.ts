@@ -10,6 +10,8 @@ test('sign up', async ({ page, browser }) => {
 	await expect(page.locator('h1')).toBeVisible();
 
 	const email = page.locator('#email');
+	const firstName = page.locator('#firstName');
+	const lastName = page.locator('#lastName');
 	const password = page.locator('#password');
 	const confirm = page.locator('#confirm');
 	const otp = page.locator('#otp');
@@ -38,6 +40,8 @@ test('sign up', async ({ page, browser }) => {
 	// Then: switch to sign-up form
 
 	await expect(email).toBeVisible();
+	await expect(firstName).toBeVisible();
+	await expect(lastName).toBeVisible();
 	await expect(password).toBeVisible();
 	await expect(confirm).toBeVisible();
 	await expect(signUp).toBeVisible();
@@ -49,6 +53,8 @@ test('sign up', async ({ page, browser }) => {
 	// When: clicking the sign-up button without data
 
 	await email.clear();
+	await firstName.clear();
+	await lastName.clear();
 	await password.clear();
 	await confirm.clear();
 	await signUp.click();
@@ -58,12 +64,17 @@ test('sign up', async ({ page, browser }) => {
 	await expect(email).toHaveAttribute('aria-invalid', 'true');
 	await expect(emailMsg).toBeVisible();
 
+	await expect(firstName).toHaveAttribute('aria-invalid', 'true');
+	await expect(lastName).toHaveAttribute('aria-invalid', 'true');
+
 	await expect(password).toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordMsg).toBeVisible();
 
 	// When: submitting with valid Email and invalid password
 
 	await email.fill(newEmail);
+	await firstName.fill('Test');
+	await lastName.fill('User');
 	await password.fill('P');
 	await confirm.fill('P');
 	await submit.click();
@@ -91,6 +102,8 @@ test('sign up', async ({ page, browser }) => {
 	// Then: switches to confirm page
 
 	await expect(email).not.toBeVisible();
+	await expect(firstName).not.toBeVisible();
+	await expect(lastName).not.toBeVisible();
 	await expect(password).not.toBeVisible();
 	await expect(confirm).not.toBeVisible();
 	await expect(otp).toBeVisible();

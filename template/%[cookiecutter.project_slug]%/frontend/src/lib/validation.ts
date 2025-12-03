@@ -66,3 +66,7 @@ export function validateNewPassword(value: string, policy: PasswordPolicy | null
 export function validatePasswordRepetition(newPassword: string, repetition: string) {
 	return newPassword === repetition ? null : 'Password does not match its repetition.';
 }
+
+export function validateName(value: string) {
+	return value.trim().length > 0 ? null : 'Name is required.';
+}
