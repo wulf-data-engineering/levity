@@ -45,7 +45,7 @@ Run `npm run test:unit` during development.
 Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
  to test the changes in the browser.
 
-## Final Checks
+## Final Checks (CRITICAL)
 
 If you modified `frontend/package.json`, run `npm install` in `frontend/` to update the lock file.
 

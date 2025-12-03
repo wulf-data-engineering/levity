@@ -30,6 +30,11 @@ Add or change Rust lambdas in the `backend/src/` folder.
 Use `lambda_http` for Lambdas exposed via API Gateway.
 Use `lambda_runtime` for event handlers or lifecycle hooks.
 
+To get an AWS SDK client, use the backend helper that takes care of aws & localstack configuration:
+```rust 
+let config = backend::load_aws_config().await;
+```
+
 To use a protocol defined in `protocols/<name>.proto`:
 1.  Import the `protocol_macro`:
     ```rust
@@ -50,10 +55,8 @@ Run `cargo test` during development.
 
 If applicable consult `.agent/workflows/run-locally.md` to test the changes in the browser.
 
-### Final Checks
+### Final Checks (CRITICAL)
 
 If you modified `infrastructure/package.json`, run `npm install` in `infrastructure/` to update the lock file.
-
-If you modified infrastructure code, run `npm test -- -u` in `infrastructure/` to update the snapshots.
 
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.

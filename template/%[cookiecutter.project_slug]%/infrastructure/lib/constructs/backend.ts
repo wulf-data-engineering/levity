@@ -36,7 +36,7 @@ export class Backend extends Construct {
             indexName: 'email-index',
             partitionKey: {
                 name: 'email',
-                type: apigateway.JsonSchemaType.STRING as unknown as AttributeType,
+                type: AttributeType.STRING,
             },
             projectionType: ProjectionType.ALL,
         });
@@ -49,7 +49,7 @@ export class Backend extends Construct {
             this.userPool = identity.userPool;
             this.userPoolClient = identity.userPoolClient;
 
-            const api = new Api(this, 'Api', {deploymentConfig, userPool: this.userPool});
+            const api = new Api(this, 'Api', {deploymentConfig, userPool: this.userPool, usersTable});
             this.restApi = api.gateway;
         }
     }

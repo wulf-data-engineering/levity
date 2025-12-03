@@ -23,6 +23,7 @@ serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
 schemars = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
 wiremock = "0.6.5"
+base64 = "0.21"
 
 [dev-dependencies]
 expectorate = "1"
@@ -43,6 +44,10 @@ path = "src/cognito-handler.rs"
 [[bin]]
 name = "message-handler"
 path = "src/message-handler.rs"
+
+[[bin]]
+name = "user-profile"
+path = "src/user-profile.rs"
 
 [profile.release]
 codegen-units = 1 # Reduce binary size by compiling all code in one unit
