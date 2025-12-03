@@ -50,4 +50,6 @@ Run `cargo test` during development.
 
 If applicable consult `.agent/workflows/run-locally.md` to test the changes in the browser.
 
+### Final Checks
+
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.

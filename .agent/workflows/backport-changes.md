@@ -7,7 +7,7 @@ description: Backport changes from a template instance to the template source
 ## Steps
 
 1.  **Verify Instance State**
-    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, etc.). **Do not backport untested code.**
+    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, etc.). **Do not backport untested and unchecked code.**
 
 2.  **Ask for User Approval**
     Explicitly ask the user if they want to proceed with the backport.

@@ -45,4 +45,6 @@ Run `npm run test:unit` during development.
 Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
  to test the changes in the browser.
 
-At the end of development run `npm run format`, `npm run lint`.
+## Final Checks
+
+At the end of development run `npm run format`, `npm run lint`, `npm run check`.

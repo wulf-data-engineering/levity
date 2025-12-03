@@ -61,5 +61,9 @@ for backporting it into the template.
     Run unit tests and end-to-end tests to verify your changes.
     Depending on the nature of the feature make changes to the `.agent` rules & workflows.
 
-4.  **Prepare for Backport**
+4.  **Run linters**
+    Run the final checks from template/%[cookiecutter.project_slug]%/.agent/rules/backend.md
+    Run the final checks from template/%[cookiecutter.project_slug]%/.agent/rules/frontend.md
+
+5.  **Prepare for Backport**
     Once the feature works in the instance, you are ready to backport it to the template. Proceed to the `backport-changes.md` workflow.
