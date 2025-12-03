@@ -54,4 +54,6 @@ If applicable consult `.agent/workflows/run-locally.md` to test the changes in t
 
 If you modified `infrastructure/package.json`, run `npm install` in `infrastructure/` to update the lock file.
 
+If you modified infrastructure code, run `npm test -- -u` in `infrastructure/` to update the snapshots.
+
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.

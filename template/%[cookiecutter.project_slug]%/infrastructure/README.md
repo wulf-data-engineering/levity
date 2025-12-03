@@ -77,6 +77,7 @@ alias cdklocal="AWS_PROFILE=localstack AWS_ENDPOINT_URL=\"http://127.0.0.1:4566\
 - `npm run build` compile typescript to js
 - `npm run watch` watch for changes and compile
 - `npm run test` perform the jest unit tests
+- `npm run test -- -u` update the jest snapshots
 - `cdk deploy` deploy this stack to your default AWS account/region
 - `cdk diff` compare deployed stack with current state
 - `cdk synth` emits the synthesized CloudFormation template
