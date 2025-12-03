@@ -15,5 +15,6 @@ Add or change end-to-end tests in `frontend/tests/e2e/` using Playwright.
 Run the end-to-end tests with:
 
 ```bash
+// turbo
 npm run test:e2e
 ```
