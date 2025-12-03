@@ -1,28 +1,27 @@
 ---
-description: Backport changes from the instance to the template source
+description: Backport changes from a template instance to the template source
 ---
 
-# Backport Changes
-
-**CRITICAL**: This is the most important step. You must copy your working code from `tmp/tool-set-project` back to `template/%[cookiecutter.project_slug]%`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
+**CRITICAL**: This is the most important step. You must copy your working code from `../wulfpack-instances/<PROJECT_SLUG>` back to `template/%[cookiecutter.project_slug]%`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
 
 ## Steps
 
 1.  **Verify Instance State**
-    Ensure that you have fully verified your changes in `tmp/<PROJECT_SLUG>` (ran tests, checked UI, etc.). **Do not backport untested code.**
+    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, etc.). **Do not backport untested code.**
 
 2.  **Ask for User Approval**
-    Explicitly ask the user: "The features are verified in the instance. Shall I proceed to backport them to the template?"
-    **Wait for the user to say "Yes" or "Proceed".**
+    Explicitly ask the user if they want to proceed with the backport.
+    If changes can be verified through the UI suggest to start the UI server.
+    **Wait for the user to confirm.**
 
 3.  **Identify Changed Files**
-    List the files you modified in `tmp/<PROJECT_SLUG>`.
+    List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`.
 
 4.  **Locate Template File**
     For each modified file, find the corresponding file in `template/`.
 
     _Mapping Example_:
-    `tmp/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
+    `../wulfpack-instances/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
     maps to
     `template/%[cookiecutter.project_slug]%/frontend/src/routes/+page.svelte`
 
@@ -39,16 +38,16 @@ description: Backport changes from the instance to the template source
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
 
 6.  **Verify Template Integrity**
-    After backporting, run the `instantiate_template` workflow _again_ to a _new_ location (e.g., `tmp/<VERIFICATION_SLUG>`) and verify that:
+    After backporting, run the `instantiate-template.md` workflow _again_ to a _new_ location (e.g., `../wulfpack-instances/<VERIFICATION_SLUG>`) and verify that:
     1.  Cookiecutter runs without error.
     2.  The new instance contains your changes.
     3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
 
 7.  **Cleanup**
-    Remove temporary instances if desired.
+    Ask if the temporary instance should be removed.
 
     ```bash
-    rm -rf tmp/<PROJECT_SLUG>
+    rm -rf ../wulfpack-instances/<PROJECT_SLUG>
     ```
 
 8.  **Ready**

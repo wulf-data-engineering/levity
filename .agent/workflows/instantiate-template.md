@@ -1,10 +1,10 @@
 ---
-description: Instantiate the cookiecutter template for development and testing
+description: Generate a fresh template instance for development
 ---
 
 # Instantiate Template
 
-This workflow generates a fresh instance of the project in a temporary directory. Use this to test the template or to have a working environment for feature development.
+This workflow generates a fresh instance of the template in a temporary directory. Use this to test the template or to have a working environment for feature development.
 
 ## Steps
 
@@ -12,7 +12,8 @@ This workflow generates a fresh instance of the project in a temporary directory
     Ensure the output directory exists.
 
     ```bash
-    mkdir -p tmp
+    # // turbo
+    mkdir -p ../wulfpack-instances/
     ```
 
 2.  **Determine Project Slug**
@@ -26,7 +27,7 @@ This workflow generates a fresh instance of the project in a temporary directory
     ```bash
     # // turbo
     # Replace <PROJECT_SLUG> with your chosen slug
-    cookiecutter template --output-dir tmp --no-input project_slug=<PROJECT_SLUG>
+    cookiecutter template --output-dir ../wulfpack-instances/ --no-input project_slug=<PROJECT_SLUG>
     ```
 
     *Note: This assumes `cookiecutter` is installed. If not, install it via `pip install cookiecutter` or `brew install cookiecutter`.*
@@ -35,7 +36,8 @@ This workflow generates a fresh instance of the project in a temporary directory
     Check if the project was created.
 
     ```bash
-    ls -F tmp/<PROJECT_SLUG>/
+    # // turbo
+    ls -F ../wulfpack-instances/<PROJECT_SLUG>/
     ```
 
 5.  **Commit Baseline**
@@ -44,11 +46,12 @@ This workflow generates a fresh instance of the project in a temporary directory
     That helps in tracking changes during feature development.
 
     ```bash
-    cd tmp/<PROJECT_SLUG>
+    # // turbo
+    cd ../wulfpack-instances/<PROJECT_SLUG>
     git init
     git add .
     git commit -m "Baseline"
     ```
     
 5.  **Ready**
-    You can now continue with the workflow in `develop_feature.md`.
+    You can now continue with the `develop-feature.md` workflow.

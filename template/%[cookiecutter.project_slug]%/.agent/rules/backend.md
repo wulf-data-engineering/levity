@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Develop and test features in the backend
 ---
 
@@ -16,7 +17,7 @@ There are two types of lambdas:
 The API lambdas receive and respond with Protocol Buffer messages.
 Handling is implemented in `backend/shared/protocols.rs`.
 
-## Workflow
+## Development
 
 Define newly required or change configuration of Cloud resources in
 `infrastructure/lib/backend.ts` and its constructs in `infrastructure/lib/constructs/backend/`
@@ -35,6 +36,6 @@ Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.
 
 Run `cargo test` during development.
 
-If applicable consult `run_locally.md` to test the changes in the browser.
+If applicable consult `.agent/workflows/run-locally.md` to test the changes in the browser.
 
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.

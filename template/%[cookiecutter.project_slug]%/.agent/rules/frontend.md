@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Develop and test features in the frontend
 ---
 
@@ -18,8 +19,6 @@ Use placeholder content while loading data.
 The stack uses https://shadcn-svelte.com/ components for UI.
 
 The stack uses storybook to display styling & usage of shadcn/svelte and derived components.
-
-## Workflow
 
 Add or change pages and layouts in `frontend/src/routes/`.
 
@@ -43,6 +42,7 @@ Follow the structure of existing components:
 
 Run `npm run test:unit` during development.
 
-Consult `run_locally.md` to test the changes in the browser.
+Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
+ to test the changes in the browser.
 
 At the end of development run `npm run format`, `npm run lint`.

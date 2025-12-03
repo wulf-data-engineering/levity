@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Add or change protocols between frontend and backend
 ---
 
@@ -14,7 +15,7 @@ Content negotiation is used to select between JSON and PB representations.
 
 In local development, as JSON representation is used for easier debugging.
 
-## Workflow
+## Development
 
 Read the existing `protocols/`
 

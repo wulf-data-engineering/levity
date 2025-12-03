@@ -18,6 +18,7 @@ Only clear the values if you need to sign-in as a different user.
 Run localstack and cognito-local:
 
 ```bash
+// turbo
 docker-compose down # cognito-local tends to go into a bad state
 docker-compose up
 ```
@@ -25,6 +26,7 @@ docker-compose up
 Start the backend lambdas in another terminal:
 
 ```bash
+// turbo
 cd backend
 cargo lambda watch
 ```
@@ -34,6 +36,7 @@ If you encounter port problems suggest `kill -9 $(lsof -ti:9000)` to the user.
 Deploy the infrastructure in another terminal:
 
 ```bash
+// turbo
 cd infrastructure
 cdklocal deploy
 ```
@@ -41,6 +44,7 @@ cdklocal deploy
 Start the frontend in another terminal:
 
 ```bash
+// turbo
 cd frontend
 npm run dev
 ```

@@ -9,9 +9,6 @@ without sacrificing production readiness.
 
 ---
 
-## 🤖 AI Agent Instructions
-If you are an AI agent assisting with this repository, you **MUST** read `CONTEXT.md` before planning & generating code.
-
 ## Technology palette
 
 | Layer         | Languages / runtimes                               | Core AWS / OSS tech                                                          | External accounts      |
