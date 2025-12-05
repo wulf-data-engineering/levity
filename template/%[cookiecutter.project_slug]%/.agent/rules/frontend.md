@@ -40,6 +40,11 @@ Follow the structure of existing components:
 - Component.test.svelte for an optional test component
 - component.test.ts for unit tests using the Svelte testing-library
 
+If code depends on local development or deployed AWS environment decide based on the `dev` value:
+```typescript
+import {dev} from '$app/environment';
+```
+
 Run `npm run test:unit` during development.
 
 Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
