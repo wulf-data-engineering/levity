@@ -30,7 +30,7 @@ async fn main() -> Result<(), Error> {
         let state = state.clone();
         async move { function_handler(req, state).await }
     }))
-    .await
+        .await
 }
 
 async fn function_handler(req: Request, state: AppState) -> Result<Response<Body>, Error> {
@@ -51,7 +51,22 @@ async fn function_handler(req: Request, state: AppState) -> Result<Response<Body
     write_response(&profile, &req)
 }
 
-#[cfg(debug_assertions)]
+#[cfg(not(any(debug_assertions, test)))]
+fn get_sub(req: &Request) -> Result<String, Error> {
+    use lambda_http::RequestExt;
+    let request_context = req.request_context();
+    request_context
+        .authorizer()
+        .and_then(|auth| {
+            auth.jwt
+                .as_ref()
+                .and_then(|jwt| jwt.claims.get("sub").cloned())
+        })
+        .ok_or_else(|| anyhow!("Missing sub in claims").into())
+}
+
+// Locally there is no API Gateway authorizer, need to parse the header
+#[cfg(any(debug_assertions, test))]
 fn get_sub(req: &Request) -> Result<String, Error> {
     req.headers()
         .get("Authorization")
@@ -72,8 +87,7 @@ fn get_sub(req: &Request) -> Result<String, Error> {
                 };
 
                 if let Ok(decoded) = general_purpose::URL_SAFE.decode(padded) {
-                    if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&decoded)
-                    {
+                    if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&decoded) {
                         return json
                             .get("sub")
                             .and_then(|s| s.as_str())
@@ -86,30 +100,17 @@ fn get_sub(req: &Request) -> Result<String, Error> {
         .ok_or_else(|| anyhow!("Missing sub in claims").into())
 }
 
-#[cfg(not(debug_assertions))]
-fn get_sub(req: &Request) -> Result<String, Error> {
-    let request_context = req.request_context();
-    request_context
-        .authorizer()
-        .and_then(|auth| {
-            auth.jwt
-                .as_ref()
-                .and_then(|jwt| jwt.claims.get("sub").cloned())
-        })
-        .ok_or_else(|| anyhow!("Missing sub in claims").into())
-}
-
-#[cfg(debug_assertions)]
+#[cfg(any(debug_assertions, test))]
 fn get_table_name() -> String {
     std::env::var("USERS_TABLE_NAME").unwrap_or_else(|_| "users".to_string())
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(any(debug_assertions, test)))]
 fn get_table_name() -> String {
     std::env::var("USERS_TABLE_NAME").expect("USERS_TABLE_NAME must be set")
 }
 
-#[cfg(debug_assertions)]
+#[cfg(any(debug_assertions, test))]
 async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
     let email = "%[cookiecutter.test_user_email]%";
     let sub = "00000000-0000-0000-0000-000000000000";
@@ -129,6 +130,11 @@ async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
         println!("Failed to insert test user: {:?}", e);
     }
 
+    Ok(())
+}
+
+#[cfg(not(any(debug_assertions, test)))]
+async fn ensure_test_user_profile(_state: &AppState) -> Result<(), Error> {
     Ok(())
 }
 
@@ -172,7 +178,7 @@ mod tests {
         let payload = serde_json::json!({
             "sub": "test-sub"
         })
-        .to_string();
+            .to_string();
         let encoded_payload = base64::engine::general_purpose::URL_SAFE.encode(payload);
         let token = format!("header.{}.signature", encoded_payload);
 

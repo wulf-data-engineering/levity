@@ -47,6 +47,10 @@ To use a protocol defined in `protocols/<name>.proto`:
     ```
 The macro will make the Protocol Buffer types in the module available with `use`.
 
+If code depends on local development or deployed AWS environment separate that behavior in two functions with same name.
+Annotate the local version with `#[cfg(any(debug_assertions, test))]`.
+Annotate the deployed version with `#[cfg(not(any(debug_assertions, test)))]`.
+
 Register new lambdas in Cargo.toml.
 
 Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.

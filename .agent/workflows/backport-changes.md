@@ -11,12 +11,13 @@ description: Backport changes from a template instance to the template source
     **Do not backport untested and unchecked code.**
     **Do not backport unformatted code.**
 
-2.  **Ask for User Approval** 
+2.  **Ask for User Approval (CRITICAL)** 
     State that the feature is complete, you ran all tests, linters and formatters.
     Explicitly ask the user if they want to proceed with the backport.
     If changes can be verified through the UI suggest to start the UI server and list URLs to the specific pages. 
-    **Wait for the user to confirm.**
-    **If the user asks for further changes switch back to the `feature-workflow.md` workflow again.**
+    **CRITICAL: Wait for the user to confirm.**
+    **CRITICAL: If the user asks for further changes switch back to the `feature-workflow.md` workflow again.**
+    **CRITICAL: Do not change files on the main branch. Suggest to switch to a branch first**
 
 3.  **Identify Changed Files**
     List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`.
