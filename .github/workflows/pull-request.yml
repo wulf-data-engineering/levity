@@ -295,7 +295,7 @@ jobs:
         working-directory: test-instance/backend/
         run: cargo build
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.4.0
+        uses: hoverkraft-tech/compose-action@v2.4.2
         with:
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
