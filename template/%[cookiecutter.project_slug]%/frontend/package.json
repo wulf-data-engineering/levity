@@ -27,7 +27,7 @@
 		"@internationalized/date": "^3.10.0",
 		"@lucide/svelte": "^0.544.0",
 		"@playwright/test": "^1.56.0",
-		"@storybook/addon-docs": "^9.1.12",
+		"@storybook/addon-docs": "^10.1.10",
 		"@storybook/addon-essentials": "^9.0.0-alpha.12",
 		"@storybook/addon-svelte-csf": "^5.0.10",
 		"@storybook/sveltekit": "^9.1.10",
