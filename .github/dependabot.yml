@@ -7,6 +7,10 @@ updates:
       - "template/*/"
     schedule:
       interval: "monthly"
+    groups:
+      all-actions:
+        patterns:
+          - "*"
 
   # npm (Own & Template Frontend/Infrastructure)
   - package-ecosystem: "npm"
@@ -19,6 +23,15 @@ updates:
       time: "09:00"
       timezone: "Europe/Berlin"
     groups:
+      aws-major:
+        patterns:
+          - "aws-cdk"
+          - "aws-cdk-lib"
+          - "cargo-lambda-cdk"
+          - "@aws-cdk/*"
+          - "@aws-sdk/*"
+        update-types:
+          - "major"
       dependencies:
         patterns:
           - "*"
@@ -35,6 +48,16 @@ updates:
       time: "09:00"
       timezone: "Europe/Berlin"
     groups:
+      aws-major:
+        patterns:
+          - "aws-config"
+          - "aws-credential-types"
+          - "aws-sdk-*"
+          - "aws_lambda_events"
+          - "lambda_http"
+          - "lambda_runtime"
+        update-types:
+          - "major"
       dependencies:
         patterns:
           - "*"
@@ -42,11 +65,3 @@ updates:
           - "minor"
           - "patch"
 
-  # Template's Docker Compose
-  - package-ecosystem: "docker"
-    directories:
-      - "template/*/"
-    schedule:
-      interval: "daily"
-      time: "09:15"
-      timezone: "Europe/Berlin"
