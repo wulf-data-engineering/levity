@@ -312,6 +312,10 @@ jobs:
             --region us-east-1
         env:
           AWS_REGION: eu-central-1
+          AWS_DEFAULT_REGION: eu-central-1
+          AWS_ACCOUNT_ID: "000000000000"
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
           AWS_ENVAR_ALLOWLIST: 'AWS_REGION' # We tell cdklocal NOT to strip these variables
           CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
       - name: Start cargo-lambda watch in background
