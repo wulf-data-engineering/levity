@@ -23,13 +23,15 @@ updates:
 
   # Template's GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "template/%[cookiecutter.project_slug]%/"
+    directories:
+      - "template/*/"
     schedule:
       interval: "monthly"
 
   # Template's Backend
   - package-ecosystem: "cargo"
-    directory: "template/%[cookiecutter.project_slug]%/backend/"
+    directories:
+      - "template/*/backend/"
     schedule:
       interval: "daily"
       time: "09:00"
@@ -44,7 +46,8 @@ updates:
 
   # Template's Frontend
   - package-ecosystem: "npm"
-    directory: "template/%[cookiecutter.project_slug]%/frontend/"
+    directories:
+      - "template/*/frontend/"
     schedule:
       interval: "daily"
       time: "09:05"
@@ -59,7 +62,8 @@ updates:
 
   # Template's Infrastructure
   - package-ecosystem: "npm"
-    directory: "template/%[cookiecutter.project_slug]%/infrastructure/"
+    directories:
+      - "template/*/infrastructure/"
     schedule:
       interval: "daily"
       time: "09:10"
@@ -74,7 +78,8 @@ updates:
 
   # Template's Docker Compose
   - package-ecosystem: "docker"
-    directory: "template/%[cookiecutter.project_slug]%/"
+    directories:
+      - "template/*/"
     schedule:
       interval: "daily"
       time: "09:15"
