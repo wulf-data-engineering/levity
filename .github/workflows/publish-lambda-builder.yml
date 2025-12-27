@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get current date
         id: date
@@ -52,7 +52,7 @@ jobs:
             type=sha,format=long
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.lambda-builder
@@ -71,7 +71,7 @@ jobs:
 
       - name: Create Pull Request
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore: update lambda builder image to ${{ steps.date.outputs.today }}"
           title: "Update Lambda Builder Image: ${{ steps.date.outputs.today }}"

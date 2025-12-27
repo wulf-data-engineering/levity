@@ -10,9 +10,9 @@ jobs:
     outputs:
       instance-path: ${{ steps.set-path.outputs.path }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: pip-cache-cookiecutter
@@ -45,7 +45,7 @@ jobs:
             -c email_replyto "no-reply@wulfpack.wulf.technology" \
             --ignore license hosted_zone_id staging_hosted_zone_id
       - name: Upload test template instance
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-instance
           path: test-instance/
@@ -56,7 +56,7 @@ jobs:
     outputs:
       builder: ${{ steps.filter.outputs.builder }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -69,7 +69,7 @@ jobs:
     needs: check-builder-image
     if: needs.check-builder-image.outputs.builder == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build local builder
         run: docker build -f Dockerfile.lambda-builder -t local-builder .
       - name: Smoke test
@@ -82,7 +82,7 @@ jobs:
     needs: seed-template
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -100,7 +100,7 @@ jobs:
         working-directory: ./test-instance/backend
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -145,12 +145,12 @@ jobs:
         working-directory: ./test-instance/infrastructure
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
       - name: Install dependencies
@@ -166,18 +166,18 @@ jobs:
         working-directory: ./test-instance/frontend
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
       - name: Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -226,7 +226,7 @@ jobs:
       CI: "true"
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -257,11 +257,11 @@ jobs:
             "https://github.com/cargo-lambda/cargo-lambda/releases/download/$TAG/$ASSET"
           sudo tar -xzf /tmp/cargo-lambda.tar.gz -C /usr/local/bin
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
       - name: Restore npm cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -270,7 +270,7 @@ jobs:
           key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}-${{ hashFiles('test-instance/infrastructure/package-lock.json') }}
           restore-keys: node-cache-
       - name: Restore Playwright browsers cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/ms-playwright
@@ -295,7 +295,7 @@ jobs:
         working-directory: test-instance/backend/
         run: cargo build
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.4.0
+        uses: hoverkraft-tech/compose-action@v2.4.2
         with:
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
@@ -331,7 +331,7 @@ jobs:
       - name: Upload Playwright test results
         id: upload-playwright
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-test-results
           path: |
