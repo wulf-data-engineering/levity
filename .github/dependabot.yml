@@ -1,14 +1,19 @@
 version: 2
 updates:
-  # Own GitHub Actions
+  # GitHub Actions (Own & Template)
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "template/*/"
     schedule:
       interval: "monthly"
 
-  # Own npm
+  # npm (Own & Template Frontend/Infrastructure)
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "template/*/frontend/"
+      - "template/*/infrastructure/"
     schedule:
       interval: "daily"
       time: "09:00"
@@ -20,13 +25,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-
-  # Template's GitHub Actions
-  - package-ecosystem: "github-actions"
-    directories:
-      - "template/*/"
-    schedule:
-      interval: "monthly"
 
   # Template's Backend
   - package-ecosystem: "cargo"
@@ -35,38 +33,6 @@ updates:
     schedule:
       interval: "daily"
       time: "09:00"
-      timezone: "Europe/Berlin"
-    groups:
-      dependencies:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Template's Frontend
-  - package-ecosystem: "npm"
-    directories:
-      - "template/*/frontend/"
-    schedule:
-      interval: "daily"
-      time: "09:05"
-      timezone: "Europe/Berlin"
-    groups:
-      dependencies:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Template's Infrastructure
-  - package-ecosystem: "npm"
-    directories:
-      - "template/*/infrastructure/"
-    schedule:
-      interval: "daily"
-      time: "09:10"
       timezone: "Europe/Berlin"
     groups:
       dependencies:
