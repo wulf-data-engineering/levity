@@ -121,7 +121,7 @@ function bundleRustCode(binName: string): lambda.AssetCode {
     return lambda.Code.fromAsset(workspacePath, {
         exclude,
         bundling: {
-            image: cdk.DockerImage.fromRegistry('ghcr.io/christophwulf/wulfpack-lambda-builder:latest'),
+            image: cdk.DockerImage.fromRegistry('ghcr.io/wulf-data-engineering/levity-lambda-builder:20251227'),
             user: 'root',
             volumes: [
                 {hostPath: hostTargetDir, containerPath: '/var/cargo/target'},
@@ -135,6 +135,7 @@ function bundleRustCode(binName: string): lambda.AssetCode {
                 'bash', '-c',
                 `cd /asset-input/${relativeCratePath} && ` +
                 `cargo build --release --target aarch64-unknown-linux-gnu --bin ${binName} && ` +
+                // Copy from the cached target directory:
                 `cp /var/cargo/target/aarch64-unknown-linux-gnu/release/${binName} /asset-output/bootstrap && ` +
                 '[ -f /asset-output/bootstrap ] || { echo "❌ Binary not found in output"; exit 1; } && ' +
                 'chmod -R 777 /var/cargo/target /var/cargo/registry || true'

@@ -2,21 +2,37 @@ name: Publish Lambda Builder Image
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile.lambda-builder
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/wulfpack-lambda-builder
+  IMAGE_NAME: ${{ github.repository_owner }}/levity-lambda-builder
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get current date
+        id: date
+        run: echo "today=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -32,6 +48,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
+            type=raw,value=${{ steps.date.outputs.today }}
             type=sha,format=long
 
       - name: Build and push Docker image
@@ -39,6 +56,29 @@ jobs:
         with:
           context: .
           file: Dockerfile.lambda-builder
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update backend-lambda.ts
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          TAG=${{ steps.date.outputs.today }}
+          FILE="template/%[cookiecutter.project_slug]%/infrastructure/lib/constructs/backend/backend-lambda.ts"
+          # Update the pinned version string (e.g., :20251227)
+          sed -i "s/levity-lambda-builder:[0-9]\{8\}/levity-lambda-builder:$TAG/g" "$FILE"
+
+      - name: Create Pull Request
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update lambda builder image to ${{ steps.date.outputs.today }}"
+          title: "Update Lambda Builder Image: ${{ steps.date.outputs.today }}"
+          body: |
+            Automated upgrade of the pinned Docker image tag in the template.
+            
+            New Tag: `${{ steps.date.outputs.today }}`
+            Build triggered by change in `Dockerfile.lambda-builder`.
+          branch: "auto/update-lambda-builder-${{ steps.date.outputs.today }}"
+          delete-branch: true
