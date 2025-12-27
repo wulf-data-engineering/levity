@@ -1,0 +1,12 @@
+FROM rust:1-bullseye
+
+# Install dependencies required for building the backend
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler \
+    cmake \
+    clang \
+    libclang-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add the target architecture for AWS Lambda (ARM64)
+RUN rustup target add aarch64-unknown-linux-gnu
