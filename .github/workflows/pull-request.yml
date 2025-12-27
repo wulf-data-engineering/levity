@@ -82,7 +82,7 @@ jobs:
     needs: seed-template
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -100,7 +100,7 @@ jobs:
         working-directory: ./test-instance/backend
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -145,7 +145,7 @@ jobs:
         working-directory: ./test-instance/infrastructure
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -166,7 +166,7 @@ jobs:
         working-directory: ./test-instance/frontend
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
@@ -226,7 +226,7 @@ jobs:
       CI: "true"
     steps:
       - name: Download test template instance
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
