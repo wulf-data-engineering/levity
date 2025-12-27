@@ -50,6 +50,32 @@ jobs:
           name: test-instance
           path: test-instance/
           include-hidden-files: true # for .prettierignore etc.
+  check-builder-image:
+    name: Check Builder Image
+    runs-on: ubuntu-latest
+    outputs:
+      builder: ${{ steps.filter.outputs.builder }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            builder:
+              - 'Dockerfile.lambda-builder'
+  test-builder-image:
+    name: Test Builder Image
+    runs-on: ubuntu-latest
+    needs: check-builder-image
+    if: needs.check-builder-image.outputs.builder == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build local builder
+        run: docker build -f Dockerfile.lambda-builder -t local-builder .
+      - name: Smoke test
+        run: |
+          docker run --rm local-builder cargo --version
+          docker run --rm local-builder protoc --version
   check-protocols:
     name: Check Protocols
     runs-on: ubuntu-latest

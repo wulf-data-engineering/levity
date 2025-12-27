@@ -64,3 +64,10 @@ If applicable consult `.agent/workflows/run-locally.md` to test the changes in t
 If you modified `infrastructure/package.json`, run `npm install` in `infrastructure/` to update the lock file.
 
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.
+
+## Troubleshooting
+
+## Rust build
+
+If the Rust build fails in cdk synth (especially linking errors or missing system dependencies), checks if the Docker image in `infrastructure/lib/constructs/backend/backend-lambda.ts` is outdated.
+Suggest updating to a newer YYYYMMDD tag of `ghcr.io/wulf-data-engineering/levity-lambda-builder` if one exists.

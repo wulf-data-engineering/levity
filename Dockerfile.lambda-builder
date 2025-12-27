@@ -1,5 +1,8 @@
 FROM rust:1-bullseye
 
+LABEL org.opencontainers.image.description="Docker image with pre-installed dependencies for building Rust-based AWS Lambdas in Levity based templates."
+LABEL org.opencontainers.image.source="https://github.com/wulf-data-engineering/wulfpack"
+
 # Install dependencies required for building the backend
 RUN apt-get update && apt-get install -y \
     protobuf-compiler \
