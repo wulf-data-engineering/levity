@@ -41,7 +41,7 @@
 		"@testing-library/svelte": "^5.2.8",
 		"@types/node": "^24.7.0",
 		"@types/snappyjs": "^0.7.1",
-		"@vitest/browser": "^3.2.4",
+		"@vitest/browser": "^4.0.16",
 		"axe-playwright": "^2.2.2",
 		"bits-ui": "^2.11.5",
 		"clsx": "^2.1.1",
@@ -66,8 +66,8 @@
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.46.0",
 		"vite": "^7.1.9",
-		"vitest": "^3.2.4",
-		"vitest-browser-svelte": "^1.1.0"
+		"vitest": "^4.0.16",
+		"vitest-browser-svelte": "^2.0.1"
 	},
 	"dependencies": {
 		"@aws-amplify/auth": "^6.17.1",
