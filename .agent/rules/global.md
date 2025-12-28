@@ -71,6 +71,10 @@ Add users table
 * Email address as secondary index
 ```
 
+### 6. Git Operations
+
+**CRITICAL**: Always quote paths in `git` commands (e.g., `git add 'path/to/file'`) to prevent shell expansion issues with special characters in template paths.
+
 ## Important Paths
 
 - `template/`: Source of the template

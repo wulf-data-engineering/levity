@@ -32,6 +32,65 @@ updates:
           - "@aws-sdk/*"
         update-types:
           - "major"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "vitest-*"
+        update-types:
+          - "major"
+      playwright:
+        patterns:
+          - "playwright"
+          - "@playwright/*"
+          - "axe-playwright"
+        update-types:
+          - "major"
+      storybook:
+        patterns:
+          - "@storybook/*"
+        update-types:
+          - "major"
+      svelte:
+        patterns:
+          - "svelte"
+          - "@sveltejs/*"
+        update-types:
+          - "major"
+      tailwindcss:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tailwind-*"
+        update-types:
+          - "major"
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
+        update-types:
+          - "major"
+      prettier:
+        patterns:
+          - "prettier"
+          - "prettier-plugin-*"
+        update-types:
+          - "major"
+      jest:
+        patterns:
+          - "jest"
+          - "@types/jest"
+          - "ts-jest"
+          - "jest-*"
+        update-types:
+          - "major"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+        update-types:
+          - "major"
       dependencies:
         patterns:
           - "*"
