@@ -6,7 +6,16 @@ description: Backport changes from a template instance to the template source
 
 ## Steps
 
-1.  **Verify Instance State**
+1.  **Read Repository Rules (CRITICAL)**
+    Since you have been working in the instance, you may have "forgotten" the main repository's rules.
+    **You MUST read them now to recall the backporting policies.**
+
+    ```bash
+    // turbo
+    cat ../wulfpack/.agent/rules/global.md
+    ```
+
+2.  **Verify Instance State**
     Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, ran formatters, etc.).
     **Do not backport untested and unchecked code.**
     **Do not backport unformatted code.**
@@ -20,8 +29,12 @@ description: Backport changes from a template instance to the template source
     **CRITICAL: Do not change files on the main branch. Suggest to switch to a branch first**
 
 3.  **Identify Changed Files**
-    List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`.
-    `git status` helps you.
+    List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`:
+
+    ```bash
+    // turbo
+    git diff
+    ```
 
 4.  **Locate Template File**
     For each modified file, find the corresponding file in `template/`.
@@ -44,7 +57,7 @@ description: Backport changes from a template instance to the template source
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
     > Consider the template/cookiecutter.json file for reference on what placeholders with which values are available.
 
-    > **Tip**: When staging files in the template directory, use quotes to prevent shell expansion of the wildcards:
+    > **Warning**: When copying or staging files in the template directory, use quotes to prevent shell expansion of the wildcards:
     > ```bash
     > git add 'template/%[cookiecutter.project_slug]%/...'
     > ```
@@ -59,7 +72,7 @@ description: Backport changes from a template instance to the template source
     3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
 
 7.  **Cleanup**
-    **Important:** Suggest that the temporary instance should be removed.
+    **Important:** Suggest that the temporary instances should be removed.
     **Suggest that even if the user asks you to proceed with a commit.**
 
     ```bash

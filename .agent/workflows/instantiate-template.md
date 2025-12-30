@@ -53,5 +53,10 @@ This workflow generates a fresh instance of the template in a temporary director
     git commit -m "Baseline"
     ```
     
-5.  **Ready**
+6.  **Context Switch Warning**
+    You are about to switch context to the generated instance.
+    **Note**: The instance has its own `.agent/rules/global.md`. Do not confuse them with the repository-level rules.
+    When in doubt about backporting or template structure, always refer back to the **repository rules** (`../../.agent/rules/global.md`).
+
+7.  **Ready**
     You can now continue with the `develop-feature.md` workflow.

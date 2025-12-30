@@ -15,6 +15,14 @@ for backporting it into the template.
 - Working directory for this workflow is `../wulfpack-instances/<PROJECT_SLUG>`.
 - You have to be on a clean `main` branch.
 
+## Persistent Reminder: Template Development Mode
+
+You are currently working in a **temporary instance** (`../wulfpack-instances/<PROJECT_SLUG>`).
+While this instance has its own `.agent/rules/global.md`, you are **still bound by the rules of the main `wulfpack` repository** (the template source).
+
+**CRITICAL**: If you lose context or "forget" the main repo rules (e.g., about Jinja2 delimiters or backporting), you MUST reload them:
+`cat <WORKSPACE_ROOT>/.agent/rules/global.md`
+
 ## Steps
 
 1.  **Navigate to Instance**
