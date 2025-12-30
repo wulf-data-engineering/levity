@@ -19,9 +19,9 @@ The source code for the generated project lives in `template/`.
 
 - `.` is the **template repo/repository**.
 - `template/%[cookiecutter.project_slug]%/` is the **template**.
-- `../wulfpack-instances/<project_slug>/` is a **template instance** when generated.
+- `../levity-instances/<project_slug>/` is a **template instance** when generated.
 
-> **Note**: The `.. /wulfpack-instances/` directory is outside of the workspace. In case of read or write failures you **MUST** ask the user to allow it via 
+> **Note**: The `.. /levity-instances/` directory is outside of the workspace. In case of read or write failures you **MUST** ask the user to allow it via 
 *Settings > Agent > File Access > Agent Non-Workspace File Access*.
 
 ### 2. Jinja2 Delimiters
@@ -81,4 +81,4 @@ Add users table
 - `template/cookiecutter.json`: Configuration
 - `template/%[cookiecutter.project_slug]%/.agent`: AI rules and workflows for generated projects
 - `.github/workflows/`: CI/CD for the template itself (linting, testing generation)
-- `..wulfpack-instances/`: Temporary instances of generated projects
+- `..levity-instances/`: Temporary instances of generated projects

@@ -8,7 +8,7 @@
   "license": ["MIT", "BSD-3-Clause", "GPL-3.0-only", "Apache-2.0", "empty"],
   "copyright_initial_year": "%%[ now 'utc', '%Y' ]%%",
   "default_region": "eu-central-1",
-  "domain_name": "wulfpack.wulf.technology",
+  "domain_name": "levity.wulf.technology",
   "hosted_zone_id": "undefined",
   "staging_hosted_zone_id": "undefined",
   "email_sender_address": "no-reply@%[ cookiecutter.domain_name ]%",

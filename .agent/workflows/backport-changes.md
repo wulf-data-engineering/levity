@@ -2,7 +2,7 @@
 description: Backport changes from a template instance to the template source
 ---
 
-**CRITICAL**: This is the most important step. You must copy your working code from `../wulfpack-instances/<PROJECT_SLUG>` back to `template/%[cookiecutter.project_slug]%`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
+**CRITICAL**: This is the most important step. You must copy your working code from `../levity-instances/<PROJECT_SLUG>` back to `template/%[cookiecutter.project_slug]%`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
 
 ## Steps
 
@@ -16,7 +16,7 @@ description: Backport changes from a template instance to the template source
     ```
 
 2.  **Verify Instance State**
-    Ensure that you have fully verified your changes in `../wulfpack-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, ran formatters, etc.).
+    Ensure that you have fully verified your changes in `../levity-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, ran formatters, etc.).
     **Do not backport untested and unchecked code.**
     **Do not backport unformatted code.**
 
@@ -29,7 +29,7 @@ description: Backport changes from a template instance to the template source
     **CRITICAL: Do not change files on the main branch. Suggest to switch to a branch first**
 
 3.  **Identify Changed Files**
-    List the files you modified in `../wulfpack-instances/<PROJECT_SLUG>`:
+    List the files you modified in `../levity-instances/<PROJECT_SLUG>`:
 
     ```bash
     // turbo
@@ -40,7 +40,7 @@ description: Backport changes from a template instance to the template source
     For each modified file, find the corresponding file in `template/`.
 
     _Mapping Example_:
-    `../wulfpack-instances/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
+    `../levity-instances/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
     maps to
     `template/%[cookiecutter.project_slug]%/frontend/src/routes/+page.svelte`
 
@@ -66,7 +66,7 @@ description: Backport changes from a template instance to the template source
 
 
 6.  **Verify Template Integrity**
-    After backporting, run the `instantiate-template.md` workflow _again_ to a _new_ location (e.g., `../wulfpack-instances/<VERIFICATION_SLUG>`) and verify that:
+    After backporting, run the `instantiate-template.md` workflow _again_ to a _new_ location (e.g., `../levity-instances/<VERIFICATION_SLUG>`) and verify that:
     1.  Cookiecutter runs without error.
     2.  The new instance contains your changes.
     3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
@@ -76,7 +76,7 @@ description: Backport changes from a template instance to the template source
     **Suggest that even if the user asks you to proceed with a commit.**
 
     ```bash
-    rm -rf ../wulfpack-instances/<PROJECT_SLUG>
+    rm -rf ../levity-instances/<PROJECT_SLUG>
     ```
 
 8.  **Ready**

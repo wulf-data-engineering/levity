@@ -26,7 +26,6 @@ jobs:
             project_description="Some sample application." \
             author="GitHub Actions" \
             author_email="git@hub.actions" \
-            copyright_pat_env_var="COPYLEFT_PAT" \
             default_region="us-west-2" \
             domain_name="foo.bar" \
             hosted_zone_id="undefined" \
@@ -41,9 +40,9 @@ jobs:
           python scripts/check_defaults.py --template template/cookiecutter.json --generated test-instance \
             -c project_slug "tool-set-project" \
             -c package_name "tool_set_project" \
-            -c email_sender_address "no-reply@wulfpack.wulf.technology" \
+            -c email_sender_address "no-reply@levity.wulf.technology" \
             -c email_sender_name "Tool-Set Project" \
-            -c email_replyto "no-reply@wulfpack.wulf.technology" \
+            -c email_replyto "no-reply@levity.wulf.technology" \
             --ignore license hosted_zone_id staging_hosted_zone_id
       - name: Upload test template instance
         uses: actions/upload-artifact@v6

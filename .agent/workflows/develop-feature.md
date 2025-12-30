@@ -12,13 +12,13 @@ for backporting it into the template.
 ## Prerequisites
 
 - You must have run the `instantiate-template.md` workflow first.
-- Working directory for this workflow is `../wulfpack-instances/<PROJECT_SLUG>`.
+- Working directory for this workflow is `../levity-instances/<PROJECT_SLUG>`.
 - You have to be on a clean `main` branch.
 
 ## Persistent Reminder: Template Development Mode
 
-You are currently working in a **temporary instance** (`../wulfpack-instances/<PROJECT_SLUG>`).
-While this instance has its own `.agent/rules/global.md`, you are **still bound by the rules of the main `wulfpack` repository** (the template source).
+You are currently working in a **temporary instance** (`../levity-instances/<PROJECT_SLUG>`).
+While this instance has its own `.agent/rules/global.md`, you are **still bound by the rules of the main `levity` repository** (the template source).
 
 **CRITICAL**: If you lose context or "forget" the main repo rules (e.g., about Jinja2 delimiters or backporting), you MUST reload them:
 `cat <WORKSPACE_ROOT>/.agent/rules/global.md`
@@ -27,11 +27,11 @@ While this instance has its own `.agent/rules/global.md`, you are **still bound 
 
 1.  **Navigate to Instance**
     Switch your context to the generated project.
-    _(Note: As an agent, you can just execute commands in `../wulfpack-instances/<PROJECT_SLUG>`)_
+    _(Note: As an agent, you can just execute commands in `../levity-instances/<PROJECT_SLUG>`)_
 
     ```bash
     // turbo
-    cd ../wulfpack-instances/<PROJECT_SLUG>
+    cd ../levity-instances/<PROJECT_SLUG>
     ```
 
 2.  **Install Dependencies**
@@ -62,9 +62,9 @@ While this instance has its own `.agent/rules/global.md`, you are **still bound 
 
 3.  **Implement Feature and Verify Feature**
 
-    You **MUST** read and **MUST FOLLOW** the rules in `../wulfpack-instances/<PROJECT_SLUG>/.agent/rules/` and workflows in `../wulfpack-instances/<PROJECT_SLUG>/.agent/workflows/` before making any code changes in the template instance.
+    You **MUST** read and **MUST FOLLOW** the rules in `../levity-instances/<PROJECT_SLUG>/.agent/rules/` and workflows in `../levity-instances/<PROJECT_SLUG>/.agent/workflows/` before making any code changes in the template instance.
 
-    Make your code changes in `../wulfpack-instances/<PROJECT_SLUG>/...`.
+    Make your code changes in `../levity-instances/<PROJECT_SLUG>/...`.
     Continuously test the running application.
     Run unit tests and end-to-end tests to verify your changes.
     Depending on the nature of the feature make changes to the `.agent` rules & workflows.
