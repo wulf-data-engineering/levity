@@ -7,7 +7,6 @@
   "author_email": "christoph@wulf.technology",
   "license": ["MIT", "BSD-3-Clause", "GPL-3.0-only", "Apache-2.0", "empty"],
   "copyright_initial_year": "%%[ now 'utc', '%Y' ]%%",
-  "copyright_pat_env_var": "COPYRIGHT_PAT",
   "default_region": "eu-central-1",
   "domain_name": "wulfpack.wulf.technology",
   "hosted_zone_id": "undefined",
@@ -34,7 +33,6 @@
       "empty": "Empty template just with copyright statement"
     },
     "copyright_initial_year": "Initial year for copyright statement",
-    "copyright_pat_env_var": "Reference to GitHub Personal Access Token (PAT) in GitHub Actions secrets (resolves to secrets.<copyright_pat_env_var>) for copyright year update",
     "domain_name": "FQDN of your application in production. CDK will look up a hosted zone in Route53 matching this domain. Envs. like staging will be subdomains of this domain.",
     "hosted_zone_id": "If present, use this Route53 Hosted Zone ID instead of looking it up by domain name",
     "staging_hosted_zone_id": "If present, use this Route53 Hosted Zone ID for staging instead of looking it up by subdomain name",
