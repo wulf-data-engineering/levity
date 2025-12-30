@@ -29,6 +29,6 @@
 
 <Story name="Ghost" args={{ variant: 'ghost'}}/>
 
-<Story name="href" args={{ href: 'https://github.com/wulf-data-engineering/wulfpack' }}/>
+<Story name="href" args={{ href: 'https://github.com/wulf-data-engineering/levity' }}/>
 
 <Story name="Link" args={{ variant: 'link' }}/>

@@ -13,7 +13,7 @@ This workflow generates a fresh instance of the template in a temporary director
 
     ```bash
     # // turbo
-    mkdir -p ../wulfpack-instances/
+    mkdir -p ../levity-instances/
     ```
 
 2.  **Determine Project Slug**
@@ -27,7 +27,7 @@ This workflow generates a fresh instance of the template in a temporary director
     ```bash
     # // turbo
     # Replace <PROJECT_SLUG> with your chosen slug
-    cookiecutter template --output-dir ../wulfpack-instances/ --no-input project_slug=<PROJECT_SLUG>
+    cookiecutter template --output-dir ../levity-instances/ --no-input project_slug=<PROJECT_SLUG>
     ```
 
     *Note: This assumes `cookiecutter` is installed. If not, install it via `pip install cookiecutter` or `brew install cookiecutter`.*
@@ -37,7 +37,7 @@ This workflow generates a fresh instance of the template in a temporary director
 
     ```bash
     # // turbo
-    ls -F ../wulfpack-instances/<PROJECT_SLUG>/
+    ls -F ../levity-instances/<PROJECT_SLUG>/
     ```
 
 5.  **Commit Baseline**
@@ -47,7 +47,7 @@ This workflow generates a fresh instance of the template in a temporary director
 
     ```bash
     # // turbo
-    cd ../wulfpack-instances/<PROJECT_SLUG>
+    cd ../levity-instances/<PROJECT_SLUG>
     git init
     git add .
     git commit -m "Baseline"

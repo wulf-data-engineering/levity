@@ -1,7 +1,7 @@
 {
-  "name": "wulfpack-toolset",
+  "name": "levity-toolset",
   "version": "1.0.0",
-  "description": "Tool-set for Wulfpack monorepo",
+  "description": "Tool-set for Levity monorepo",
   "main": "index.js",
   "scripts": {
     "new": "cookiecutter template",
