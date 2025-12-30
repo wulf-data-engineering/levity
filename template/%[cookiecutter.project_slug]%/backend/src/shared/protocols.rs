@@ -31,6 +31,7 @@ where
         (_, Body::Text(s)) => decode_json(s),
         (_, Body::Binary(b)) => decode_binary(req, b.as_ref()),
         (_, Body::Empty) => Ok(T::default()),
+        _ => Err(lambda_http::Error::from("Unsupported request body type")),
     }
 }
 

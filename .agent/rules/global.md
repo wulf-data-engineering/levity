@@ -71,9 +71,9 @@ Add users table
 * Email address as secondary index
 ```
 
-### 6. Git Operations
+### 6. Git and and File System Operations
 
-**CRITICAL**: Always quote paths in `git` commands (e.g., `git add 'path/to/file'`) to prevent shell expansion issues with special characters in template paths.
+**CRITICAL**: Always quote paths in `git`, `cp`, `ls`, `rm` commands (e.g., `git add 'path/to/file'`) to prevent shell expansion issues with special characters in template paths.
 
 ## Important Paths
 

@@ -147,16 +147,15 @@ mod tests {
         user_attributes.insert("sub".to_string(), "test-sub".to_string());
         user_attributes.insert("email".to_string(), "test@example.com".to_string());
 
+        let mut request = CognitoEventUserPoolsPostConfirmationRequest::default();
+        request.user_attributes = user_attributes;
+        request.client_metadata = client_metadata;
+
+        let mut post_confirmation = CognitoEventUserPoolsPostConfirmation::default();
+        post_confirmation.request = request;
+
         let event = LambdaEvent::new(
-            CognitoUserPoolEvent::PostConfirmation(CognitoEventUserPoolsPostConfirmation {
-                cognito_event_user_pools_header: Default::default(),
-                request: CognitoEventUserPoolsPostConfirmationRequest {
-                    user_attributes,
-                    client_metadata,
-                    ..Default::default()
-                },
-                response: Default::default(),
-            }),
+            CognitoUserPoolEvent::PostConfirmation(post_confirmation),
             Default::default(),
         );
 

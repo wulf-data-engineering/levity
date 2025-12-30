@@ -44,6 +44,7 @@ mod tests {
             Body::Empty => Vec::new(),
             Body::Text(s) => s.as_bytes().to_vec(),
             Body::Binary(b) => b.clone(),
+            _ => panic!("Unexpected body variant"),
         }
     }
 
