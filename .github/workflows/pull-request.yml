@@ -291,8 +291,9 @@ jobs:
       - name: Install infrastructure dependencies and cdklocal
         working-directory: test-instance/infrastructure/
         run: |
-          npm ci
           npm install -g aws-cdk-local aws-cdk
+          cdklocal --version
+          npm ci
       - name: Generate Protocol Buffer files for frontend
         working-directory: test-instance/frontend/
         run: npm run gen:proto
@@ -309,15 +310,10 @@ jobs:
         run: |
           cdklocal bootstrap
           cdklocal deploy --require-approval never
-          AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws dynamodb list-tables \
-            --endpoint-url=http://localhost:4566 \
-            --region eu-central-1
-          AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws dynamodb list-tables \
-            --endpoint-url=http://localhost:4566 \
-            --region us-east-1
         env:
-          AWS_ENVAR_ALLOWLIST: 'AWS_REGION' # We tell cdklocal NOT to strip these variables
           CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
+          AWS_ACCESS_KEY_ID: test # For some reason the order cdklocal requires the variables
+          AWS_SECRET_ACCESS_KEY: test
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |
