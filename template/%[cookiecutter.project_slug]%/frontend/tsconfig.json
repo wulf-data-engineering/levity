@@ -8,7 +8,7 @@
 		"moduleResolution": "bundler",
 		"isolatedModules": true, // helps Vite check files individually
 		"skipLibCheck": true, // Note: Skipping library checks hides potential type errors in dependencies
-		"types": ["node", "svelte", "playwright", "jest", "@testing-library/jest-dom"]
+		"types": ["node", "svelte", "playwright", "@testing-library/jest-dom"]
 	},
 
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
