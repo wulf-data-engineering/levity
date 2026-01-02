@@ -38,11 +38,11 @@ The hosted zone id is optional, CDK will look it up automatically if not provide
 
 ## Requirements
 
-CDK (+ Local) & Docker
+CDK
 
 ```bash
-npm install -g aws-cdk-local aws-cdk
-cdklocal --version  # to verify installation of both
+npm install -g aws-cdk
+cdk --version  # to verify installation
 ```
 
 ## Useful commands
@@ -66,6 +66,6 @@ Deploy the infrastructure in another terminal in this directory:
 
 ```bash
 npm install
-cdklocal bootstrap # once
-cdklocal deploy
+npm run cdklocal:bootstrap # once
+npm run cdklocal:deploy
 ```

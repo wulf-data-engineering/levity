@@ -288,12 +288,11 @@ jobs:
           npx playwright install-deps
           npx playwright install
           npx playwright --version
-      - name: Install infrastructure dependencies and cdklocal
+      - name: Install infrastructure dependencies
         working-directory: test-instance/infrastructure/
         run: |
-          npm install -g aws-cdk-local aws-cdk
-          cdklocal --version
           npm ci
+          npx cdk --version
       - name: Generate Protocol Buffer files for frontend
         working-directory: test-instance/frontend/
         run: npm run gen:proto
@@ -308,12 +307,10 @@ jobs:
       - name: Deploy CDK to LocalStack
         working-directory: test-instance/infrastructure/
         run: |
-          cdklocal bootstrap
-          cdklocal deploy --require-approval never
+          npm run cdklocal:bootstrap
+          npm run cdklocal:deploy
         env:
           CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
-          AWS_ACCESS_KEY_ID: test # For some reason the order cdklocal requires the variables
-          AWS_SECRET_ACCESS_KEY: test
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |

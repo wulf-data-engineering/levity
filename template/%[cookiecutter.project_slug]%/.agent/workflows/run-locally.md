@@ -6,7 +6,7 @@ description: Run the application locally
 
 The application can be run locally and accessed via the browser.
 AWS is emulated using LocalStack and cognito-local in docker compose.
-`cdklocal` is used to deploy the infrastructure to LocalStack.
+`npm run cdklocal:deploy` is used to deploy the infrastructure to LocalStack.
 The backend lambdas and frontend are run with hot reloading.
 
 **IMPORTANT:** In local development the sign-in screen is pre-filled with Email address and password of the test user.
@@ -41,11 +41,11 @@ If you encounter port problems suggest `kill -9 $(lsof -ti:9000)` to the user.
 
 Deploy the infrastructure in another terminal:
 
-```bash
+````bash
 // turbo
 cd infrastructure
-cdklocal deploy
-```
+npm run cdklocal:deploy
+````
 
 Start the frontend in another terminal:
 
