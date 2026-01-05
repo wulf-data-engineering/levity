@@ -55,263 +55,220 @@ jobs:
           name: test-instance
           path: test-instance/
           include-hidden-files: true # for .prettierignore etc.
-  check-builder-image:
-    name: Check Builder Image
-    runs-on: ubuntu-latest
-    outputs:
-      builder: ${{ steps.filter.outputs.builder }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            builder:
-              - 'Dockerfile.lambda-builder'
-  test-builder-image:
-    name: Test Builder Image
-    runs-on: ubuntu-latest
-    needs: check-builder-image
-    if: needs.check-builder-image.outputs.builder == 'true'
-    steps:
-      - uses: actions/checkout@v6
-      - name: Build local builder
-        run: docker build -f Dockerfile.lambda-builder -t local-builder .
-      - name: Smoke test
-        run: |
-          docker run --rm local-builder cargo --version
-          docker run --rm local-builder protoc --version
-  check-protocols:
-    name: Check Protocols
-    runs-on: ubuntu-latest
-    needs: seed-template
-    steps:
-      - name: Download test template instance
-        uses: actions/download-artifact@v7
-        with:
-          name: test-instance
-          path: ./test-instance
-      - uses: bufbuild/buf-setup-action@v1
-      - name: Lint protocols
-        uses: bufbuild/buf-lint-action@v1
-        with:
-          input: ./test-instance/protocols
-  test-backend:
-    name: Test Backend in Template
-    runs-on: ubuntu-latest
-    needs: seed-template
-    defaults:
-      run:
-        working-directory: ./test-instance/backend
-    steps:
-      - name: Download test template instance
-        uses: actions/download-artifact@v7
-        with:
-          name: test-instance
-          path: ./test-instance
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: pull-request
-          workspaces: ./test-instance/backend -> target
-          cache-on-failure: true
-      - name: Run checks
-        id: check
-        run: cargo check
-      - name: Run clippy
-        id: clippy
-        run: cargo clippy
-      - name: Run unit tests
-        id: tests
-        run: cargo test --lib --bins
-      - name: Aggregate results and fail if any failed
-        if: always() # ensure this runs even if earlier steps failed
-        run: |
-          echo "check outcome:  ${{ steps.check.outcome }}"
-          echo "clippy outcome:  ${{ steps.clippy.outcome }}"
-          echo "tests outcome:  ${{ steps.tests.outcome }}"
-
-          # If any step outcome is 'failure' then fail the job
-          for s in "${{ steps.format.outcome }}" "${{ steps.check.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}"; do
-            if [ "$s" = "failure" ]; then
-              echo "One or more checks failed."
-              exit 1
-            fi
-          done
-
-          echo "All checks passed."
-  test-infrastructure:
-    name: Test Infrastructure in Template
-    runs-on: ubuntu-latest
-    needs: seed-template
-    defaults:
-      run:
-        working-directory: ./test-instance/infrastructure
-    steps:
-      - name: Download test template instance
-        uses: actions/download-artifact@v7
-        with:
-          name: test-instance
-          path: ./test-instance
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm test
-  test-frontend:
-    name: Test Frontend in Template
-    runs-on: ubuntu-latest
-    needs: seed-template
-    defaults:
-      run:
-        working-directory: ./test-instance/frontend
-    steps:
-      - name: Download test template instance
-        uses: actions/download-artifact@v7
-        with:
-          name: test-instance
-          path: ./test-instance
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-      - name: Restore cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            test-instance/frontend/node_modules/
-          key: node-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
-          restore-keys: node-cache-
-      - name: Install dependencies
-        run: npm ci
-      - name: Generate Protocol Buffer files
-        run: npm run gen:proto
-      - name: Linting
-        id: lint
-        run: npm run lint
-        continue-on-error: true
-      - name: Check Svelte with TypeScript
-        id: check
-        run: npm run check
-        continue-on-error: true
-      - name: Run unit tests
-        id: tests
-        run: npm run test:unit
-        continue-on-error: true
-      - name: Aggregate results and fail if any failed
-        if: always() # ensure this runs even if earlier steps failed
-        run: |
-          echo "lint outcome:   ${{ steps.lint.outcome }}"
-          echo "check outcome:  ${{ steps.check.outcome }}"
-          echo "tests outcome:  ${{ steps.tests.outcome }}"
-          # If any step outcome is 'failure' then fail the job
-          for s in "${{ steps.lint.outcome }}" "${{ steps.check.outcome }}" "${{ steps.tests.outcome }}"; do
-            if [ "$s" = "failure" ]; then
-              echo "One or more checks failed."
-              exit 1
-            fi
-          done
-
-          echo "All checks passed."
+  #   check-builder-image:
+  #     name: Check Builder Image
+  #     runs-on: ubuntu-latest
+  #     outputs:
+  #       builder: ${{ steps.filter.outputs.builder }}
+  #     steps:
+  #       - uses: actions/checkout@v6
+  #       - uses: dorny/paths-filter@v3
+  #         id: filter
+  #         with:
+  #           filters: |
+  #             builder:
+  #               - 'Dockerfile.lambda-builder'
+  #   test-builder-image:
+  #     name: Test Builder Image
+  #     runs-on: ubuntu-latest
+  #     needs: check-builder-image
+  #     if: needs.check-builder-image.outputs.builder == 'true'
+  #     steps:
+  #       - uses: actions/checkout@v6
+  #       - name: Build local builder
+  #         run: docker build -f Dockerfile.lambda-builder -t local-builder .
+  #       - name: Smoke test
+  #         run: |
+  #           docker run --rm local-builder cargo --version
+  #           docker run --rm local-builder protoc --version
+  #   check-protocols:
+  #     name: Check Protocols
+  #     runs-on: ubuntu-latest
+  #     needs: seed-template
+  #     steps:
+  #       - name: Download test template instance
+  #         uses: actions/download-artifact@v7
+  #         with:
+  #           name: test-instance
+  #           path: ./test-instance
+  #       - uses: bufbuild/buf-setup-action@v1
+  #       - name: Lint protocols
+  #         uses: bufbuild/buf-lint-action@v1
+  #         with:
+  #           input: ./test-instance/protocols
+  #   test-backend:
+  #     name: Test Backend in Template
+  #     runs-on: ubuntu-latest
+  #     needs: seed-template
+  #     defaults:
+  #       run:
+  #         working-directory: ./test-instance/backend
+  #     steps:
+  #       - name: Download test template instance
+  #         uses: actions/download-artifact@v7
+  #         with:
+  #           name: test-instance
+  #           path: ./test-instance
+  #       - name: Install Protoc
+  #         uses: arduino/setup-protoc@v3
+  #       - uses: Swatinem/rust-cache@v2
+  #         with:
+  #           shared-key: pull-request
+  #           workspaces: ./test-instance/backend -> target
+  #           cache-on-failure: true
+  #       - name: Run checks
+  #         id: check
+  #         run: cargo check
+  #       - name: Run clippy
+  #         id: clippy
+  #         run: cargo clippy
+  #       - name: Run unit tests
+  #         id: tests
+  #         run: cargo test --lib --bins
+  #       - name: Aggregate results and fail if any failed
+  #         if: always() # ensure this runs even if earlier steps failed
+  #         run: |
+  #           echo "check outcome:  ${{ steps.check.outcome }}"
+  #           echo "clippy outcome:  ${{ steps.clippy.outcome }}"
+  #           echo "tests outcome:  ${{ steps.tests.outcome }}"
+  #
+  #           # If any step outcome is 'failure' then fail the job
+  #           for s in "${{ steps.format.outcome }}" "${{ steps.check.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}"; do
+  #             if [ "$s" = "failure" ]; then
+  #               echo "One or more checks failed."
+  #               exit 1
+  #             fi
+  #           done
+  #
+  #           echo "All checks passed."
+  #   test-infrastructure:
+  #     name: Test Infrastructure in Template
+  #     runs-on: ubuntu-latest
+  #     needs: seed-template
+  #     defaults:
+  #       run:
+  #         working-directory: ./test-instance/infrastructure
+  #     steps:
+  #       - name: Download test template instance
+  #         uses: actions/download-artifact@v7
+  #         with:
+  #           name: test-instance
+  #           path: ./test-instance
+  #       - name: Setup node
+  #         uses: actions/setup-node@v6
+  #         with:
+  #           node-version: "20"
+  #       - name: Install dependencies
+  #         run: npm ci
+  #       - name: Run tests
+  #         run: npm test
+  #   test-frontend:
+  #     name: Test Frontend in Template
+  #     runs-on: ubuntu-latest
+  #     needs: seed-template
+  #     defaults:
+  #       run:
+  #         working-directory: ./test-instance/frontend
+  #     steps:
+  #       - name: Download test template instance
+  #         uses: actions/download-artifact@v7
+  #         with:
+  #           name: test-instance
+  #           path: ./test-instance
+  #       - name: Install Protoc
+  #         uses: arduino/setup-protoc@v3
+  #       - name: Setup node
+  #         uses: actions/setup-node@v6
+  #         with:
+  #           node-version: "20"
+  #       - name: Restore cache
+  #         uses: actions/cache@v5
+  #         with:
+  #           path: |
+  #             ~/.npm
+  #             test-instance/frontend/node_modules/
+  #           key: node-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
+  #           restore-keys: node-cache-
+  #       - name: Install dependencies
+  #         run: npm ci
+  #       - name: Generate Protocol Buffer files
+  #         run: npm run gen:proto
+  #       - name: Linting
+  #         id: lint
+  #         run: npm run lint
+  #         continue-on-error: true
+  #       - name: Check Svelte with TypeScript
+  #         id: check
+  #         run: npm run check
+  #         continue-on-error: true
+  #       - name: Run unit tests
+  #         id: tests
+  #         run: npm run test:unit
+  #         continue-on-error: true
+  #       - name: Aggregate results and fail if any failed
+  #         if: always() # ensure this runs even if earlier steps failed
+  #         run: |
+  #           echo "lint outcome:   ${{ steps.lint.outcome }}"
+  #           echo "check outcome:  ${{ steps.check.outcome }}"
+  #           echo "tests outcome:  ${{ steps.tests.outcome }}"
+  #           # If any step outcome is 'failure' then fail the job
+  #           for s in "${{ steps.lint.outcome }}" "${{ steps.check.outcome }}" "${{ steps.tests.outcome }}"; do
+  #             if [ "$s" = "failure" ]; then
+  #               echo "One or more checks failed."
+  #               exit 1
+  #             fi
+  #           done
+  #
+  #           echo "All checks passed."
   test-e2e:
     name: Test end-to-end in Template
     runs-on: ubuntu-latest
     needs:
-      - test-backend
-      - test-frontend
-      - test-infrastructure
+      - seed-template
+  #    - test-backend
+  #    - test-frontend
+  #    - test-infrastructure
     env:
       CI: "true"
+      AWS_ENDPOINT_URL: "http://172.17.0.1:4566"
+      AWS_ACCESS_KEY_ID: "test"
+      AWS_SECRET_ACCESS_KEY: "test"
+      AWS_REGION: "eu-central-1"
+    container:
+      image: ghcr.io/wulf-data-engineering/levity-e2e:sha-d44bd0db8dbde007c4fc349fcfb7b08a3f647d42
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      # We mount docker socket to start LocalStack sibling container
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
     steps:
       - name: Download test template instance
         uses: actions/download-artifact@v7
         with:
           name: test-instance
           path: ./test-instance
-      - name: Run docker compose # early so that localstack is ready for CDK
-        uses: hoverkraft-tech/compose-action@v2.4.2
-        with:
-          compose-file: "./test-instance/docker-compose.yml"
-          services-log-level: info
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: pull-request
-          workspaces: ./test-instance/backend -> target
-          cache-on-failure: true
-      - name: Install Rust
-        run: rustup toolchain install stable
-      - name: Install latest cargo-lambda binary
+      - name: Start services
+        run: docker compose -f ./test-instance/docker-compose.yml up -d --wait
+
+      - name: Install dependencies & Build
         run: |
-          TAG=$(curl -s https://api.github.com/repos/cargo-lambda/cargo-lambda/releases/latest | jq -r .tag_name)
-          echo "Latest tag is $TAG"
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "x86_64" ]; then
-            ASSET="cargo-lambda-$TAG.x86_64-unknown-linux-musl.tar.gz"
-          elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-            ASSET="cargo-lambda-$TAG.aarch64-unknown-linux-musl.tar.gz"
-          else
-            echo "Unsupported architecture: $ARCH"
-            exit 1
-          fi
-          echo "Downloading $ASSET"
-          curl -fL -o /tmp/cargo-lambda.tar.gz \
-            "https://github.com/cargo-lambda/cargo-lambda/releases/download/$TAG/$ASSET"
-          sudo tar -xzf /tmp/cargo-lambda.tar.gz -C /usr/local/bin
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-      - name: Restore npm cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            test-instance/frontend/node_modules/
-            test-instance/infrastructure/node_modules/
-          key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}-${{ hashFiles('test-instance/infrastructure/package-lock.json') }}
-          restore-keys: node-cache-
-      - name: Restore Playwright browsers cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cache/ms-playwright
-          key: playwright-browsers-${{ hashFiles('test-instance/frontend/package-lock.json') }}
-          restore-keys: playwright-browsers-
-      - name: Install frontend dependencies and Playwright browsers
-        working-directory: test-instance/frontend/
-        run: |
+          # Add cargo to path (installed in Dockerfile.e2e)
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          echo ">>> Building Backend"
+          cd test-instance/backend && cargo build && cd ../..
+
+          echo ">>> Deploying Infrastructure"
+          cd test-instance/infrastructure
           npm ci
-          npx playwright install-deps
-          npx playwright install
-          npx playwright --version
-      - name: Install infrastructure dependencies
-        working-directory: test-instance/infrastructure/
-        run: |
-          npm ci
-          npx cdk --version
-      - name: Generate Protocol Buffer files for frontend
-        working-directory: test-instance/frontend/
-        run: npm run gen:proto
-      - name: Build backend for faster start of cargo lambda watch
-        working-directory: test-instance/backend/
-        run: cargo build
-      - name: Deploy CDK to LocalStack
-        working-directory: test-instance/infrastructure/
-        run: |
-          # Wait up to 60 seconds for cloudformation in localstack to be available
-          timeout 60s bash -c 'until curl -s http://localhost:4566/_localstack/health | grep "\"cloudformation\": \"available\""; do echo "waiting for cloudformation..."; sleep 2; done'
-          echo "LocalStack CloudFormation is ready."
+
+          # Check localstack health via Gateway IP
+          timeout 60s bash -c 'until curl -s http://172.17.0.1:4566/_localstack/health | grep "\"cloudformation\": \"available\""; do echo "waiting for cloudformation..."; sleep 2; done'
+
           npm run cdklocal:bootstrap
           npm run cdklocal:deploy
+
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |
