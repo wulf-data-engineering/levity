@@ -235,6 +235,11 @@ jobs:
         with:
           name: test-instance
           path: ./test-instance
+      - name: Run docker compose # early so that localstack is ready for CDK
+        uses: hoverkraft-tech/compose-action@v2.4.2
+        with:
+          compose-file: "./test-instance/docker-compose.yml"
+          services-log-level: info
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - uses: Swatinem/rust-cache@v2
@@ -299,18 +304,14 @@ jobs:
       - name: Build backend for faster start of cargo lambda watch
         working-directory: test-instance/backend/
         run: cargo build
-      - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.4.2
-        with:
-          compose-file: "./test-instance/docker-compose.yml"
-          services-log-level: info
       - name: Deploy CDK to LocalStack
         working-directory: test-instance/infrastructure/
         run: |
+          # Wait up to 60 seconds for cloudformation in localstack to be available
+          timeout 60s bash -c 'until curl -s http://localhost:4566/_localstack/health | grep "\"cloudformation\": \"available\""; do echo "waiting for cloudformation..."; sleep 2; done'
+          echo "LocalStack CloudFormation is ready."
           npm run cdklocal:bootstrap
           npm run cdklocal:deploy
-        env:
-          CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |

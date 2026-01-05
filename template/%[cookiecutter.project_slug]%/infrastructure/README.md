@@ -38,7 +38,19 @@ The hosted zone id is optional, CDK will look it up automatically if not provide
 
 ## Requirements
 
-CDK
+### Docker for Docker Compose
+
+The easiest way is installing [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+Unfortunately, the AI confuses `docker compose` (sub command) with `docker-compose` a lot.
+It will realize it but that takes time & tokens.  
+Just add an alias to your shell in `~/.zshrc`, `~/.bashrc` or whatever you use to make it work:
+
+```bash
+alias docker-compose=docker compose
+```
+
+### CDK
 
 ```bash
 npm install -g aws-cdk
@@ -47,19 +59,20 @@ cdk --version  # to verify installation
 
 ## Useful commands
 
+- `cdk bootstrap aws://<ACCOUNT_ID>/%[ cookiecutter.default_region ]%` bootstrap this stack
+- `cdk deploy` deploy the bootstrapped stack
 - `npm run build` compile typescript to js
 - `npm run watch` watch for changes and compile
 - `npm run test` perform the jest unit tests
-- `cdk deploy` deploy this stack to your default AWS account/region
 - `cdk diff` compare deployed stack with current state
 - `cdk synth` emits the synthesized CloudFormation template
 
 ## Deploy locally
 
-Start localstack in one terminal on top level:
+Start localstack in a terminal on top level:
 
 ```bash
-docker compose up
+docker compose up -d
 ```
 
 Deploy the infrastructure in another terminal in this directory:
