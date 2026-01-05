@@ -160,6 +160,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "20"
+          cache: 'npm'
+          cache-dependency-path: 'test-instance/infrastructure/package-lock.json'
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -183,14 +185,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "20"
-      - name: Restore cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            test-instance/frontend/node_modules/
-          key: node-cache-${{ hashFiles('test-instance/frontend/package.json') }} # template doesn't include a lock file
-          restore-keys: node-cache-
+          cache: 'npm'
+          cache-dependency-path: 'test-instance/frontend/package-lock.json'
       - name: Install dependencies
         run: npm ci
       - name: Generate Protocol Buffer files
@@ -262,24 +258,19 @@ jobs:
           curl -fL -o /tmp/cargo-lambda.tar.gz \
             "https://github.com/cargo-lambda/cargo-lambda/releases/download/$TAG/$ASSET"
           sudo tar -xzf /tmp/cargo-lambda.tar.gz -C /usr/local/bin
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-      - name: Restore npm cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            test-instance/frontend/node_modules/
-            test-instance/infrastructure/node_modules/
-          key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}-${{ hashFiles('test-instance/infrastructure/package-lock.json') }}
-          restore-keys: node-cache-
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.4.2
         with:
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: 'npm'
+          cache-dependency-path: |
+            test-instance/frontend/package-lock.json
+            test-instance/infrastructure/package-lock.json
       - name: Deploy CDK to LocalStack
         working-directory: test-instance/infrastructure/
         run: |
