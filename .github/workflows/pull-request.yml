@@ -235,11 +235,6 @@ jobs:
         with:
           name: test-instance
           path: ./test-instance
-      - name: Run docker compose # early so that localstack is ready for CDK
-        uses: hoverkraft-tech/compose-action@v2.4.2
-        with:
-          compose-file: "./test-instance/docker-compose.yml"
-          services-log-level: info
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - uses: Swatinem/rust-cache@v2
@@ -279,34 +274,16 @@ jobs:
             test-instance/infrastructure/node_modules/
           key: node-cache-${{ hashFiles('test-instance/frontend/package-lock.json') }}-${{ hashFiles('test-instance/infrastructure/package-lock.json') }}
           restore-keys: node-cache-
-      - name: Restore Playwright browsers cache
-        uses: actions/cache@v5
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.4.2
         with:
-          path: |
-            ~/.cache/ms-playwright
-          key: playwright-browsers-${{ hashFiles('test-instance/frontend/package-lock.json') }}
-          restore-keys: playwright-browsers-
-      - name: Install frontend dependencies and Playwright browsers
-        working-directory: test-instance/frontend/
-        run: |
-          npm ci
-          npx playwright install-deps
-          npx playwright install
-          npx playwright --version
-      - name: Install infrastructure dependencies
+          compose-file: "./test-instance/docker-compose.yml"
+          services-log-level: info
+      - name: Deploy CDK to LocalStack
         working-directory: test-instance/infrastructure/
         run: |
           npm ci
           npx cdk --version
-      - name: Generate Protocol Buffer files for frontend
-        working-directory: test-instance/frontend/
-        run: npm run gen:proto
-      - name: Build backend for faster start of cargo lambda watch
-        working-directory: test-instance/backend/
-        run: cargo build
-      - name: Deploy CDK to LocalStack
-        working-directory: test-instance/infrastructure/
-        run: |
           # Wait up to 60 seconds for cloudformation in localstack to be available
           timeout 60s bash -c 'until curl -s http://localhost:4566/_localstack/health | grep "\"cloudformation\": \"available\""; do echo "waiting for cloudformation..."; sleep 2; done'
           echo "LocalStack CloudFormation is ready."
@@ -315,13 +292,31 @@ jobs:
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |
+          cargo build # build backend for faster start of cargo lambda watch
           cargo lambda watch &>/tmp/cargo-lambda-watch.log &
           CARGO_PID=$!
           echo "CARGO_PID=$CARGO_PID" >> $GITHUB_ENV
           echo "Started cargo lambda watch running on pid $CARGO_PID"
+      - name: Start npm run dev in background
+        working-directory: test-instance/frontend/
+        run: |
+          npm ci
+          npm run gen:proto
+          npm run dev &>/tmp/npm-dev.log &
+          NPM_PID=$!
+          echo "NPM_PID=$NPM_PID" >> $GITHUB_ENV
+          echo "Started npm run dev running on pid $NPM_PID"
+          npx wait-on http://localhost:5173 --timeout 60000
       - name: Run Playwright tests
         working-directory: test-instance/frontend/
-        run: npm run test:e2e
+        run: |
+          docker run --rm \
+            --network host \
+            -v $(pwd):/work \
+            -w /work \
+            -e CI=true \
+            mcr.microsoft.com/playwright:v1.57.0-noble \
+            npx playwright test        
       - name: Upload Playwright test results
         id: upload-playwright
         if: failure()
@@ -338,8 +333,10 @@ jobs:
       - name: Playwright report
         if: failure()
         run: echo "Playwright report is at ${{ steps.upload-playwright.outputs.artifact-url }}"
-      - name: Stop cargo lambda watch
+      - name: Stop cargo lambda watch and npm run dev
         if: always() # ensure it runs even if previous steps fail
         run: |
           echo "Stopping cargo lambda watch at $CARGO_PID"
           kill $CARGO_PID
+          echo "Stopping npm run dev at $NPM_PID"
+          kill $NPM_PID

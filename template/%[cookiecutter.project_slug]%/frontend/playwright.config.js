@@ -39,7 +39,7 @@ export default defineConfig({
 	/* Configure projects for major browsers */
 	projects: process.env.CI ? allProjects : [chrome],
 	webServer: {
-		command: 'npm run dev',
+		command: process.env.CI ? undefined : 'npm run dev', // prevent starting on CI (will fail in playwright container)
 		port: 5173,
 		reuseExistingServer: true
 	}
