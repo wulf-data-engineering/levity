@@ -309,8 +309,6 @@ jobs:
         run: |
           npm run cdklocal:bootstrap
           npm run cdklocal:deploy
-        env:
-          CDK_DISABLE_LEGACY_EXPORT_WARNING: 1
       - name: Start cargo-lambda watch in background
         working-directory: test-instance/backend/
         run: |
