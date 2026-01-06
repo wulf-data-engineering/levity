@@ -57,11 +57,6 @@ description: Backport changes from a template instance to the template source
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
     > Consider the template/cookiecutter.json file for reference on what placeholders with which values are available.
 
-    > **Warning**: When copying or staging files in the template directory, use quotes to prevent shell expansion of the wildcards:
-    > ```bash
-    > git add 'template/%[cookiecutter.project_slug]%/...'
-    > ```
-
     **Check using git status in both, template repository and instance to verify all changed files have been backported.**
 
 
