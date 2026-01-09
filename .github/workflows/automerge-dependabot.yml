@@ -1,5 +1,6 @@
 name: Dependabot auto-merge
-on: pull_request
+on:
+  pull_request:
 
 permissions:
   contents: write
@@ -8,45 +9,66 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
         with:
+          pull-request-number: ${{ inputs.pr_number || github.event.pull_request.number }}
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Security Check and Auto-Merge
+      - name: Verify Commits
+        id: commit_check
         run: |
-          # 1. Identify all unique contributors to the PR
-          LOGINS=$(gh pr view "$PR_URL" --json commits --template '{{range .commits}}{{if .author}}{{.author.login}}{{"\n"}}{{end}}{{if .committer}}{{.committer.login}}{{"\n"}}{{end}}{{end}}' | sort -u)
+          PR_NUM="${{ inputs.pr_number || github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
           
-          # 2. Check for human logins (anything other than dependabot[bot])
-          HUMAN_LOGINS=$(echo "$LOGINS" | grep -vE "^(dependabot\[bot\]|dependabot|)$" || true)
+          RAW_DATA=$(gh api repos/$REPO/pulls/$PR_NUM/commits --jq '.[] | .commit.author.name, .commit.committer.name, .author.login, .committer.login')
           
-          if [ -n "$HUMAN_LOGINS" ]; then
-            echo "Security Alert: Human commits detected ($HUMAN_LOGINS)."
-            
-            # 3. Check if there is an existing approval from the bot to withdraw
-            # We look for 'APPROVED' reviews specifically from the github-actions bot
-            EXISTING_APPROVAL=$(gh pr view "$PR_URL" --json reviews --template '{{range .reviews}}{{if and (eq .state "APPROVED") (eq .author.login "github-actions")}}{{.id}}{{"\n"}}{{end}}{{end}}' | head -n 1)
-            
-            if [ -n "$EXISTING_APPROVAL" ]; then
-              echo "Withdrawing stale bot approval..."
-              gh pr review "$PR_URL" --dismiss -m "Security: Human commits detected. Withdrawing auto-approval."
-            fi
+          if [ -z "$RAW_DATA" ] || [ "$RAW_DATA" == "[]" ]; then
+            echo "PROCEED=false" >> $GITHUB_ENV
             exit 0
           fi
 
-          # 4. Filter out Major Updates
-          if [ "${{ steps.metadata.outputs.update-type }}" == "version-update:semver-major" ]; then
-            echo "Major version update. Skipping auto-merge."
-            exit 0
+          HUMANS=$(echo "$RAW_DATA" | grep -vE "^(dependabot\[bot\]|dependabot|GitHub|web-flow|null|)$" | sort -u || true)
+          
+          if [ -n "$HUMANS" ]; then
+            echo "::warning title=Security Alert::Human interference detected: $HUMANS"
+            echo "PROCEED=false" >> $GITHUB_ENV
+          else
+            echo "PROCEED=true" >> $GITHUB_ENV
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # 5. Approve and enable auto-merge
+      - name: Security Cleanup
+        if: env.PROCEED == 'false'
+        run: |
+          PR_NUM="${{ inputs.pr_number || github.event.pull_request.number }}"
+          PR_URL="https://github.com/${{ github.repository }}/pull/$PR_NUM"
+
+          echo "Human detected. Cleaning up bot state for $PR_URL"
+
+          # 1. Disable Auto-merge
+          gh pr merge --disable-auto "$PR_URL" || echo "Auto-merge was not enabled."
+
+          # 2. Dismiss Bot Approvals
+          # Finds the ID of an 'APPROVED' review from the bot
+          EXISTING_APPROVAL=$(gh pr view "$PR_URL" --json reviews --jq '.reviews[] | select(.state=="APPROVED" and .author.login=="github-actions") | .id' | head -n 1)
+          
+          if [ -n "$EXISTING_APPROVAL" ]; then
+            gh pr review "$PR_URL" --dismiss -m "Security: Non-bot commits detected. Auto-merge disabled and approval withdrawn."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve and Merge
+        if: env.PROCEED == 'true' && steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: |
+          PR_URL="${{ inputs.pr_number && format('https://github.com/{0}/pull/{1}', github.repository, inputs.pr_number) || github.event.pull_request.html_url }}"
           gh pr review --approve "$PR_URL"
           gh pr merge --auto --squash "$PR_URL"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
