@@ -19,6 +19,8 @@ echo "cargo" && \ # mac: brew install rustup; linux: curl https://sh.rustup.rs -
 cargo --version && \
 echo "cargo lambda" && \ # cargo install cargo-lambda
 cargo lambda --version && \
+echo "cargo nextest" && \ # cargo install cargo-nextest --locked
+cargo nextest --version && \
 echo "npm" && \ # mac: brew install node; linux: sudo apt install nodejs npm; win: winget install OpenJS.NodeJS
 npm --version && \
 echo "docker" && \ # mac: brew install --cask docker; linux: sudo apt install docker.io; win: winget install Docker.DockerDesktop

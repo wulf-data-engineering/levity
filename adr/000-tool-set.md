@@ -31,7 +31,7 @@ The cookiecutter template is a monorepo containing
 The pipeline for a template instance runs
 
 - linting: `cargo check`, `cargo clippy`, `cargo fmt -- --check`; eslint, prettier
-- unit tests: `cargo test`; vitest
+- unit tests: `cargo nextest run`; vitest
 - infrastructure tests: `aws-cdk-lib/assertions`, `cdk-nag`
 - end-to-end tests: playwright tests
 

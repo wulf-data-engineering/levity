@@ -55,7 +55,7 @@ Register new lambdas in Cargo.toml.
 
 Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.
 
-Run `cargo test` during development.
+Run `cargo nextest run` during development.
 
 If applicable consult `.agent/workflows/run-locally.md` to test the changes in the browser.
 
