@@ -1,10 +1,10 @@
 This repository is an **opinionated tool‑set** for building and operating
 
-* **Static PWAs** with Svelte & TypeScript delivered from AWS edge,
-* **Serverless backends** in Rust on AWS and
-* **Tauri‑wrapped mobile apps** for iOSs & Android.
+- **Static PWAs** with Svelte & TypeScript delivered from AWS edge,
+- **Serverless backends** in Rust on AWS and
+- **Tauri‑wrapped mobile apps** for iOSs & Android.
 
-It bundles a template with IaC constructs, CI pipelines and support for agentic coding so teams can ship prototypes **fast**
+It bundles a template with IaC constructs, CI pipelines and support for agentic coding (rules, workflows, MCP servers for **Antigravity**) so teams can ship prototypes **fast**
 without sacrificing production readiness.
 
 ---
@@ -12,7 +12,7 @@ without sacrificing production readiness.
 ## Technology palette
 
 | Layer         | Languages / runtimes                               | Core AWS / OSS tech                                                          | External accounts      |
-|---------------|----------------------------------------------------|------------------------------------------------------------------------------|------------------------|
+| ------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------- |
 | Web client    | Svelte + TypeScript                                | Static‑site generation, S3 + CloudFront ([ADR‑001](/adrs/001-static-spa.md)) | —                      |
 | Compute       | **Rust 2021**                                      | AWS Lambda custom Rust runtime ([ADR‑002](/adrs/002-rust-backend.md))        | —                      |
 | Mobile apps   | Rust sidecar + Swift / Kotlin via **Tauri‑Mobile** | WebView shell, Fastlane lanes ([ADR‑003](/adrs/003-mobile-tauri-wrapper.md)) | Apple Dev, Google Play |
@@ -29,16 +29,17 @@ without sacrificing production readiness.
 
 ## Non‑functional capabilities
 
-* **Rapid prototyping** – cookiecutter templates, hot‑reload (`vite`, `cargo lambda watch`).
-* **Scalability & cost‑efficiency** – serverless‑first architecture, edge‑cached SPA, pay‑per‑invocation compute.
-* **Performance** – Rust binaries yield <150 ms cold starts; static assets served from CloudFront POPs.
-* **Reliability** – optimistic‑locking (`last_write`), staged CD (main → staging → prod) with smoke, UI & E2E gates.
-* **Security** – Cognito auth, IAM least privilege, Secrets Manager, dependency scanners (`cargo‑audit`, `npm audit`,
+- **Agentic coding** – Rules & Workflows, MCP servers for Antigravity.
+- **Rapid prototyping** – cookiecutter templates, hot‑reload (`vite`, `cargo lambda watch`).
+- **Scalability & cost‑efficiency** – serverless‑first architecture, edge‑cached SPA, pay‑per‑invocation compute.
+- **Performance** – Rust binaries yield <150 ms cold starts; static assets served from CloudFront POPs.
+- **Reliability** – optimistic‑locking (`last_write`), staged CD (main → staging → prod) with smoke, UI & E2E gates.
+- **Security** – Cognito auth, IAM least privilege, Secrets Manager, dependency scanners (`cargo‑audit`, `npm audit`,
   `trivy`).
-* **Quality** – unit, integration (LocalStack), UI & E2E (Playwright), load (k6), a11y (axe‑playwright), licence &
+- **Quality** – unit, integration (LocalStack), UI & E2E (Playwright), load (k6), a11y (axe‑playwright), licence &
   advisory checks (`cargo‑deny`).
-* **Observability** – structured `tracing`, CloudWatch metrics, (phase 2) dashboards & alert routing to Slack.
-* **Maintainability** – single language per layer, shared code libraries, Semantic Versioning, schema‑drift guard for
+- **Observability** – structured `tracing`, CloudWatch metrics, (phase 2) dashboards & alert routing to Slack.
+- **Maintainability** – single language per layer, shared code libraries, Semantic Versioning, schema‑drift guard for
   DynamoDB.
 
 ---
@@ -46,13 +47,15 @@ without sacrificing production readiness.
 ## Repository layout (high level)
 
 ```
-/adr/                     Architectural decision records
-/template/                Cookiecutter blueprint
-/template/frontend/       - Static Svelte application in TypeScript
-/template/backend/        - Lambdas in Rust
-/template/infrastructure/ - CDK constructs (static SPA stack, RustFunction, VersionedTable, …) 
-/template/.github/        - CI/CD pipelines 
-/docs/                    How‑to guides, style guides, troubleshooting
+/adr/                       - Architectural decision records
+/template/                  - Cookiecutter blueprint
+/template/…/frontend/       - Static Svelte application in TypeScript
+/template/…/backend/        - Lambdas in Rust
+/template/…/infrastructure/ - CDK constructs (static SPA stack, RustFunction, …)
+/template/…/.agent/         - Rules & Workflows for Antigravity
+/template/…/.github/        - CI/CD pipelines, dependency management
+/.agent/                    - Rules & Workflows for Antigravity for template evolution
+/.github/                   - CI/CD pipelines, dependency management for template itself
 ```
 
 For a deeper dive, start with the ADRs linked above, then explore the matching template or library directory.

@@ -20,3 +20,8 @@ During feature development check if deployment workflow needs modifications.
 
 **CRITICAL**: At the end of development run all final checks in @frontend.md and @backend.md before committing.
 If the user asks for a commit, make sure your ran all the final checks on all changes first.
+
+## MCP Tools
+
+The `github` MCP server is available to assist with repository management.
+-   Use it to search issues, create comments, or manage pull requests if relevant to the task.

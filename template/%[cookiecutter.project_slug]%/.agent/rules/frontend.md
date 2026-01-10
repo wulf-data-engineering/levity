@@ -6,9 +6,6 @@ description: Develop and test features in the frontend
 ## Concepts
 
 The stack uses Svelte 5.
-Use `onclick`, `onfoo` as attribute instead of `on:click`, `on:foo` before.
-Use Svelte 5 runes `$state`, `$derived` and `$effect`.
-If Svelte problems are encountered consider the migration guide: https://svelte.dev/docs/svelte/v5-migration-guide
 
 The stack uses static site generation.
 Prefer pre-rendering where possible (`export const prerender = true;` in pages and layouts).
@@ -47,8 +44,17 @@ import {dev} from '$app/environment';
 
 Run `npm run test:unit` during development.
 
-Consult `.agent/workflows/run-locally.md` to test the changes in the browser.
+Consult @../workflows/run-locally.md to test the changes in the browser.
  to test the changes in the browser.
+
+## MCP Tools
+
+The `svelte` MCP server is available to assist with Svelte 5 and SvelteKit development.
+-   Use `list-sections` and `get-documentation` to search for official documentation.
+-   Use `svelte-autofixer` to fix issues in Svelte components.
+
+The `context7` MCP server is available for general frontend library documentation.
+-   Use `query-docs` to find documentation for TypeScript libraries (e.g., specific shadcn/svelte details not covered by the svelte server, or other util libraries).
 
 ## Final Checks (CRITICAL)
 

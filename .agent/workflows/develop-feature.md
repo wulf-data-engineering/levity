@@ -79,6 +79,7 @@ You are currently working in a **temporary instance** (`../levity-instances/<PRO
 3.  **Implement Feature and Verify Feature**
 
     Make your code changes in `../levity-instances/<PROJECT_SLUG>/...`.
+    Use the available MCP servers.
     Continuously test the running application.
     Run unit tests and end-to-end tests to verify your changes.
     Ref: @../../template/%[cookiecutter.project_slug]%/.agent/workflows/run-locally.md
