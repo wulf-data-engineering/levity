@@ -127,9 +127,13 @@ jobs:
         id: clippy
         run: cargo clippy
         continue-on-error: true
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Run unit tests
         id: tests
-        run: cargo test --lib --bins
+        run: cargo nextest run
         continue-on-error: true
       - name: Aggregate results and fail if any failed
         if: always() # ensure this runs even if earlier steps failed

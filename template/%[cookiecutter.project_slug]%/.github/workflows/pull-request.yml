@@ -49,9 +49,13 @@ jobs:
       - name: Run clippy
         id: clippy
         run: cargo clippy
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Run unit tests
         id: tests
-        run: cargo test --lib --bins
+        run: cargo nextest run
       - name: Aggregate results and fail if any failed
         if: always() # ensure this runs even if earlier steps failed
         run: |
