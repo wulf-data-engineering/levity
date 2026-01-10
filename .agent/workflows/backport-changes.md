@@ -57,6 +57,8 @@ description: Backport changes from a template instance to the template source
 
     **Check using git status in both, template repository and instance to verify all changed files have been backported.**
 
+    **Make sure correct lock files are backported if dependencies were added or changed.**
+
 6.  **Verify Template Integrity**
     After backporting, run the @instantiate-template.md workflow _again_ to a _new_ location (e.g., `../levity-instances/<VERIFICATION_SLUG>`) and verify that:
     1.  Cookiecutter runs without error.

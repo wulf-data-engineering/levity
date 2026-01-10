@@ -10,7 +10,9 @@
     "test": "jest",
     "cdk": "cdk",
     "cdklocal:bootstrap": "AWS_REGION=%[ cookiecutter.default_region ]% AWS_DEFAULT_REGION=%[ cookiecutter.default_region ]% AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_ENDPOINT_URL=http://127.0.0.1:4566 AWS_ENDPOINT_URL_S3=http://127.0.0.1:4566 AWS_S3_FORCE_PATH_STYLE=true AWS_SDK_LOAD_CONFIG=1 cdk bootstrap aws://000000000000/%[ cookiecutter.default_region ]% --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess",
-    "cdklocal:deploy": "AWS_REGION=%[ cookiecutter.default_region ]% AWS_DEFAULT_REGION=%[ cookiecutter.default_region ]% AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_ENDPOINT_URL=http://127.0.0.1:4566 AWS_ENDPOINT_URL_S3=http://127.0.0.1:4566 AWS_S3_FORCE_PATH_STYLE=true AWS_SDK_LOAD_CONFIG=1 cdk deploy --require-approval never"
+    "cdklocal:deploy": "AWS_REGION=%[ cookiecutter.default_region ]% AWS_DEFAULT_REGION=%[ cookiecutter.default_region ]% AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_ENDPOINT_URL=http://127.0.0.1:4566 AWS_ENDPOINT_URL_S3=http://127.0.0.1:4566 AWS_S3_FORCE_PATH_STYLE=true AWS_SDK_LOAD_CONFIG=1 cdk deploy --require-approval never",
+    "format": "prettier --write .",
+    "check-format": "prettier --check ."
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
@@ -18,6 +20,7 @@
     "aws-cdk": "2.1100.3",
     "cdk-nag": "^2.37.55",
     "jest": "30.2.0",
+    "prettier": "^3.7.4",
     "ts-jest": "29.4.6",
     "ts-node": "10.9.2",
     "typescript": "5.9.3"

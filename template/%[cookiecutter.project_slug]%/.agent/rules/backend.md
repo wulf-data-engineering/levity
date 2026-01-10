@@ -71,6 +71,7 @@ The `context7` MCP server is available for Rust crate documentation.
 ### Final Checks (CRITICAL)
 
 If you modified `infrastructure/package.json`, run `npm install` in `infrastructure/` to update the lock file.
+Run `npm run format` in `infrastructure/`.
 
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.
 

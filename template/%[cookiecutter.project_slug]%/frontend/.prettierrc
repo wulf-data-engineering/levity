@@ -2,10 +2,9 @@
 	"useTabs": true,
 	"singleQuote": true,
 	"trailingComma": "none",
-	"svelteStrictMode": false,
 	"printWidth": 100,
-	"htmlWhitespaceSensitivity": "ignore",
 	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+	"svelteSortOrder": "options-scripts-markup-styles",
 	"overrides": [
 		{
 			"files": "*.svelte",
