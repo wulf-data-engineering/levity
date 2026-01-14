@@ -40,7 +40,7 @@
 		"@testing-library/svelte": "^5.2.8",
 		"@types/node": "^24.7.0",
 		"@types/snappyjs": "^0.7.1",
-		"@vitest/browser": "^4.0.16",
+		"@vitest/browser": "^4.0.17",
 		"axe-playwright": "^2.2.2",
 		"bits-ui": "^2.15.4",
 		"clsx": "^2.1.1",
