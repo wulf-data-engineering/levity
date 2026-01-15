@@ -1,12 +1,29 @@
 version: 2
+enable-beta-ecosystems: true
+
+multi-ecosystem-groups:
+  # Managed by .github/workflows/dependabot-bulk-failure-handler.yml
+  - name: "bulk-update"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "Europe/Berlin"
+    labels:
+      - "bulk"
+
 updates:
   # GitHub Actions (Own & Template)
   - package-ecosystem: "github-actions"
     directories:
       - "/"
       - "template/*/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
+
     schedule:
-      interval: "monthly"
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/Berlin"
     groups:
       all-actions:
         patterns:
@@ -18,6 +35,9 @@ updates:
       - "/"
       - "template/*/frontend/"
       - "template/*/infrastructure/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
+
     schedule:
       interval: "daily"
       time: "09:00"
@@ -102,6 +122,9 @@ updates:
   - package-ecosystem: "cargo"
     directories:
       - "template/*/backend/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
+
     schedule:
       interval: "daily"
       time: "09:00"
@@ -123,4 +146,3 @@ updates:
         update-types:
           - "minor"
           - "patch"
-

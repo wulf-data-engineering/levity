@@ -1,10 +1,27 @@
 version: 2
+enable-beta-ecosystems: true
+
+multi-ecosystem-groups:
+  # Managed by .github/workflows/dependabot-bulk-failure-handler.yml
+  - name: "bulk-update"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "Europe/Berlin"
+    labels:
+      - "bulk"
+
 updates:
   # GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
     schedule:
-      interval: "monthly"
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/Berlin"
     groups:
       all-actions:
         patterns:
@@ -12,10 +29,12 @@ updates:
 
   # Backend
   - package-ecosystem: "cargo"
-    directory: "backend/"
+    directories:
+      - "backend/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
     schedule:
-      interval: "weekly"
-      day: "thursday"
+      interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
     groups:
@@ -36,13 +55,16 @@ updates:
           - "minor"
           - "patch"
 
-  # Frontend
+  # Frontend & Infrastructure
   - package-ecosystem: "npm"
-    directory: "frontend/"
+    directories:
+      - "frontend/"
+      - "infrastructure/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
     schedule:
-      interval: "weekly"
-      day: "thursday"
-      time: "09:05"
+      interval: "daily"
+      time: "09:00"
       timezone: "Europe/Berlin"
     groups:
       aws-major:
@@ -120,44 +142,13 @@ updates:
           - "minor"
           - "patch"
 
-  # Infrastructure
-  - package-ecosystem: "npm"
-    directory: "infrastructure/"
-    schedule:
-      interval: "weekly"
-      day: "thursday"
-      time: "09:10"
-      timezone: "Europe/Berlin"
-    groups:
-      aws-major:
-        patterns:
-          - "aws-cdk"
-          - "aws-cdk-lib"
-          - "cargo-lambda-cdk"
-          - "@aws-cdk/*"
-          - "@aws-sdk/*"
-        update-types:
-          - "major"
-      jest:
-        patterns:
-          - "jest"
-          - "@types/jest"
-          - "ts-jest"
-          - "jest-*"
-        update-types:
-          - "major"
-      dependencies:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
   # Docker Compose
   - package-ecosystem: "docker"
-    directory: "/"
+    directories:
+      - "/"
+    multi-ecosystem-group: "bulk-update"
+    patterns: ["*"]
     schedule:
-      interval: "weekly"
-      day: "thursday"
-      time: "09:15"
+      interval: "daily"
+      time: "09:00"
       timezone: "Europe/Berlin"
