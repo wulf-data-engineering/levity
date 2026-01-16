@@ -69,9 +69,9 @@
 		"vitest-browser-svelte": "^2.0.1"
 	},
 	"dependencies": {
-		"@aws-amplify/auth": "^6.17.1",
+		"@aws-amplify/auth": "^6.17.2",
 		"amazon-cognito-identity-js": "^6.3.15",
-		"aws-amplify": "^6.15.9",
+		"aws-amplify": "^6.15.10",
 		"snappyjs": "^0.7.0"
 	}
 }
