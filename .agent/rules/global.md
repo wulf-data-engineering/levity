@@ -7,10 +7,10 @@ This repository contains a **cookiecutter template** for generating applications
 The template's rules apply to you if you change the template:
 
 Ref: @../../template/%[cookiecutter.project_slug]%/.agent/rules/global.md
-Ref: @../../template/%[cookiecutter.project_slug]%/.agent/rules/backend.md
-Ref: @../../template/%[cookiecutter.project_slug]%/.agent/rules/frontend.md
-Ref: @../../template/%[cookiecutter.project_slug]%/.agent/rules/protocols.md
-Ref: @../../template/%[cookiecutter.project_slug]%/.agent/rules/database.md
+Ref: @../../template/%[cookiecutter.project_slug]%/.agent/skills/backend/SKILL.md
+Ref: @../../template/%[cookiecutter.project_slug]%/.agent/skills/frontend/SKILL.md
+Ref: @../../template/%[cookiecutter.project_slug]%/.agent/skills/protocols/SKILL.md
+Ref: @../../template/%[cookiecutter.project_slug]%/.agent/skills/database/SKILL.md
 
 ## Template Structure
 
@@ -25,8 +25,8 @@ The source code for the generated project lives in `template/`.
 - `template/%[cookiecutter.project_slug]%/` is the **template**.
 - `../levity-instances/<project_slug>/` is a **template instance** when generated.
 
-> **Note**: The `.. /levity-instances/` directory is outside of the workspace. In case of read or write failures you **MUST** ask the user to allow it via 
-*Settings > Agent > File Access > Agent Non-Workspace File Access*.
+> **Note**: The `.. /levity-instances/` directory is outside of the workspace. In case of read or write failures you **MUST** ask the user to allow it via
+> _Settings > Agent > File Access > Agent Non-Workspace File Access_.
 
 ## Important Paths
 
@@ -35,6 +35,7 @@ The source code for the generated project lives in `template/`.
 - `template/%[cookiecutter.project_slug]%/.agent`: AI rules and workflows for generated projects
 - `.github/workflows/`: CI/CD for the template itself (linting, testing generation)
 - `..levity-instances/`: Temporary instances of generated projects
+
 ## Template Application Context
 
 The `template/` directory contains the source for a **Levity Application**.

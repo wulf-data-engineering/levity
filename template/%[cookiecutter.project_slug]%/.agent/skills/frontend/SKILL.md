@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+name: Frontend Development
 description: Develop and test features in the frontend
 ---
 
@@ -38,23 +38,32 @@ Follow the structure of existing components:
 - component.test.ts for unit tests using the Svelte testing-library
 
 If code depends on local development or deployed AWS environment decide based on the `dev` value:
+
 ```typescript
-import {dev} from '$app/environment';
+import { dev } from "$app/environment";
 ```
 
 Run `npm run test:unit` during development.
 
 Consult @../workflows/run-locally.md to test the changes in the browser.
- to test the changes in the browser.
+to test the changes in the browser.
+
+## Tests
+
+If you introduce a new feature or make a change it has to be reflected in tests.
+If there are existing unit or end-to-end tests, extend or update them.
+If not, evaluate if unit and/or end-to-end tests are appropriate to test the change.
 
 ## MCP Tools
 
 The `svelte` MCP server is available to assist with Svelte 5 and SvelteKit development.
--   Use `list-sections` and `get-documentation` to search for official documentation.
--   Use `svelte-autofixer` to fix issues in Svelte components.
+
+- Use `list-sections` and `get-documentation` to search for official documentation.
+- Use `svelte-autofixer` to fix issues in Svelte components.
 
 The `context7` MCP server is available for general frontend library documentation.
--   Use `query-docs` to find documentation for TypeScript libraries (e.g., specific shadcn/svelte details not covered by the svelte server, or other util libraries).
+
+- Use `query-docs` to find documentation for TypeScript libraries (e.g., specific shadcn/svelte details not covered by the svelte server, or other util libraries).
 
 ## Final Checks (CRITICAL)
 
