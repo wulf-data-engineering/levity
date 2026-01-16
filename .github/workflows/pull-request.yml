@@ -9,8 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       instance-path: ${{ steps.set-path.outputs.path }}
+      lambda-builder-changed: ${{ steps.filter-lambda-builder.outputs.builder }}
     steps:
       - uses: actions/checkout@v6
+      - name: Validate root dependabot.yml
+        uses: marocchino/validate-dependabot@v3
+        with:
+          path: .github/dependabot.yml
+      - uses: dorny/paths-filter@v3
+        id: filter-lambda-builder
+        with:
+          filters: |
+            builder:
+              - 'Dockerfile.lambda-builder'
       - name: Cache pip
         uses: actions/cache@v5
         with:
@@ -55,24 +66,11 @@ jobs:
           name: test-instance
           path: test-instance/
           include-hidden-files: true # for .prettierignore etc.
-  check-builder-image:
-    name: Check Builder Image
-    runs-on: ubuntu-latest
-    outputs:
-      builder: ${{ steps.filter.outputs.builder }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            builder:
-              - 'Dockerfile.lambda-builder'
   test-builder-image:
     name: Test Builder Image
     runs-on: ubuntu-latest
-    needs: check-builder-image
-    if: needs.check-builder-image.outputs.builder == 'true'
+    needs: seed-template
+    if: needs.seed-template.outputs.lambda-builder-changed == 'true'
     steps:
       - uses: actions/checkout@v6
       - name: Build local builder
@@ -81,6 +79,20 @@ jobs:
         run: |
           docker run --rm local-builder cargo --version
           docker run --rm local-builder protoc --version
+  check-dependabot:
+    name: Check Dependabot
+    runs-on: ubuntu-latest
+    needs: seed-template
+    steps:
+      - name: Download test template instance
+        uses: actions/download-artifact@v7
+        with:
+          name: test-instance
+          path: ./test-instance
+      - name: Validate template dependabot.yml
+        uses: marocchino/validate-dependabot@v3
+        with:
+          path: test-instance/.github/dependabot.yml
   check-protocols:
     name: Check Protocols
     runs-on: ubuntu-latest

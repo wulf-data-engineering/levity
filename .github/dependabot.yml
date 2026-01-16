@@ -6,22 +6,19 @@ updates:
     directories:
       - "/"
       - "template/*/"
-
     schedule:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
     groups:
-      all-actions:
+      github-actions:
         patterns: ["*"]
-
   # npm (Own & Template Frontend/Infrastructure)
   - package-ecosystem: "npm"
     directories:
       - "/"
       - "template/*/frontend/"
       - "template/*/infrastructure/"
-
     schedule:
       interval: "daily"
       time: "09:00"
@@ -30,14 +27,10 @@ updates:
       minor-patch-typescript-dependencies:
         patterns: ["*"]
         update-types: ["minor", "patch"]
-        labels: ["minor/patch group"]
-
   # Template's Backend
   - package-ecosystem: "cargo"
     directories:
       - "template/*/backend/"
-    patterns: ["*"]
-
     schedule:
       interval: "daily"
       time: "09:00"
@@ -46,4 +39,3 @@ updates:
       minor-patch-rust-dependencies:
         patterns: ["*"]
         update-types: ["minor", "patch"]
-        labels: ["minor/patch group"]
