@@ -1,3 +1,8 @@
+---
+name: Database Development
+description: Patterns for DynamoDB access and repositories
+---
+
 # Database Rules
 
 ## Repositories

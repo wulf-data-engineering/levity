@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+name: Template Development
+description: Instructions for developing and testing the template itself.
 ---
 
 # Development

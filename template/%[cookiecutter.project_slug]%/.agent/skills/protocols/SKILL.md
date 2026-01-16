@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+name: Protocol Development
 description: Add or change protocols between frontend and backend
 ---
 
