@@ -337,7 +337,7 @@ jobs:
             -v $(pwd):/work \
             -w /work \
             -e CI=true \
-            mcr.microsoft.com/playwright:v1.57.0-noble \
+            mcr.microsoft.com/playwright:v1.58.0-noble \
             npx playwright test
       - name: Upload Playwright test results
         id: upload-playwright
