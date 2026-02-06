@@ -27,9 +27,9 @@
 		"@internationalized/date": "^3.11.0",
 		"@lucide/svelte": "^0.563.1",
 		"@playwright/test": "^1.58.1",
-		"@storybook/addon-docs": "^10.2.6",
+		"@storybook/addon-docs": "^10.2.7",
 		"@storybook/addon-svelte-csf": "^5.0.10",
-		"@storybook/sveltekit": "^10.2.6",
+		"@storybook/sveltekit": "^10.2.7",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
@@ -38,7 +38,7 @@
 		"@tailwindcss/vite": "^4.1.13",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/svelte": "^5.2.8",
-		"@types/node": "^25.2.0",
+		"@types/node": "^25.2.1",
 		"@types/snappyjs": "^0.7.1",
 		"@vitest/browser": "^4.0.18",
 		"axe-playwright": "^2.2.2",
@@ -69,9 +69,9 @@
 		"vitest-browser-svelte": "^2.0.2"
 	},
 	"dependencies": {
-		"@aws-amplify/auth": "^6.18.0",
+		"@aws-amplify/auth": "^6.19.1",
 		"amazon-cognito-identity-js": "^6.3.15",
-		"aws-amplify": "^6.16.0",
+		"aws-amplify": "^6.16.2",
 		"snappyjs": "^0.7.0"
 	}
 }
