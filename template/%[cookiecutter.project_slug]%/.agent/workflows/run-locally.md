@@ -29,6 +29,8 @@ If `docker compose down` fails to clean up or you see container conflicts, use:
 docker rm -f cognito-local localstack-main
 ```
 
+If you had to run `docker rm` you definitely need to bootstrap cdk.
+
 Start the backend lambdas in another terminal:
 
 ```bash
@@ -44,6 +46,7 @@ Deploy the infrastructure in another terminal:
 ````bash
 // turbo
 cd infrastructure
+npm run cdklocal:bootstrap # if you had to run docker rm before or deploy fails
 npm run cdklocal:deploy
 ````
 
