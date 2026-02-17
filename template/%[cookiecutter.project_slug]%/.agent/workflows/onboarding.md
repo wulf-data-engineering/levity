@@ -5,6 +5,7 @@ description: Onboarding guide for new developers (requirements, MCP server setup
 # Onboarding
 
 Create a markdown artifact with greeting to developer that you will guide through setup.
+That artifact might turn into an implementation plan later.
 
 # Requirements
 
@@ -38,6 +39,11 @@ If there are missing dependencies:
 - Add tasks to install missing dependencies to the plan
 - State which you can and will install
 - State in detail which need to be installed manually and how
+
+# Git Repo
+
+Check if this repository is a git repository.
+If not mention that in the artifact.
 
 # MCP servers
 

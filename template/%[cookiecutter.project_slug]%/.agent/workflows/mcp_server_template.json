@@ -5,7 +5,8 @@
       "args": ["-y", "@sveltejs/mcp"]
     },
     "aws-knowledge-mcp-server": {
-      "serverUrl": "https://knowledge-mcp.global.api.aws"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://knowledge-mcp.global.api.aws"]
     },
     "context7": {
       "command": "npx",
