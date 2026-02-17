@@ -48,7 +48,10 @@
     "**/node_modules/**",
     "**/.idea/**",
     "**/.git/**",
-    "**/build/**"
+    "**/build/**",
+    "**/*.mjs",
+    "**/Cargo.lock",
+    "**/package-lock.json"
   ],
 
   "_jinja2_env_vars": {
