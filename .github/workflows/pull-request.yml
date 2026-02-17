@@ -105,7 +105,7 @@ jobs:
           path: ./test-instance
       - uses: bufbuild/buf-setup-action@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Lint protocols
         uses: bufbuild/buf-lint-action@v1
         with:
@@ -126,7 +126,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ github.token }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ./test-instance/backend
@@ -179,7 +179,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           node-version: "20"
           cache: "npm"
           cache-dependency-path: "test-instance/infrastructure/package-lock.json"
@@ -203,11 +203,11 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ github.token }}
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           node-version: "20"
           cache: "npm"
           cache-dependency-path: "test-instance/frontend/package-lock.json"
@@ -260,7 +260,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ github.token }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ./test-instance/backend
@@ -269,7 +269,7 @@ jobs:
         run: rustup toolchain install stable
       - name: Install latest cargo-lambda binary
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           TAG=$(curl -H "Authorization: Bearer $GITHUB_TOKEN" -s https://api.github.com/repos/cargo-lambda/cargo-lambda/releases/latest | jq -r .tag_name)
           echo "Latest tag is $TAG"
@@ -289,13 +289,13 @@ jobs:
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.5.0
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           node-version: "20"
           cache: "npm"
           cache-dependency-path: |
