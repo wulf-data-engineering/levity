@@ -21,6 +21,16 @@
 		"test:e2e:ui": "playwright test --ui",
 		"gen:proto": "node scripts/generate-protobuf-files.mjs"
 	},
+	"supportedArchitectures": {
+		"os": [
+			"darwin",
+			"linux"
+		],
+		"cpu": [
+			"x64",
+			"arm64"
+		]
+	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",
 		"@eslint/js": "^9.37.0",
@@ -73,5 +83,11 @@
 		"amazon-cognito-identity-js": "^6.3.15",
 		"aws-amplify": "^6.16.2",
 		"snappyjs": "^0.7.0"
+	},
+	"optionalDependencies": {
+		"fsevents": "~2.3.2"
+	},
+	"overrides": {
+		"fsevents": "~2.3.2"
 	}
 }
