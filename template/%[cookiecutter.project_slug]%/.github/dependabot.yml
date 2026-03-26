@@ -37,6 +37,14 @@ updates:
       minor-patch-rust-dependencies:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+  # Backend's toolchain
+  - package-ecosystem: "rust-toolchain"
+    directories:
+      - "backend/"
+    schedule:
+      interval: "weekly"
+      time: "09:00"
+      timezone: "Europe/Berlin"
   # Docker Compose
   - package-ecosystem: "docker"
     directories:

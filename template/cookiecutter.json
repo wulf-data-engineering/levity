@@ -9,8 +9,7 @@
   "copyright_initial_year": "%%[ now 'utc', '%Y' ]%%",
   "default_region": "eu-central-1",
   "domain_name": "levity.wulf.technology",
-  "hosted_zone_id": "undefined",
-  "staging_hosted_zone_id": "undefined",
+
   "email_sender_address": "no-reply@%[ cookiecutter.domain_name ]%",
   "email_sender_name": "%[ cookiecutter.project_name ]%",
   "email_replyto": "%[ cookiecutter.email_sender_address ]%",
@@ -34,8 +33,7 @@
     },
     "copyright_initial_year": "Initial year for copyright statement",
     "domain_name": "FQDN of your application in production. CDK will look up a hosted zone in Route53 matching this domain. Envs. like staging will be subdomains of this domain.",
-    "hosted_zone_id": "If present, use this Route53 Hosted Zone ID instead of looking it up by domain name",
-    "staging_hosted_zone_id": "If present, use this Route53 Hosted Zone ID for staging instead of looking it up by subdomain name",
+
     "email_sender_address": "Email address used as sender for outgoing mails (e.g. password resets)",
     "email_sender_name": "Readable name used as sender for outgoing mails",
     "email_replyto": "Reply-To email address for outgoing mails",

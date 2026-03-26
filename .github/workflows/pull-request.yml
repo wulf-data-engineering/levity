@@ -266,7 +266,7 @@ jobs:
           workspaces: ./test-instance/backend
           cache-on-failure: true
       - name: Install Rust
-        run: rustup toolchain install stable
+        run: rustup show # Picks the version from the toolchain file
       - name: Install latest cargo-lambda binary
         env:
           GITHUB_TOKEN: ${{ github.token }}
