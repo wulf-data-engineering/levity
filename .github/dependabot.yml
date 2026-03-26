@@ -24,6 +24,7 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
     groups:
       minor-patch-upgrades:
         # Make sure you add all more specific patterns of groups tackling major updates
@@ -59,6 +60,7 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
     groups:
       minor-patch-upgrades:
         # Make sure you add all more specific patterns of groups tackling major updates

@@ -21,6 +21,7 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
     groups:
       minor-patch-typescript-dependencies:
         patterns: ["*"]
@@ -33,6 +34,7 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
     groups:
       minor-patch-rust-dependencies:
         patterns: ["*"]
