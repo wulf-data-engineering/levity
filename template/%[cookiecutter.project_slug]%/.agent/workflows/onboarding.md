@@ -45,6 +45,11 @@ If there are missing dependencies:
 Check if this repository is a git repository.
 If not mention that in the artifact.
 
+## Formatting
+
+Then, it's considered a new project just created from the levity template.
+Suggest to run formatter in backend and frontend because value substitution not necessarily produces formatted code.
+
 # MCP servers
 
 Check which MCP servers are already available by inspecting your available tools.

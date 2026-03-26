@@ -75,3 +75,11 @@ updates:
           - "lambda*"
         update-types:
           - "major"
+  # Template's Backend's toolchain
+  - package-ecosystem: "rust-toolchain"
+    directories:
+      - "template/*/backend/"
+    schedule:
+      interval: "weekly"
+      time: "09:00"
+      timezone: "Europe/Berlin"
