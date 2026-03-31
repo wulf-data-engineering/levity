@@ -30,11 +30,9 @@ export class FrontendDeployment extends Construct {
         };
 
         let assetSource: s3deploy.ISource;
-        if (props.deploymentConfig.skipBuild) {
-            assetSource = s3deploy.Source.asset(path.join(process.cwd(), 'stub/frontend'));
-        } else if (props.deploymentConfig.frontendPath) {
+        if (props.deploymentConfig.frontendPath) {
             assetSource = s3deploy.Source.asset(path.resolve(process.cwd(), props.deploymentConfig.frontendPath));
-        } else {
+        } else if (props.deploymentConfig.build) {
             assetSource = s3deploy.Source.asset(frontendPath, {
                 exclude: ['node_modules', 'build', '.svelte-kit', 'dist', '.git'],
                 bundling: {
@@ -59,6 +57,9 @@ export class FrontendDeployment extends Construct {
                     }
                 }
             });
+        } else {
+            // Default to stub for foundation-only deployments or fast-synth speed
+            assetSource = s3deploy.Source.asset(path.join(process.cwd(), 'stub/frontend'));
         }
 
         new s3deploy.BucketDeployment(this, 'DeploySvelte', {
