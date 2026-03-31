@@ -62,7 +62,7 @@ Deploy the `FoundationStack` to set up the base infrastructure for both accounts
    npx cdk deploy FoundationStack CertificateStack \
      --profile %[ cookiecutter.project_slug ]%-staging \
      --require-approval never \
-     -c skipBuild=true \
+     -c environment=staging \
      -c domain=staging.%[ cookiecutter.domain_name ]% \
      -c githubRepo=<org/repo>
    ```
@@ -71,7 +71,7 @@ Deploy the `FoundationStack` to set up the base infrastructure for both accounts
 
 ### 2. Bootstrap Production Account Second (with DNS Delegation)
 1. The domain name for production is: `%[ cookiecutter.domain_name ]%`
-2. Run the deployment against the production profile, passing the Staging Name Servers for DNS delegation:
+2. Run the deployment against the production profile, passing the Staging Name Servers for DNS delegation (mandatory in production mode):
 
    ```bash
    cd infrastructure
@@ -81,7 +81,7 @@ Deploy the `FoundationStack` to set up the base infrastructure for both accounts
    npx cdk deploy FoundationStack CertificateStack \
      --profile %[ cookiecutter.project_slug ]%-production \
      --require-approval never \
-     -c skipBuild=true \
+     -c environment=production \
      -c domain=%[ cookiecutter.domain_name ]% \
      -c githubRepo=<org/repo> \
      -c stagingNameServers="ns-XXXX.awsdns-XX.org, ns-YYYY.awsdns-YY.co.uk, ..." # Use comma-separated list from Step 1

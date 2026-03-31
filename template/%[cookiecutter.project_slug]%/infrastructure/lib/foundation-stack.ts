@@ -116,10 +116,18 @@ export class FoundationStack extends cdk.Stack {
 
     // Cross-Account Staging Delegation
     const stagingNameServersStr = scope.node.tryGetContext("stagingNameServers");
+    const environment = scope.node.tryGetContext("environment");
+
+    if (environment === "production" && !stagingNameServersStr) {
+      throw new Error(
+        '❌ "stagingNameServers" context variable is required for production deployments to delegate the staging subdomain.',
+      );
+    }
+
     if (stagingNameServersStr) {
       const stagingNameServers = stagingNameServersStr.split(',').map((ns: string) => ns.trim());
       new route53.ZoneDelegationRecord(this, 'StagingDelegation', {
-        zone: this.hostedZone,
+        zone: this.hostedZone!,
         recordName: 'staging',
         nameServers: stagingNameServers,
       });

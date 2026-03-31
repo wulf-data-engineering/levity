@@ -77,9 +77,7 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
     });
 
     let code: lambda.Code;
-    if (props.deploymentConfig.skipBuild) {
-        code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
-    } else if (props.deploymentConfig.backendPath) {
+    if (props.deploymentConfig.backendPath) {
         // Find the specific binary from the pre-built backend path
         const binPath = path.resolve(process.cwd(), props.deploymentConfig.backendPath, props.binaryName);
         if (!fs.existsSync(binPath)) throw new Error(`Pre-built binary not found: ${binPath}`);
@@ -89,8 +87,11 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
         fs.copyFileSync(binPath, path.join(tempDir, 'bootstrap'));
         fs.chmodSync(path.join(tempDir, 'bootstrap'), 0o755);
         code = lambda.Code.fromAsset(tempDir);
-    } else {
+    } else if (props.deploymentConfig.build) {
         code = bundleRustCode(props.binaryName);
+    } else {
+        // Default to stub for foundation synthesis speed
+        code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
     }
 
     return new lambda.Function(scope, id, {
