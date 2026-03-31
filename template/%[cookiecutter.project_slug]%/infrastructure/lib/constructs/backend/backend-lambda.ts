@@ -6,11 +6,13 @@ import * as cdk from 'aws-cdk-lib';
 import * as fs from 'fs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import {execSync} from 'child_process';
+import * as os from 'os';
 import {DeploymentConfig} from "../../config";
 
 export interface BackendLambdaProps extends lambda.FunctionOptions {
     deploymentConfig: DeploymentConfig,
     binaryName: string; // The name of the [[bin]] in Cargo.toml
+    environment?: { [key: string]: string }; // Environment variables
 }
 
 /**
@@ -77,6 +79,16 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
     let code: lambda.Code;
     if (props.deploymentConfig.skipBuild) {
         code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
+    } else if (props.deploymentConfig.backendPath) {
+        // Find the specific binary from the pre-built backend path
+        const binPath = path.resolve(process.cwd(), props.deploymentConfig.backendPath, props.binaryName);
+        if (!fs.existsSync(binPath)) throw new Error(`Pre-built binary not found: ${binPath}`);
+        
+        // AWS Lambda custom runtimes require the binary to be named 'bootstrap'
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `lambda-${props.binaryName}-`));
+        fs.copyFileSync(binPath, path.join(tempDir, 'bootstrap'));
+        fs.chmodSync(path.join(tempDir, 'bootstrap'), 0o755);
+        code = lambda.Code.fromAsset(tempDir);
     } else {
         code = bundleRustCode(props.binaryName);
     }
@@ -116,7 +128,7 @@ function bundleRustCode(binName: string): lambda.AssetCode {
     const hostTargetDir = path.join(workspacePath, relativeCratePath, 'target', 'docker-cargo-target');
 
     // We keep the registry in the workspace root target to share downloads across crates/projects if needed
-    const hostRegistryDir = path.join(workspacePath, 'target', 'docker-cargo-registry');
+    const hostRegistryDir = path.join(cratePath, 'target', 'docker-cargo-registry');
 
     return lambda.Code.fromAsset(workspacePath, {
         exclude,
@@ -142,33 +154,34 @@ function bundleRustCode(binName: string): lambda.AssetCode {
             ],
             local: {
                 tryBundle(outputDir: string) {
-                    if (process.platform !== 'linux' || process.arch !== 'arm64') {
+                    if (process.platform !== 'linux') {
                         return false;
                     }
 
-                    try {
-                        console.log(`[Local Build] Building Rust binary: ${binName}`);
+                    console.log(`[Local Build] Building Rust binary: ${binName}`);
 
-                        // We must run the build inside the specific crate directory
-                        const buildDir = path.join(workspacePath, cratePath);
+                    // We must run the build inside the specific crate directory
+                    // cratePath is absolute, so we use it directly.
+                    const buildDir = cratePath;
 
-                        execSync(`cargo build --release --bin ${binName}`, {
-                            cwd: buildDir,
-                            stdio: 'inherit'
-                        });
-
-                        const binPath = path.join(buildDir, `target/release/${binName}`);
-                        if (!fs.existsSync(binPath)) {
-                            console.error(`Binary ${binName} not found after build.`);
-                            return false;
+                    execSync(`cargo build --release --target aarch64-unknown-linux-gnu --bin ${binName}`, {
+                        cwd: buildDir,
+                        stdio: 'inherit',
+                        env: {
+                            ...process.env,
+                            // Tell cargo to use the cross-compiler linker
+                            CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: 'aarch64-linux-gnu-gcc'
                         }
+                    });
 
-                        execSync(`cp ${binPath} ${path.join(outputDir, 'bootstrap')}`);
-                        return true;
-                    } catch (error) {
-                        console.warn(`[Local Build] Failed, falling back to Docker. Error: ${error}`);
-                        return false;
+
+                    const binPath = path.join(buildDir, `target/aarch64-unknown-linux-gnu/release/${binName}`);
+                    if (!fs.existsSync(binPath)) {
+                        throw new Error(`Binary ${binName} not found after build at ${binPath}`);
                     }
+
+                    execSync(`cp ${binPath} ${path.join(outputDir, 'bootstrap')}`);
+                    return true;
                 }
             }
         }

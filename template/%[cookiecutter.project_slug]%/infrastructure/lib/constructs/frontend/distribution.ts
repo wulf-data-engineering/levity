@@ -7,11 +7,15 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { DeploymentConfig } from "../../config";
 import { BehaviorOptions } from "aws-cdk-lib/aws-cloudfront";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
 
 interface DistributionProps {
   deploymentConfig: DeploymentConfig;
   siteBucket: s3.IBucket;
   backendApi?: apigateway.RestApi;
+  hostedZone?: route53.IHostedZone;
+  certificateArn?: string;
 }
 
 export class FrontendDistribution extends Construct {
@@ -27,12 +31,24 @@ export class FrontendDistribution extends Construct {
 
     const domainConfig = deploymentConfig.domain;
     if (domainConfig) {
-      const { domainName, hostedZone } = domainConfig;
+      const { domainName, hostedZone: hostedZoneConfig } = domainConfig;
 
-      certificate = new acm.Certificate(this, "SiteCert", {
-        domainName: domainName,
-        validation: acm.CertificateValidation.fromDns(hostedZone),
-      });
+      // Use passed hosted zone or fallback to config (though config usually just has ID/Name)
+      // In split stack, props.hostedZone is the IHostedZone object.
+      let hostedZone = props.hostedZone;
+
+      if (props.certificateArn) {
+        certificate = acm.Certificate.fromCertificateArn(
+          this,
+          "ImportedCert",
+          props.certificateArn
+        );
+      } else if (hostedZone) {
+        certificate = new acm.Certificate(this, "SiteCert", {
+            domainName: domainName,
+            validation: acm.CertificateValidation.fromDns(hostedZone),
+        });
+      }
     }
 
     let apiBehavior: Record<string, BehaviorOptions> = {};
@@ -158,5 +174,23 @@ export class FrontendDistribution extends Construct {
         : `https://${this.distribution.distributionDomainName}`,
       description: "CloudFront URL",
     });
+
+    if (props.hostedZone && domainConfig) {
+      new route53.ARecord(this, "SiteAliasRecord", {
+        zone: props.hostedZone,
+        recordName: domainConfig.domainName,
+        target: route53.RecordTarget.fromAlias(
+          new targets.CloudFrontTarget(this.distribution)
+        ),
+      });
+
+      new route53.AaaaRecord(this, "SiteAaaaAliasRecord", {
+        zone: props.hostedZone,
+        recordName: domainConfig.domainName,
+        target: route53.RecordTarget.fromAlias(
+          new targets.CloudFrontTarget(this.distribution)
+        ),
+      });
+    }
   }
 }

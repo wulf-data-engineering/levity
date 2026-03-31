@@ -12,6 +12,8 @@ import { Table } from "aws-cdk-lib/aws-dynamodb";
 interface IdentityProps {
   deploymentConfig: DeploymentConfig;
   usersTable: Table;
+  // Optional: Pass existing network resources
+  hostedZone?: route53.IHostedZone;
 }
 
 export class Identity extends Construct {
@@ -34,33 +36,20 @@ export class Identity extends Construct {
     props.usersTable.grantReadWriteData(this.cognitoHandler);
 
     let userPoolEmail: cognito.UserPoolEmail | undefined = undefined;
+    let verifier: cdk.CustomResource | undefined = undefined; // Declare verifier here to make it accessible later
 
     // --- domain & email setup ---
     if (props.deploymentConfig.domain) {
-      const { domainName, hostedZone } = props.deploymentConfig.domain;
+      const { domainName } = props.deploymentConfig.domain;
 
-      // create SES Identity (verifies the domain for sending), same region as the pool required
-      const sesIdentity = new ses.EmailIdentity(this, "SesIdentity", {
-        identity: ses.Identity.domain(domainName),
-        dkimSigning: true,
-      });
-
-      // add DKIM Records to Route53 (required for deliverability)
-      // proves domain ownership and prevents emails from going to spam
-      sesIdentity.dkimRecords.forEach((record, index) => {
-        new route53.CnameRecord(this, `DkimRecord${index}`, {
-          zone: hostedZone,
-          recordName: record.name,
-          domainName: record.value,
-        });
-      });
-
-      // Configure User Pool to use this SES Identity
+      // We assume the identity name is the domain name and it was created by FoundationStack
+      // We just need to reference it to configure the User Pool valid sender
       userPoolEmail = cognito.UserPoolEmail.withSES({
-        sesRegion: cdk.Stack.of(this).region, // Must match stack region
-        fromEmail: `%[ cookiecutter.email_sender_address ]%`,
-        fromName: "%[ cookiecutter.email_sender_name ]%",
-        replyTo: `%[ cookiecutter.email_replyto ]%`,
+          sesRegion: cdk.Stack.of(this).region,
+          fromEmail: `%[ cookiecutter.email_sender_address ]%`,
+          fromName: "%[ cookiecutter.email_sender_name ]%",
+          replyTo: `%[ cookiecutter.email_replyto ]%`,
+          sesVerifiedDomain: domainName,
       });
     }
 
