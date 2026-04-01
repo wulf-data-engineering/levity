@@ -1,5 +1,5 @@
 ---
-description: Initial setup guide (GitHub repository, AWS account, foundation stack, Github variables and secrets)
+description: Initial setup guide (GitHub repository, AWS account, foundation/certificate stack, Github variables and secrets)
 ---
 
 # Initial Setup
@@ -46,46 +46,35 @@ Ask the user to configure SSO logins and profiles for both via CLI:
     aws configure sso --profile %[ cookiecutter.project_slug ]%-production
     ```
 
-## Deploy FoundationStacks (Cross-Account Setup)
+Make sure the developer has logged into AWS with both profiles:
 
-Deploy the `FoundationStack` to set up the base infrastructure for both accounts. **Order is critical here!**
+   ```bash
+   aws sts get-caller-identity --profile %[ cookiecutter.project_slug ]%-staging
+   aws sts get-caller-identity --profile %[ cookiecutter.project_slug ]%-production
+   ```
 
-### 1. Bootstrap Staging Account First
-1. The domain name for staging is: `staging.%[ cookiecutter.domain_name ]%`
-2. Run the deployment against the staging profile:
+**Action:** Capture the account ids for both environents.
+
+## Deploy foundation and certificate stacks (Cross-Account Setup)
+
+Bootstrap cdk for both environments:
 
    ```bash
    cd infrastructure
-   npx cdk bootstrap aws://unknown-account/eu-central-1 aws://unknown-account/us-east-1 \
-     --profile %[ cookiecutter.project_slug ]%-staging
-
-   npx cdk deploy FoundationStack CertificateStack \
-     --profile %[ cookiecutter.project_slug ]%-staging \
-     --require-approval never \
+   npx cdk bootstrap aws://<staging account id>/eu-central-1 aws://<staging account id>/us-east-1 \
      -c environment=staging \
      -c domain=staging.%[ cookiecutter.domain_name ]% \
-     -c githubRepo=<org/repo>
-   ```
-
-**Action:** Capture the `HostedZoneId`, `GitHubRoleArn`, and crucially, the **`HostedZoneNameServers`** from the Staging deployment outputs.
-
-### 2. Bootstrap Production Account Second (with DNS Delegation)
-1. The domain name for production is: `%[ cookiecutter.domain_name ]%`
-2. Run the deployment against the production profile, passing the Staging Name Servers for DNS delegation (mandatory in production mode):
-
-   ```bash
-   cd infrastructure
-   npx cdk bootstrap aws://unknown-account/eu-central-1 aws://unknown-account/us-east-1 \
-     --profile %[ cookiecutter.project_slug ]%-production
-
-   npx cdk deploy FoundationStack CertificateStack \
-     --profile %[ cookiecutter.project_slug ]%-production \
-     --require-approval never \
+     --profile %[ cookiecutter.project_slug ]%-staging
+   npx cdk bootstrap aws://<production account id>/eu-central-1 aws://<production account id>/us-east-1 \
      -c environment=production \
      -c domain=%[ cookiecutter.domain_name ]% \
-     -c githubRepo=<org/repo> \
-     -c stagingNameServers="ns-XXXX.awsdns-XX.org, ns-YYYY.awsdns-YY.co.uk, ..." # Use comma-separated list from Step 1
+     --profile %[ cookiecutter.project_slug ]%-production
    ```
+
+Deploy the `FoundationStack` and `CertificateStack` to set up the base infrastructure for both accounts.
+Follow the rule for those base stacks:
+
+@../rules/base-stacks.md
 
 **Action:** Capture the `HostedZoneNameServers` from the **Production** deployment outputs.
 

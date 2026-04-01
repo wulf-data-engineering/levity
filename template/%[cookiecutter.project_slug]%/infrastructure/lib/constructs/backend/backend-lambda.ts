@@ -77,9 +77,9 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
     });
 
     let code: lambda.Code;
-    if (props.deploymentConfig.backendPath) {
+    if (props.deploymentConfig.buildConfig.backendPath) {
         // Find the specific binary from the pre-built backend path
-        const binPath = path.resolve(process.cwd(), props.deploymentConfig.backendPath, props.binaryName);
+        const binPath = path.resolve(process.cwd(), props.deploymentConfig.buildConfig.backendPath, props.binaryName);
         if (!fs.existsSync(binPath)) throw new Error(`Pre-built binary not found: ${binPath}`);
         
         // AWS Lambda custom runtimes require the binary to be named 'bootstrap'
@@ -87,7 +87,7 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
         fs.copyFileSync(binPath, path.join(tempDir, 'bootstrap'));
         fs.chmodSync(path.join(tempDir, 'bootstrap'), 0o755);
         code = lambda.Code.fromAsset(tempDir);
-    } else if (props.deploymentConfig.build) {
+    } else if (props.deploymentConfig.buildConfig.build) {
         code = bundleRustCode(props.binaryName);
     } else {
         // Default to stub for foundation synthesis speed
