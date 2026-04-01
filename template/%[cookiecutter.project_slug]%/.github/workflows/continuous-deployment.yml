@@ -76,7 +76,6 @@ jobs:
     with:
       environment: staging
       domain: ${{ vars.DOMAIN_STAGING }}
-      hostedZoneId: ${{ vars.HOSTED_ZONE_ID_STAGING }}
     secrets:
       awsRoleArn: ${{ secrets.AWS_ROLE_ARN_STAGING }}
 
@@ -86,6 +85,5 @@ jobs:
     with:
       environment: production
       domain: ${{ vars.DOMAIN_PRODUCTION }}
-      hostedZoneId: ${{ vars.HOSTED_ZONE_ID_PRODUCTION }}
     secrets:
       awsRoleArn: ${{ secrets.AWS_ROLE_ARN_PRODUCTION }}
