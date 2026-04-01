@@ -1,14 +1,14 @@
-import { Construct } from "constructs";
-import * as cdk from "aws-cdk-lib";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import * as acm from "aws-cdk-lib/aws-certificatemanager";
-import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import { DeploymentConfig } from "../../config";
-import { BehaviorOptions } from "aws-cdk-lib/aws-cloudfront";
-import * as route53 from "aws-cdk-lib/aws-route53";
-import * as targets from "aws-cdk-lib/aws-route53-targets";
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { DeploymentConfig } from '../../config';
+import { BehaviorOptions } from 'aws-cdk-lib/aws-cloudfront';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 
 interface DistributionProps {
   deploymentConfig: DeploymentConfig;
@@ -29,9 +29,7 @@ export class FrontendDistribution extends Construct {
     // certificate setup (required by CloudFront if custom domain is used)
     let certificate: acm.ICertificate | undefined = undefined;
 
-    const domainConfig = deploymentConfig.domain;
-    if (domainConfig) {
-      const { domainName, hostedZone: hostedZoneConfig } = domainConfig;
+    if (deploymentConfig.domainName) {
 
       // Use passed hosted zone or fallback to config (though config usually just has ID/Name)
       // In split stack, props.hostedZone is the IHostedZone object.
@@ -40,13 +38,13 @@ export class FrontendDistribution extends Construct {
       if (props.certificateArn) {
         certificate = acm.Certificate.fromCertificateArn(
           this,
-          "ImportedCert",
-          props.certificateArn
+          'ImportedCert',
+          props.certificateArn,
         );
       } else if (hostedZone) {
-        certificate = new acm.Certificate(this, "SiteCert", {
-            domainName: domainName,
-            validation: acm.CertificateValidation.fromDns(hostedZone),
+        certificate = new acm.Certificate(this, 'SiteCert', {
+          domainName: deploymentConfig.domainName,
+          validation: acm.CertificateValidation.fromDns(hostedZone),
         });
       }
     }
@@ -56,50 +54,41 @@ export class FrontendDistribution extends Construct {
     // if backendApi is provided, set up CloudFront behavior to forward /api/* requests to the API Gateway
     if (backendApi) {
       apiBehavior = {
-        "/api/*": {
+        '/api/*': {
           origin: new origins.RestApiOrigin(backendApi),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          originRequestPolicy:
-            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         },
       };
     }
 
     // default policy: short cache (1 minute) for HTML/mutable files
     // This covers load but ensures users see updates quickly.
-    const shortCachePolicy = new cloudfront.CachePolicy(
-      this,
-      "ShortCachePolicy",
-      {
-        defaultTtl: cdk.Duration.minutes(1),
-        minTtl: cdk.Duration.seconds(0),
-        maxTtl: cdk.Duration.minutes(5),
-        enableAcceptEncodingGzip: true,
-        enableAcceptEncodingBrotli: true,
-      },
-    );
+    const shortCachePolicy = new cloudfront.CachePolicy(this, 'ShortCachePolicy', {
+      defaultTtl: cdk.Duration.minutes(1),
+      minTtl: cdk.Duration.seconds(0),
+      maxTtl: cdk.Duration.minutes(5),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
 
     // immutable policy: long cache (1 year) for _app/immutable/
     // SvelteKit hashes these files, so they are safe to cache forever.
-    const immutableCachePolicy = new cloudfront.CachePolicy(
-      this,
-      "ImmutableCachePolicy",
-      {
-        defaultTtl: cdk.Duration.days(365),
-        minTtl: cdk.Duration.days(365),
-        maxTtl: cdk.Duration.days(365),
-        enableAcceptEncodingGzip: true,
-        enableAcceptEncodingBrotli: true,
-      },
-    );
+    const immutableCachePolicy = new cloudfront.CachePolicy(this, 'ImmutableCachePolicy', {
+      defaultTtl: cdk.Duration.days(365),
+      minTtl: cdk.Duration.days(365),
+      maxTtl: cdk.Duration.days(365),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
 
     // reuse the same S3 Origin for default and immutable asset behaviors
     const s3Origin = origins.S3BucketOrigin.withOriginAccessControl(siteBucket);
 
     // rewrites pre-rendered /somePath to /somePath.html so S3 can find the object.
-    const rewriteFunction = new cloudfront.Function(this, "RewriteFunction", {
+    const rewriteFunction = new cloudfront.Function(this, 'RewriteFunction', {
       code: cloudfront.FunctionCode.fromInline(`
         function handler(event) {
           var request = event.request;
@@ -118,10 +107,10 @@ export class FrontendDistribution extends Construct {
     });
 
     // --- CloudFront Distribution ---
-    this.distribution = new cloudfront.Distribution(this, "SiteDistribution", {
+    this.distribution = new cloudfront.Distribution(this, 'SiteDistribution', {
       certificate,
-      domainNames: domainConfig ? [domainConfig.domainName] : undefined,
-      defaultRootObject: "index.html",
+      domainNames: deploymentConfig.domainName ? [deploymentConfig.domainName] : undefined,
+      defaultRootObject: 'index.html',
 
       // fallback for SPA/Dynamic routes
       // If S3 returns 403/404 (because rewrite to .html didn't match a static file),
@@ -130,13 +119,13 @@ export class FrontendDistribution extends Construct {
         {
           httpStatus: 403, // S3 often returns 403 for missing keys with OAC
           responseHttpStatus: 200,
-          responsePagePath: "/fallback.html",
+          responsePagePath: '/fallback.html',
           ttl: cdk.Duration.minutes(0), // don't cache errors
         },
         {
           httpStatus: 404,
           responseHttpStatus: 200,
-          responsePagePath: "/fallback.html",
+          responsePagePath: '/fallback.html',
           ttl: cdk.Duration.minutes(0),
         },
       ],
@@ -157,10 +146,9 @@ export class FrontendDistribution extends Construct {
 
       additionalBehaviors: {
         // immutable assets -> long cache, no rewrite required
-        "/_app/immutable/*": {
+        '/_app/immutable/*': {
           origin: s3Origin,
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           compress: true,
           cachePolicy: immutableCachePolicy,
         },
@@ -168,28 +156,24 @@ export class FrontendDistribution extends Construct {
       },
     });
 
-    new cdk.CfnOutput(this, "Url", {
-      value: domainConfig
-        ? `https://${domainConfig.domainName}`
+    new cdk.CfnOutput(this, 'Url', {
+      value: deploymentConfig.domainName
+        ? `https://${deploymentConfig.domainName}`
         : `https://${this.distribution.distributionDomainName}`,
-      description: "CloudFront URL",
+      description: 'CloudFront URL',
     });
 
-    if (props.hostedZone && domainConfig) {
-      new route53.ARecord(this, "SiteAliasRecord", {
+    if (props.hostedZone && deploymentConfig.domainName) {
+      new route53.ARecord(this, 'SiteAliasRecord', {
         zone: props.hostedZone,
-        recordName: domainConfig.domainName,
-        target: route53.RecordTarget.fromAlias(
-          new targets.CloudFrontTarget(this.distribution)
-        ),
+        recordName: deploymentConfig.domainName,
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
       });
 
-      new route53.AaaaRecord(this, "SiteAaaaAliasRecord", {
+      new route53.AaaaRecord(this, 'SiteAaaaAliasRecord', {
         zone: props.hostedZone,
-        recordName: domainConfig.domainName,
-        target: route53.RecordTarget.fromAlias(
-          new targets.CloudFrontTarget(this.distribution)
-        ),
+        recordName: deploymentConfig.domainName,
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
       });
     }
   }

@@ -15,10 +15,20 @@ test('Infrastructure Created', () => {
       email_sender_name: 'Test Sender',
       email_replyto: 'noreply@example.com',
       aws: true,
-      skipBuild: true,
+      build: false,
     },
   });
-  const stack = new Cdk.AppStack(app, 'CdkTestStack');
+  const stack = new Cdk.AppStack(app, 'CdkTestStack', {
+    deploymentConfig: {
+      mode: 'environment',
+      environment: 'staging',
+      aws: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      terminationProtection: false,
+      buildConfig: { build: false },
+    },
+  } );
   const template = Template.fromStack(stack);
 
   // Verify API Gateway

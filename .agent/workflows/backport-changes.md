@@ -30,7 +30,7 @@ description: Backport changes from a template instance to the template source
 
     ```bash
     // turbo
-    git diff
+    git status --porcelain
     ```
 
 4.  **Locate Template File**
@@ -40,6 +40,12 @@ description: Backport changes from a template instance to the template source
     `../levity-instances/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
     maps to
     `template/%[cookiecutter.project_slug]%/frontend/src/routes/+page.svelte`
+
+    Create a diff for the changed files:
+
+    ```bash
+    for f in ...; do echo "Comparing $f"; diff -u "../levity-instances/<PROJECT_SLUG>/$f" "template/%[cookiecutter.project_slug]%/$f" || true; done
+    ```
 
 5.  **Apply Changes (Carefully)**
 

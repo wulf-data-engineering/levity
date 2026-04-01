@@ -1,7 +1,6 @@
 import { Construct } from "constructs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as route53 from "aws-cdk-lib/aws-route53";
-import * as ses from "aws-cdk-lib/aws-ses";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { backendLambda } from "./backend-lambda";
@@ -36,19 +35,18 @@ export class Identity extends Construct {
     props.usersTable.grantReadWriteData(this.cognitoHandler);
 
     let userPoolEmail: cognito.UserPoolEmail | undefined = undefined;
-    let verifier: cdk.CustomResource | undefined = undefined; // Declare verifier here to make it accessible later
 
     // --- domain & email setup ---
-    if (props.deploymentConfig.domain) {
-      const { domainName } = props.deploymentConfig.domain;
+    if (props.deploymentConfig.domainName) {
+      const domainName = props.deploymentConfig.domainName;
 
       // We assume the identity name is the domain name and it was created by FoundationStack
       // We just need to reference it to configure the User Pool valid sender
       userPoolEmail = cognito.UserPoolEmail.withSES({
           sesRegion: cdk.Stack.of(this).region,
-          fromEmail: `%[ cookiecutter.email_sender_address ]%`,
+          fromEmail: `%[ cookiecutter.email_sender_address ]%@${domainName}`,
           fromName: "%[ cookiecutter.email_sender_name ]%",
-          replyTo: `%[ cookiecutter.email_replyto ]%`,
+          replyTo: `%[ cookiecutter.email_replyto ]%@${domainName}`,
           sesVerifiedDomain: domainName,
       });
     }
