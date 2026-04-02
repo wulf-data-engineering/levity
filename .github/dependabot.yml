@@ -33,6 +33,8 @@ updates:
           - "*vite*"
           - "*svelte*"
           - "*aws*"
+        exclude-patterns:
+          - "@playwright/test" # requires an update of the docker image
         update-types:
           - "minor"
           - "patch"
