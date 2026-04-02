@@ -88,7 +88,7 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
         fs.chmodSync(path.join(tempDir, 'bootstrap'), 0o755);
         code = lambda.Code.fromAsset(tempDir);
     } else if (props.deploymentConfig.buildConfig.build) {
-        code = bundleRustCode(props.binaryName);
+        code = bundleRustCode(props.binaryName, props.deploymentConfig.mode === 'sandbox');
     } else {
         // Default to stub for foundation synthesis speed
         code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
@@ -112,7 +112,7 @@ const cratePath = path.join(workspacePath, "backend");
  * On Linux ARM64 hosts, builds the Rust binary locally.
  * On other platforms (Mac, Windows), uses Docker to build the binary.
  */
-function bundleRustCode(binName: string): lambda.AssetCode {
+function bundleRustCode(binName: string, debug: boolean): lambda.AssetCode {
 
     // Calculate Relative Path safely (Host OS -> Docker Linux Path)
     let relativeCratePath = path.isAbsolute(cratePath)
@@ -131,6 +131,10 @@ function bundleRustCode(binName: string): lambda.AssetCode {
     // We keep the registry in the workspace root target to share downloads across crates/projects if needed
     const hostRegistryDir = path.join(cratePath, 'target', 'docker-cargo-registry');
 
+    const profile = debug ? 'debug' : 'release';
+
+    const target = 'aarch64-unknown-linux-gnu';
+
     return lambda.Code.fromAsset(workspacePath, {
         exclude,
         bundling: {
@@ -147,9 +151,9 @@ function bundleRustCode(binName: string): lambda.AssetCode {
             command: [
                 'bash', '-c',
                 `cd /asset-input/${relativeCratePath} && ` +
-                `cargo build --release --target aarch64-unknown-linux-gnu --bin ${binName} && ` +
+                `cargo build --${profile} --target ${target} --bin ${binName} && ` +
                 // Copy from the cached target directory:
-                `cp /var/cargo/target/aarch64-unknown-linux-gnu/release/${binName} /asset-output/bootstrap && ` +
+                `cp /var/cargo/target/${target}/${profile}/${binName} /asset-output/bootstrap && ` +
                 '[ -f /asset-output/bootstrap ] || { echo "❌ Binary not found in output"; exit 1; } && ' +
                 'chmod -R 777 /var/cargo/target /var/cargo/registry || true'
             ],
@@ -176,7 +180,7 @@ function bundleRustCode(binName: string): lambda.AssetCode {
                     });
 
 
-                    const binPath = path.join(buildDir, `target/aarch64-unknown-linux-gnu/release/${binName}`);
+                    const binPath = path.join(buildDir, `target/${target}/${profile}/${binName}`);
                     if (!fs.existsSync(binPath)) {
                         throw new Error(`Binary ${binName} not found after build at ${binPath}`);
                     }

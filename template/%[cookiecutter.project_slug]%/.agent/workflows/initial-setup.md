@@ -62,12 +62,8 @@ Bootstrap cdk for both environments:
    ```bash
    cd infrastructure
    npx cdk bootstrap aws://<staging account id>/eu-central-1 aws://<staging account id>/us-east-1 \
-     -c environment=staging \
-     -c domain=staging.%[ cookiecutter.domain_name ]% \
      --profile %[ cookiecutter.project_slug ]%-staging
    npx cdk bootstrap aws://<production account id>/eu-central-1 aws://<production account id>/us-east-1 \
-     -c environment=production \
-     -c domain=%[ cookiecutter.domain_name ]% \
      --profile %[ cookiecutter.project_slug ]%-production
    ```
 
@@ -96,7 +92,6 @@ Now the certificate stack can be deployed:
 npx cdk deploy CertificateStack \
      --profile %[ cookiecutter.project_slug ]%-staging \
      --require-approval never \
-     -c mode=environment \
      -c environment=staging \
      -c domain=staging.%[ cookiecutter.domain_name ]% \
 
@@ -104,7 +99,6 @@ npx cdk deploy CertificateStack \
 npx cdk deploy CertificateStack \
      --profile %[ cookiecutter.project_slug ]%-production \
      --require-approval never \
-     -c mode=environment \
      -c environment=production \
      -c domain=%[ cookiecutter.domain_name ]% \
 ```

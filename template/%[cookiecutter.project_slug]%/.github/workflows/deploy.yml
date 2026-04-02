@@ -52,7 +52,7 @@ jobs:
           name: frontend-build
           path: downloaded-frontend
 
-      - name: CDK Deploy for ${{ inputs.domain }} (${{ inputs.hostedZoneId }})
+      - name: CDK Deploy for ${{ inputs.domain }}
         working-directory: ./infrastructure
         run: |
           npx cdk deploy AppStack --require-approval never \

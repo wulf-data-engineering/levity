@@ -10,11 +10,13 @@ const deploymentConfig = loadDeploymentConfig(app);
 
 const env = {
   account: deploymentConfig.mode === 'local' ? '000000000000' : process.env.CDK_DEFAULT_ACCOUNT,
-  region: deploymentConfig.mode === 'local' ? '%[ cookiecutter.default_region ]%' : process.env.CDK_DEFAULT_REGION,
+  region: deploymentConfig.mode === 'local' ? 'eu-central-1' : process.env.CDK_DEFAULT_REGION,
 };
 
+// Deploys stable infrastructure (iam roles for github actions, hosted zone, SES).
+// Deploying the foundation stack does not make sense without a github repo for the role or a domain name for the hosted zone.
 const githubRepo = app.node.tryGetContext('githubRepo');
-if (githubRepo) {
+if (githubRepo && deploymentConfig.domainName) {
   new FoundationStack(app, 'FoundationStack', {
     env,
     deploymentConfig,
@@ -24,8 +26,8 @@ if (githubRepo) {
 
 let certificateArn: string | undefined = undefined;
 
-// Create the cross-region dependencies if we are provided a domain configuration
-// For staging and production, we typically pass the context flags needed.
+// Create a validated certificate for the domain in us-east-1 (required for CloudFront).
+// Deploying the certificate stack does not make sense without a domain name.
 if (deploymentConfig.domainName) {
   const certStack = new CertificateStack(app, 'CertificateStack', {
     env: {
@@ -35,9 +37,11 @@ if (deploymentConfig.domainName) {
     crossRegionReferences: true,
     domainName: deploymentConfig.domainName!,
   });
+  // the certificate arn is passed to the app stack as cross region reference
   certificateArn = certStack.certificateArn;
 }
 
+// Deploys the actual application stack.
 new AppStack(app, 'AppStack', {
   env,
   crossRegionReferences: true,
