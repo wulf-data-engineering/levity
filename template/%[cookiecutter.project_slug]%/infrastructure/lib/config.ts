@@ -6,10 +6,12 @@ export interface BuildConfig {
   backendPath?: string;
   frontendPath?: string;
 }
+export type Mode = 'local' | 'sandbox' | 'environment';
+export type Environment = 'staging' | 'production';
 
 export interface DeploymentConfig {
-  mode: 'local' | 'sandbox' | 'environment';
-  environment?: 'staging' | 'production';
+  mode: Mode;
+  environment?: Environment;
   aws: boolean;
   removalPolicy: cdk.RemovalPolicy;
   autoDeleteObjects: boolean;
@@ -22,23 +24,38 @@ export interface DeploymentConfig {
  * Checks the current environment and loads the appropriate mode configuration.
  *
  * local mode for localstack is indicated by the presence of AWS_ENDPOINT_URL starting with "http://":
- * sandbox mode is indicated by the CDK context variable "mode" set to "sandbox". (`-c mode=sandbox`)
- * environment mode is the default for AWS deployments and REQUIRES an "environment" flag (staging|production).
+ * environment mode is indicated by the 'environment' flag (staging|production) for AWS deployments (`-c environment=staging`).
+ * sandbox mode is the default mode.
  *
- * local & sandbox modes use resource removal policies that allow easy cleanup.
+ * local & sandbox modes don't use a domain name and are not intended for production use.
+ * local, sandbox & staging environment use resource removal policies that allow easy cleanup.
  *
- * environment mode requires an environment flag and a domain configuration via CDK context variables:
- * `-c environment=staging -c domain=staging.example.com -c hostedZoneId=Z123456ABCDEFG`.
+ * environment mode requires a domain name via CDK context variable:
+ * `-c environment=staging -c domain=staging.example.com`.
  * The domain will be used for CloudFront distribution, API Gateway & Cognito user pool.
  *
- * In constructs check for `aws` flag to decided whether resources could & should be deployed to localstack.
+ * In your own constructs check for `aws` flag to decided whether resources could & should be deployed to localstack.
  * - Cognito is omitted (replaced by cognito-local)
  * - CloudFront & frontend bucket is omitted (replaced by npm run dev)
  * - Lambdas are proxied to local cargo lambda watch server
  * - API Gateway is omitted (replaced by direct calls to cargo lambda watch)
  */
 export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
-  const mode = scope.node.tryGetContext('mode') || 'environment';
+  let mode: Mode | undefined = scope.node.tryGetContext('mode');
+
+  // Check for Localstack & Lambda Proxy mode
+  const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
+  const dev = awsEndpointUrl && awsEndpointUrl.startsWith('http://');
+
+  if (!mode) {
+    if (dev) {
+      mode = 'local';
+    } else if (scope.node.tryGetContext('environment')) {
+      mode = 'environment';
+    } else {
+      mode = 'sandbox';
+    }
+  }
 
   // Identify the build mode
   const buildConfig: BuildConfig = {
@@ -48,53 +65,60 @@ export function loadDeploymentConfig(scope: Construct): DeploymentConfig {
     frontendPath: scope.node.tryGetContext('frontendPath'),
   };
 
-  // Check for Localstack & Lambda Proxy mode
-  const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
-  const dev = awsEndpointUrl && awsEndpointUrl.startsWith('http://');
-  if (dev) {
+  if (mode === 'local') {
     return {
-      mode: 'local',
+      mode,
       aws: false,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       terminationProtection: false,
       buildConfig: { build: false, backendPath: undefined, frontendPath: undefined },
     };
-  }
-
-  if (mode === 'sandbox') {
+  } else if (mode === 'sandbox') {
     return {
-      mode: 'sandbox',
+      mode,
       aws: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       terminationProtection: false,
       buildConfig,
     };
-  }
+  } else if (mode === 'environment') {
+    const environment = scope.node.tryGetContext('environment');
+    if (environment !== 'staging' && environment !== 'production') {
+      throw new Error(
+        '❌ Context variable "environment" is required and must be either "staging" or "production" when mode is "environment".',
+      );
+    }
 
-  // mode === "environment"
-  const environment = scope.node.tryGetContext('environment');
-  if (environment !== 'staging' && environment !== 'production') {
-    throw new Error(
-      '❌ Context variable "environment" is required and must be either "staging" or "production" when mode is "environment" (default).',
-    );
-  }
+    const domainName = scope.node.tryGetContext('domain');
+    if (!domainName) {
+      throw new Error(
+        '❌ Context variable "domain" is required for staging/production deployments.',
+      );
+    }
 
-  const domainName = scope.node.tryGetContext('domain');
-  if (!domainName) {
-    throw new Error('❌ Context variable "domain" is required for staging/production deployments.');
-  }
-
-  return {
-    mode: 'environment',
-    environment,
-    aws: true,
+    let autoDeleteObjects = false;
     // Protects data on delete/update, but cleans up if initial creation fails (rollback).
-    removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
-    autoDeleteObjects: false,
-    terminationProtection: true,
-    domainName,
-    buildConfig,
-  };
+    let removalPolicy = cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE;
+
+    if (environment === 'staging') {
+      // for faster intentional clean up on staging (termination protection is still activated)
+      autoDeleteObjects = true;
+      removalPolicy = cdk.RemovalPolicy.DESTROY;
+    }
+
+    return {
+      mode,
+      environment,
+      aws: true,
+      removalPolicy,
+      autoDeleteObjects,
+      terminationProtection: true,
+      domainName,
+      buildConfig,
+    };
+  } else {
+    throw new Error(`Unknown mode: ${mode}`);
+  }
 }

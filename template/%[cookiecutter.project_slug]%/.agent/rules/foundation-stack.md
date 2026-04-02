@@ -27,7 +27,6 @@ Make sure the developer has logged into AWS with both profiles:
    npx cdk deploy FoundationStack \
      --profile %[ cookiecutter.project_slug ]%-staging \
      --require-approval never \
-     -c mode=environment \
      -c environment=staging \
      -c domain=staging.%[ cookiecutter.domain_name ]% \
      -c githubRepo=<org/repo> # Get from git remote -v
@@ -47,7 +46,6 @@ Make sure the developer has logged into AWS with both profiles:
    npx cdk diff FoundationStack \
      --profile %[ cookiecutter.project_slug ]%-production \
      --require-approval never \
-     -c mode=environment \
      -c environment=production \
      -c domain=%[ cookiecutter.domain_name ]% \
      -c githubRepo=<org/repo> \ # Get from git remote -v

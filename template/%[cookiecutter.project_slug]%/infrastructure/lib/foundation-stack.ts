@@ -1,15 +1,28 @@
-import * as cdk from "aws-cdk-lib";
-import { Construct } from "constructs";
-import * as route53 from "aws-cdk-lib/aws-route53";
-import * as ses from "aws-cdk-lib/aws-ses";
-import { DeploymentConfig } from "./config";
-import * as iam from "aws-cdk-lib/aws-iam";
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as ses from 'aws-cdk-lib/aws-ses';
+import { DeploymentConfig } from './config';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export interface FoundationStackProps extends cdk.StackProps {
   deploymentConfig: DeploymentConfig;
   githubRepo: string;
 }
 
+/**
+ * This stack deploys stable infrastructure:
+ * - IAM roles for GitHub Actions
+ * - Hosted zone for the domain
+ * - SES for sending emails
+ *
+ * IMPORTANT: For the staging subdomain to work, it must be delegated by the the production hosted zone.
+ * Therefore, in production environment the foundation stack required the flag `stagingNameServers`:
+ *
+ * ```bash
+ * cdk deploy FoundationStack -c environment=production -c domain=example.com -c stagingNameServers="ns1.example.com,ns2.example.com,ns3.example.com,ns4.example.com"
+ * ```
+ */
 export class FoundationStack extends cdk.Stack {
   public readonly hostedZone?: route53.IHostedZone;
   public readonly sesIdentity?: ses.EmailIdentity;
@@ -21,7 +34,7 @@ export class FoundationStack extends cdk.Stack {
 
     // Hosted Zone (DNS for the domain)
     this.hostedZone = new route53.PublicHostedZone(this, 'HostedZone', {
-        zoneName: config.domainName!
+      zoneName: config.domainName!,
     });
 
     // SES Identity (allows app and Cognito to send emails from the domain)
@@ -133,19 +146,19 @@ export class FoundationStack extends cdk.Stack {
     const stagingNameServersStr = scope.node.tryGetContext('stagingNameServers');
     const environment = config.environment;
 
-    if (environment === 'production' && !stagingNameServersStr) {
-      throw new Error(
-        '❌ "stagingNameServers" context variable is required for production deployments to delegate the staging subdomain.',
-      );
-    }
-
     if (stagingNameServersStr) {
-      const stagingNameServers = stagingNameServersStr.split(',').map((ns: string) => ns.trim());
-      new route53.ZoneDelegationRecord(this, 'StagingDelegation', {
-        zone: this.hostedZone!,
-        recordName: 'staging',
-        nameServers: stagingNameServers,
-      });
+      if (environment === 'production') {
+        const stagingNameServers = stagingNameServersStr.split(',').map((ns: string) => ns.trim());
+        new route53.ZoneDelegationRecord(this, 'StagingDelegation', {
+          zone: this.hostedZone!,
+          recordName: 'staging',
+          nameServers: stagingNameServers,
+        });
+      } else {
+        throw new Error(
+          '❌ "stagingNameServers" context variable is only allowed for production deployments.',
+        );
+      }
     }
   }
 }
