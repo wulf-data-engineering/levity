@@ -15,6 +15,7 @@ on:
         type: string
       awsRoleArn:
         required: true
+        type: string
 
 jobs:
   deploy:
