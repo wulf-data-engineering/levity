@@ -3,6 +3,16 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
+[profile.release]
+codegen-units = 1 # Reduce binary size by compiling all code in one unit
+lto = "fat" # Enable best link-time optimization to reduce binary size
+strip = "debuginfo"
+
+[profile.sandbox]
+inherits = "dev"
+opt-level = 1 # bit of optimization
+strip = "symbols" # smaller binary
+
 [dependencies]
 anyhow = "1.0.102"
 tokio = { version = "1.50.0", features = ["macros"] }
@@ -48,7 +58,3 @@ path = "src/message-handler.rs"
 [[bin]]
 name = "user-profile"
 path = "src/user-profile.rs"
-
-[profile.release]
-codegen-units = 1 # Reduce binary size by compiling all code in one unit
-lto = "fat" # Enable best link-time optimization to reduce binary size
