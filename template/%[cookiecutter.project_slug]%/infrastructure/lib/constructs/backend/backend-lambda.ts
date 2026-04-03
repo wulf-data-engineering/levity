@@ -88,7 +88,7 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
         fs.chmodSync(path.join(tempDir, 'bootstrap'), 0o755);
         code = lambda.Code.fromAsset(tempDir);
     } else if (props.deploymentConfig.buildConfig.build) {
-        code = bundleRustCode(props.binaryName, props.deploymentConfig.mode === 'sandbox');
+        code = bundleRustCode(props.binaryName, props.deploymentConfig.mode === 'sandbox' ? 'sandbox' : 'release');
     } else {
         // Default to stub for foundation synthesis speed
         code = lambda.Code.fromAsset(path.join(process.cwd(), 'stub'));
@@ -112,7 +112,7 @@ const cratePath = path.join(workspacePath, "backend");
  * On Linux ARM64 hosts, builds the Rust binary locally.
  * On other platforms (Mac, Windows), uses Docker to build the binary.
  */
-function bundleRustCode(binName: string, debug: boolean): lambda.AssetCode {
+function bundleRustCode(binName: string, profile: string): lambda.AssetCode {
 
     // Calculate Relative Path safely (Host OS -> Docker Linux Path)
     let relativeCratePath = path.isAbsolute(cratePath)
@@ -122,36 +122,38 @@ function bundleRustCode(binName: string, debug: boolean): lambda.AssetCode {
     // Ensure forward slashes for Docker (even if Host is Windows)
     relativeCratePath = relativeCratePath.replace(/\\/g, '/');
 
-    const exclude = dynamicExclusions(['backend', 'protocols'], ['**/target']);
-
-    // We map the host's 'backend/target/docker-cache' -> Container's '/var/cargo/target'
-    // This keeps the cache self-contained in the crate's target folder on your host.
-    const hostTargetDir = path.join(workspacePath, relativeCratePath, 'target', 'docker-cargo-target');
-
-    // We keep the registry in the workspace root target to share downloads across crates/projects if needed
+    // We map the host to container to keep caches
+    const hostTargetDir = path.join(cratePath, 'target', 'docker-cargo-target');
     const hostRegistryDir = path.join(cratePath, 'target', 'docker-cargo-registry');
-
-    const profile = debug ? 'debug' : 'release';
+    const hostRustupDir = path.join(cratePath, 'target', 'docker-rustup');
 
     const target = 'aarch64-unknown-linux-gnu';
 
     return lambda.Code.fromAsset(workspacePath, {
-        exclude,
+        exclude: [
+            '**',
+            '!backend/**',
+            '!protocols/**',
+            'backend/target/**',
+        ],
         bundling: {
             image: cdk.DockerImage.fromRegistry('ghcr.io/wulf-data-engineering/levity-lambda-builder:20260331'),
             user: 'root',
             volumes: [
                 {hostPath: hostTargetDir, containerPath: '/var/cargo/target'},
-                {hostPath: hostRegistryDir, containerPath: '/var/cargo/registry'}
+                {hostPath: hostRegistryDir, containerPath: '/var/cargo/registry'},
+                {hostPath: hostRustupDir, containerPath: '/var/cargo/rustup'}
             ],
             environment: {
                 CARGO_TARGET_DIR: '/var/cargo/target',
-                CARGO_HOME: '/var/cargo/registry'
+                CARGO_HOME: '/var/cargo/registry',
+                RUSTUP_HOME: '/var/cargo/rustup',
+                CARGO_INCREMENTAL: '0',
             },
             command: [
                 'bash', '-c',
                 `cd /asset-input/${relativeCratePath} && ` +
-                `cargo build --${profile} --target ${target} --bin ${binName} && ` +
+                `cargo build --profile ${profile} --target ${target} --bin ${binName} && ` +
                 // Copy from the cached target directory:
                 `cp /var/cargo/target/${target}/${profile}/${binName} /asset-output/bootstrap && ` +
                 '[ -f /asset-output/bootstrap ] || { echo "❌ Binary not found in output"; exit 1; } && ' +
@@ -169,7 +171,7 @@ function bundleRustCode(binName: string, debug: boolean): lambda.AssetCode {
                     // cratePath is absolute, so we use it directly.
                     const buildDir = cratePath;
 
-                    execSync(`cargo build --release --target aarch64-unknown-linux-gnu --bin ${binName}`, {
+                    execSync(`cargo build --profile ${profile} --target ${target} --bin ${binName}`, {
                         cwd: buildDir,
                         stdio: 'inherit',
                         env: {
@@ -191,22 +193,6 @@ function bundleRustCode(binName: string, debug: boolean): lambda.AssetCode {
             }
         }
     });
-}
-
-/**
- * Generates a list of files/folders to exclude by listing everything in the
- * workspace and filtering out only the specific paths we want to keep.
- */
-function dynamicExclusions(include: string[], exclude: string[]): string[] {
-    const exclusions: string[] = [...exclude];
-    try {
-        const allFiles = fs.readdirSync(workspacePath);
-        exclusions.push(...allFiles.filter(file => !include.includes(file)));
-        return exclusions;
-    } catch (e) {
-        console.warn(`[CDK Warning] Could not read workspace path '${workspacePath}' to generate exclusions. Defaulting to empty list.`);
-        return [];
-    }
 }
 
 // Local development
