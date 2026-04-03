@@ -46,6 +46,7 @@ jobs:
           done
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CARGO_TERM_COLOR: always
       - name: Upload Backend Artifacts
         uses: actions/upload-artifact@v7
         with:
