@@ -18,6 +18,7 @@ This workflow generates a fresh instance of the template in a temporary director
 
 2.  **Determine Project Slug**
     Choose a context-specific slug for your instance, e.g., `levity-project_dynamodb` or `levity-project_auth`.
+    Derive a corresponding domain name, e.g., `levity-project-dynamodb.wulf.technology`.
 
     
     Ref: @../../template/cookiecutter.json
@@ -30,20 +31,12 @@ This workflow generates a fresh instance of the template in a temporary director
     ```bash
     # // turbo
     # Replace <PROJECT_SLUG> with your chosen slug
-    cookiecutter template --output-dir ../levity-instances/ --no-input project_slug=<PROJECT_SLUG>
+    cookiecutter template --output-dir ../levity-instances/ --no-input project_slug=<PROJECT_SLUG> domain=<PROJECT_DOMAIN>
     ```
 
-    *Note: This assumes `cookiecutter` is installed. If not, install it via `pip install cookiecutter` or `brew install cookiecutter`.*
+    *Note: If cookiecutter fails because it's missing, install it via `pip install cookiecutter` or `brew install cookiecutter`.*
 
-4.  **Verify Generation**
-    Check if the project was created.
-
-    ```bash
-    # // turbo
-    ls -F ../levity-instances/<PROJECT_SLUG>/
-    ```
-
-5.  **Commit Baseline**
+4.  **Commit Baseline**
   
     Initialize a git repository and make a baseline commit.
     That helps in tracking changes during feature development.
@@ -56,5 +49,5 @@ This workflow generates a fresh instance of the template in a temporary director
     git commit -m "Baseline"
     ```
    
-6.  **Ready**
+5.  **Ready**
     You can now continue with the @develop-feature.md workflow.
