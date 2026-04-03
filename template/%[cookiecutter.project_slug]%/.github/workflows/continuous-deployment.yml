@@ -96,9 +96,8 @@ jobs:
     with:
       environment: staging
       domain: ${{ vars.DOMAIN_STAGING }}
-      certificateArn: ${{ vars.CERTIFICATE_ARN_STAGING }}
-    secrets:
       awsRoleArn: ${{ vars.AWS_ROLE_ARN_STAGING }}
+      certificateArn: ${{ vars.CERTIFICATE_ARN_STAGING }}
 
   deploy-production:
     needs: [deploy-staging]
@@ -106,6 +105,5 @@ jobs:
     with:
       environment: production
       domain: ${{ vars.DOMAIN_PRODUCTION }}
-      certificateArn: ${{ vars.CERTIFICATE_ARN_PRODUCTION }}
-    secrets:
       awsRoleArn: ${{ vars.AWS_ROLE_ARN_PRODUCTION }}
+      certificateArn: ${{ vars.CERTIFICATE_ARN_PRODUCTION }}
