@@ -1,7 +1,8 @@
 /**/.idea/
 /**/.DS_Store
-# localstack and seed files for cognito-local
+# localstack data
 local/localstack-volume
+# seed files for cognito-local (generated from their template files by docker compose)
 local/cognito-local-volume/db/clients.json
 local/cognito-local-volume/db/local_userPool.json
 # Generate protobuf files
