@@ -26,7 +26,7 @@ docker compose up
 If `docker compose down` fails to clean up or you see container conflicts, use:
 
 ```bash
-docker rm -f cognito-local localstack-main
+docker rm -f %[ cookiecutter.project_slug ]%-localstack %[ cookiecutter.project_slug ]%-cognito-local-init %[ cookiecutter.project_slug ]%-cognito-local
 ```
 
 If you had to run `docker rm` you definitely need to bootstrap cdk.
