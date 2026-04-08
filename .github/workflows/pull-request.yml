@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       instance-path: ${{ steps.set-path.outputs.path }}
-      lambda-builder-changed: ${{ steps.filter-lambda-builder.outputs.builder }}
+      lambda-builder-changed: ${{ steps.filters.outputs.lambda-builder }}
+      websocket-mock-changed: ${{ steps.filters.outputs.websocket-mock }}
     steps:
       - uses: actions/checkout@v6
       - name: Validate root dependabot.yml
@@ -20,11 +21,13 @@ jobs:
         with:
           path: .github/dependabot.yml
       - uses: dorny/paths-filter@v4
-        id: filter-lambda-builder
+        id: filters
         with:
           filters: |
-            builder:
-              - 'Dockerfile.lambda-builder'
+            lambda-builder:
+              - 'tools/lambda-builder/**'
+            websocket-mock:
+              - 'tools/websocket-mock/**'
       - name: Cache pip
         uses: actions/cache@v5
         with:
@@ -77,11 +80,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build local builder
-        run: docker build -f Dockerfile.lambda-builder -t local-builder .
+        run: docker build -f tools/lambda-builder/Dockerfile -t local-builder tools/lambda-builder/
       - name: Smoke test
         run: |
           docker run --rm local-builder cargo --version
           docker run --rm local-builder protoc --version
+  test-websocket-mock:
+    name: Test Websocket Mock
+    runs-on: ubuntu-latest
+    needs: seed-template
+    if: needs.seed-template.outputs.websocket-mock-changed == 'true'
+    defaults:
+      run:
+        working-directory: ./tools/websocket-mock
+    steps:
+      - uses: actions/checkout@v6
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/websocket-mock
+          cache-on-failure: true
+      - name: Run cargo check
+        run: cargo check
   check-dependabot:
     name: Check Dependabot
     runs-on: ubuntu-latest
