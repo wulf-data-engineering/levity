@@ -63,6 +63,10 @@ curl -v -H 'Accept: application/json' http://localhost:9000/lambda-url/{lambda}/
 ```
 
 Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.
+**Important:** `api.ts` is not deployed locally.
+Just Lambdas exposed via API Gateway are defined in `api.ts`.
+Message handlers, Lifecycle hooks and other lambdas are defined in `infrastructure/lib/backend.ts`.
+If you need to define resources for a specific API Gateway lambda (e.g. Parameter Value, SQS queue), you need to define them in `infrastructure/lib/backend.ts` and pass them to `api.ts`.
 
 Run `cargo nextest run` during development.
 
