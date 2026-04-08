@@ -1,7 +1,7 @@
 FROM rust:1-bullseye
 
 LABEL org.opencontainers.image.description="Docker image with pre-installed dependencies for building Rust-based AWS Lambdas in Levity based templates in non-Linux environments."
-LABEL org.opencontainers.image.source="https://github.com/wulf-data-engineering/levity"
+LABEL org.opencontainers.image.source="https://github.com/wulf-data-engineering/levity/tools/lambda-builder/"
 
 # Configure apt to be more robust against network flakes
 RUN echo "Acquire::Retries \"3\";" > /etc/apt/apt.conf.d/80-retries
