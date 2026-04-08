@@ -26,10 +26,7 @@ async fn main() -> Result<(), Error> {
 
     let client = Client::new(&shared_cfg);
 
-    let user_pool_id = std::env::var("USER_POOL_ID")
-        .ok()
-        .or_else(default_user_pool_id)
-        .ok_or_else(|| anyhow::anyhow!("USER_POOL_ID env var is required"))?;
+    let user_pool_id = get_user_pool_id(&shared_cfg).await;
 
     let state = AppState {
         client,
@@ -79,13 +76,23 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
 }
 
 #[cfg(debug_assertions)]
-fn default_user_pool_id() -> Option<String> {
-    Some("local_userPool".into())
+async fn get_user_pool_id(config: &aws_config::SdkConfig) -> String {
+    backend::shared::aws_config::get_ssm_parameter(
+        config,
+        "/%[ cookiecutter.project_slug ]%/user-pool-id",
+    )
+    .await
+    .unwrap_or_else(|_| "local_userPool".to_string())
 }
 
 #[cfg(not(debug_assertions))]
-fn default_user_pool_id() -> Option<String> {
-    None
+async fn get_user_pool_id(config: &aws_config::SdkConfig) -> String {
+    backend::shared::aws_config::get_ssm_parameter(
+        config,
+        "/%[ cookiecutter.project_slug ]%/user-pool-id",
+    )
+    .await
+    .expect("SSM parameter /%[ cookiecutter.project_slug ]%/user-pool-id must be set")
 }
 
 #[cfg(test)]
