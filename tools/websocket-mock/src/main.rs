@@ -161,7 +161,7 @@ async fn handle_socket(
                         "MESSAGE",
                         "$default",
                         params_clone.clone(),
-                        Some(text),
+                        Some(text.to_string()),
                         protocol_clone.clone(),
                     )
                     .await
@@ -337,9 +337,9 @@ async fn management_handler(
         };
 
         let msg = if let Ok(text) = String::from_utf8(decoded_body.clone()) {
-            Message::Text(text)
+            Message::Text(text.into())
         } else {
-            Message::Binary(decoded_body)
+            Message::Binary(decoded_body.into())
         };
 
         if tx.send(msg).is_ok() {
