@@ -6,11 +6,14 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { backendLambda } from "./backend-lambda";
 import { DeploymentConfig } from "../../config";
 
+import * as ssm from "aws-cdk-lib/aws-ssm";
+
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 
 interface IdentityProps {
   deploymentConfig: DeploymentConfig;
   usersTable: Table;
+  usersTableParam: ssm.IStringParameter;
   // Optional: Pass existing network resources
   hostedZone?: route53.IHostedZone;
 }
@@ -27,12 +30,10 @@ export class Identity extends Construct {
     this.cognitoHandler = backendLambda(this, "CognitoHandlerFunction", {
       deploymentConfig: props.deploymentConfig,
       binaryName: "cognito-handler",
-      environment: {
-        USERS_TABLE_NAME: props.usersTable.tableName,
-      },
     });
 
     props.usersTable.grantReadWriteData(this.cognitoHandler);
+    props.usersTableParam.grantRead(this.cognitoHandler);
 
     let userPoolEmail: cognito.UserPoolEmail | undefined = undefined;
 

@@ -85,19 +85,29 @@ fn verify_not_empty(data: &SignUpData) -> Result<(), Error> {
 }
 
 #[cfg(debug_assertions)]
-fn get_table_name() -> String {
-    std::env::var("USERS_TABLE_NAME").unwrap_or_else(|_| "users".to_string())
+async fn get_table_name(config: &aws_config::SdkConfig) -> String {
+    backend::shared::aws_config::get_ssm_parameter(
+        config,
+        "/%[ cookiecutter.project_slug ]%/users-table",
+    )
+    .await
+    .unwrap_or_else(|_| "users".to_string())
 }
 
 #[cfg(not(debug_assertions))]
-fn get_table_name() -> String {
-    std::env::var("USERS_TABLE_NAME").expect("USERS_TABLE_NAME must be set")
+async fn get_table_name(config: &aws_config::SdkConfig) -> String {
+    backend::shared::aws_config::get_ssm_parameter(
+        config,
+        "/%[ cookiecutter.project_slug ]%/users-table",
+    )
+    .await
+    .expect("SSM parameter /%[ cookiecutter.project_slug ]%/users-table must be set")
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let table_name = get_table_name();
     let config = load_aws_config().await;
+    let table_name = get_table_name(&config).await;
 
     let client = Client::new(&config);
     let repo = backend::shared::users::UserRepo::new(client, table_name);

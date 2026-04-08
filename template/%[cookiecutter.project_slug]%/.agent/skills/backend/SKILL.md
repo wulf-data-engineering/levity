@@ -30,6 +30,8 @@ Add or change Rust lambdas in the `backend/src/` folder.
 Use `lambda_http` for Lambdas exposed via API Gateway.
 Use `lambda_runtime` for event handlers or lifecycle hooks.
 
+**Important**: For passing resource names or configuration from the infrastructure to Lambdas, prefer AWS Systems Manager (SSM) Parameter Store over environment variables. Lambdas should look up these values at startup using `aws_config::get_ssm_parameter`.
+
 To get an AWS SDK client, use the backend helper that takes care of aws & localstack configuration:
 
 ```rust
@@ -63,6 +65,7 @@ curl -v -H 'Accept: application/json' http://localhost:9000/lambda-url/{lambda}/
 ```
 
 Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.
+
 **Important:** `api.ts` is not deployed locally.
 Just Lambdas exposed via API Gateway are defined in `api.ts`.
 Message handlers, Lifecycle hooks and other lambdas are defined in `infrastructure/lib/backend.ts`.

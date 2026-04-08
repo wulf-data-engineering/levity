@@ -6,10 +6,14 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { DeploymentConfig } from "../../config";
 
+import * as ssm from "aws-cdk-lib/aws-ssm";
+
 interface ApiProps {
   deploymentConfig: DeploymentConfig;
   userPool: cognito.IUserPool;
+  userPoolParam: ssm.IStringParameter;
   usersTable: dynamodb.ITable;
+  usersTableParam: ssm.IStringParameter;
 }
 
 /**
@@ -45,11 +49,9 @@ export class Api extends Construct {
         deploymentConfig: props.deploymentConfig,
         apiRoot: this.apiRoot,
         binaryName: "password-policy",
-        environment: {
-          USER_POOL_ID: props.userPool.userPoolId,
-        },
       },
     );
+    props.userPoolParam.grantRead(passwordPolicyFunction);
 
     const userProfileFunction = backendLambdaApi(
       this,
@@ -58,14 +60,12 @@ export class Api extends Construct {
         deploymentConfig: props.deploymentConfig,
         apiRoot: this.apiRoot,
         binaryName: "user-profile",
-        environment: {
-          USERS_TABLE_NAME: props.usersTable.tableName,
-          USER_POOL_ID: props.userPool.userPoolId,
-        },
         authorizer,
       },
     );
     props.usersTable.grantReadData(userProfileFunction);
+    props.usersTableParam.grantRead(userProfileFunction);
+    props.userPoolParam.grantRead(userProfileFunction);
 
     // Grant the lambda permission to describe the user pool
     props.userPool.grant(

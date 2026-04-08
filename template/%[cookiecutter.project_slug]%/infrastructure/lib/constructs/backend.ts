@@ -8,6 +8,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as ses from 'aws-cdk-lib/aws-ses';
 import { VersionedTable } from './backend/dynamodb';
 import { AttributeType, ProjectionType } from 'aws-cdk-lib/aws-dynamodb';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 export interface BackendProps {
   config: DeploymentConfig;
@@ -44,19 +45,32 @@ export class Backend extends Construct {
 
     // Locally cognito-local and cargo lambda watch are used instead
     if (deploymentConfig.aws) {
+      const usersTableParam = new ssm.StringParameter(this, 'UsersTableParam', {
+        parameterName: '/%[ cookiecutter.project_slug ]%/users-table',
+        stringValue: usersTable.tableName,
+      });
+
       const identity = new Identity(this, 'Identity', {
         deploymentConfig,
         usersTable,
+        usersTableParam,
         hostedZone: props.hostedZone,
       });
 
       this.userPool = identity.userPool;
       this.userPoolClient = identity.userPoolClient;
 
+      const userPoolParam = new ssm.StringParameter(this, 'UserPoolParam', {
+        parameterName: '/%[ cookiecutter.project_slug ]%/user-pool-id',
+        stringValue: this.userPool.userPoolId,
+      });
+
       const api = new Api(this, 'Api', {
         deploymentConfig,
         userPool: this.userPool,
+        userPoolParam,
         usersTable,
+        usersTableParam,
       });
       this.restApi = api.gateway;
     }

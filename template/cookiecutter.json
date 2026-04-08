@@ -47,6 +47,7 @@
     "**/.idea/**",
     "**/.git/**",
     "**/build/**",
+    "**/*.wasm",
     "**/*.mjs",
     "**/Cargo.lock",
     "**/package-lock.json"
