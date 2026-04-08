@@ -41,22 +41,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
-
       - name: Build AMD64
         working-directory: tools/websocket-mock
-        run: cross build --release --target x86_64-unknown-linux-musl
+        run: cargo build --release
 
       - name: Build ARM64
         working-directory: tools/websocket-mock
-        run: cross build --release --target aarch64-unknown-linux-musl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          cargo build --release --target aarch64-unknown-linux-gnu
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CARGO_TERM_COLOR: always
 
       - name: Prepare Outputs
         run: |
           mkdir -p tools/websocket-mock/output/amd64 tools/websocket-mock/output/arm64
-          cp tools/websocket-mock/target/x86_64-unknown-linux-musl/release/websocket-mock tools/websocket-mock/output/amd64/
-          cp tools/websocket-mock/target/aarch64-unknown-linux-musl/release/websocket-mock tools/websocket-mock/output/arm64/
+          cp tools/websocket-mock/target/release/websocket-mock tools/websocket-mock/output/amd64/
+          cp tools/websocket-mock/target/aarch64-unknown-linux-gnu/release/websocket-mock tools/websocket-mock/output/arm64/
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
