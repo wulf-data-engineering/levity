@@ -223,9 +223,11 @@ async fn forward_event(
     body: Option<String>,
     protocol: Option<String>,
 ) -> anyhow::Result<()> {
+    let target = std::env::var("CARGO_LAMBDA_WATCH_TARGET")
+        .unwrap_or_else(|_| "host.docker.internal:9000".to_string());
     let url = format!(
-        "http://localhost:9000/2015-03-31/functions/{}/invocations",
-        lambda
+        "http://{}/2015-03-31/functions/{}/invocations",
+        target, lambda
     );
 
     let mut headers = HashMap::new();

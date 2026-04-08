@@ -1,4 +1,4 @@
-FROM alpine:3.19
+FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.description="Docker image with a Rust based websocket mock server for levity."
 LABEL org.opencontainers.image.source="https://github.com/wulf-data-engineering/levity/tools/websocket-mock/"
