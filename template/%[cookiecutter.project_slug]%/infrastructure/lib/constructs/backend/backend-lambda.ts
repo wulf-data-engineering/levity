@@ -137,7 +137,7 @@ function bundleRustCode(binName: string, profile: string): lambda.AssetCode {
             'backend/target/**',
         ],
         bundling: {
-            image: cdk.DockerImage.fromRegistry('ghcr.io/wulf-data-engineering/levity-lambda-builder:20260331'),
+            image: cdk.DockerImage.fromRegistry('ghcr.io/wulf-data-engineering/levity-lambda-builder:20260408'),
             user: 'root',
             volumes: [
                 {hostPath: hostTargetDir, containerPath: '/var/cargo/target'},
