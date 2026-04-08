@@ -1,4 +1,4 @@
-name: Publish Lambda Builder Image
+name: Publish Websocket Mock Image
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     branches:
       - main
     paths:
-      - tools/lambda-builder/**
+      - tools/websocket-mock/**
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/levity-lambda-builder
+  IMAGE_NAME: ${{ github.repository_owner }}/levity-websocket-mock
 
 jobs:
   build-and-push:
@@ -41,6 +41,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build AMD64
+        working-directory: tools/websocket-mock
+        run: cross build --release --target x86_64-unknown-linux-musl
+
+      - name: Build ARM64
+        working-directory: tools/websocket-mock
+        run: cross build --release --target aarch64-unknown-linux-musl
+
+      - name: Prepare Outputs
+        run: |
+          mkdir -p tools/websocket-mock/output/amd64 tools/websocket-mock/output/arm64
+          cp tools/websocket-mock/target/x86_64-unknown-linux-musl/release/websocket-mock tools/websocket-mock/output/amd64/
+          cp tools/websocket-mock/target/aarch64-unknown-linux-musl/release/websocket-mock tools/websocket-mock/output/arm64/
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v6
@@ -54,31 +71,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          context: tools/lambda-builder
-          file: tools/lambda-builder/Dockerfile
+          context: tools/websocket-mock
+          file: tools/websocket-mock/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Update backend-lambda.ts
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          TAG=${{ steps.date.outputs.today }}
-          FILE="template/%[cookiecutter.project_slug]%/infrastructure/lib/constructs/backend/backend-lambda.ts"
-          # Update the pinned version string (e.g., :20251227)
-          sed -i "s/levity-lambda-builder:[0-9]\{8\}/levity-lambda-builder:$TAG/g" "$FILE"
-
-      - name: Create Pull Request
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: peter-evans/create-pull-request@v8
-        with:
-          commit-message: "chore: update lambda builder image to ${{ steps.date.outputs.today }}"
-          title: "Update Lambda Builder Image: ${{ steps.date.outputs.today }}"
-          body: |
-            Automated upgrade of the pinned Docker image tag in the template.
-            
-            New Tag: `${{ steps.date.outputs.today }}`
-            Build triggered by change in `tools/lambda-builder/Dockerfile`.
-          branch: "auto/update-lambda-builder-${{ steps.date.outputs.today }}"
-          delete-branch: true

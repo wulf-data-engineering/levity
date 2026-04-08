@@ -58,6 +58,7 @@ updates:
   - package-ecosystem: "cargo"
     directories:
       - "template/*/backend/"
+      - "tools/**/"
     schedule:
       interval: "daily"
       time: "09:00"
@@ -83,6 +84,7 @@ updates:
   - package-ecosystem: "rust-toolchain"
     directories:
       - "template/*/backend/"
+      - "tools/**/"
     schedule:
       interval: "weekly"
       time: "09:00"
