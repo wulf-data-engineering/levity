@@ -88,6 +88,7 @@ async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
         email: email.to_string(),
         first_name: "Test".to_string(),
         last_name: "User".to_string(),
+        language: "en".to_string(),
     };
 
     if let Err(e) = state.repo.insert(user_data).await {

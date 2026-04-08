@@ -4,7 +4,17 @@
 	import { onMount } from 'svelte';
 	import * as auth from '$lib/auth';
 	import { Toaster } from '$lib/components/ui/sonner/';
+	import { browser } from '$app/environment';
+	import { setLocale, locales } from '$lib/paraglide/runtime';
 
+	if (browser) {
+		let lang = navigator.language.split('-')[0];
+		if (!locales.includes(lang as any)) {
+			lang = 'en';
+		}
+		setLocale(lang);
+		document.documentElement.lang = lang;
+	}
 	onMount(async () => {
 		// If the static splash was injected (only on the fallback file), remove it.
 		document.getElementById('cf-splash')?.remove();

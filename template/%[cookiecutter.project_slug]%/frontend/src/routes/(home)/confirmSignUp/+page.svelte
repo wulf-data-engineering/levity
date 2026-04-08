@@ -12,6 +12,8 @@
 	import { ValidatedForm } from '$lib/components/validatedForm';
 
 	import { SignUpData } from '$lib/proto/sign_up_data/sign_up_data';
+	// @ts-ignore - Paraglide generates JS with JSDoc, which svelte-check might complain about missing .d.ts
+	import { getLocale } from '$lib/paraglide/runtime';
 
 	import { validateName } from '$lib/validation';
 	import { ValidatedInput } from '$lib/components/validatedInput';
@@ -37,7 +39,7 @@
 	async function handleSubmit() {
 		submitting = true;
 		try {
-			const signUpData: SignUpData = { firstName, lastName };
+			const signUpData: SignUpData = { firstName, lastName, language: getLocale() };
 			const result = await auth.confirmSignUp(email, otp, signUpData);
 			console.log('Confirm Sign Up:', result);
 			if (result.isSignUpComplete) {
