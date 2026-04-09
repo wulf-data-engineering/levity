@@ -65,9 +65,11 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           TAG=${{ steps.date.outputs.today }}
-          FILE="template/%[cookiecutter.project_slug]%/infrastructure/lib/constructs/backend/backend-lambda.ts"
+          FILE_CDK="template/%[cookiecutter.project_slug]%/infrastructure/lib/constructs/backend/backend-lambda.ts"
+          FILE_CI="template/%[cookiecutter.project_slug]%/infrastructure/lib/constructs/backend/backend-lambda.ts"
           # Update the pinned version string (e.g., :20251227)
-          sed -i "s/levity-lambda-builder:[0-9]\{8\}/levity-lambda-builder:$TAG/g" "$FILE"
+          sed -i "s/levity-lambda-builder:[0-9]\{8\}/levity-lambda-builder:$TAG/g" "$FILE_CDK"
+          sed -i "s/levity-lambda-builder:[0-9]\{8\}/levity-lambda-builder:$TAG/g" "$FILE_CI"
 
       - name: Create Pull Request
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
