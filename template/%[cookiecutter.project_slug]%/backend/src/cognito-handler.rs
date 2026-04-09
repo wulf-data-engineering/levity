@@ -2,6 +2,8 @@ use aws_sdk_dynamodb::Client;
 use backend::{load_aws_config, CognitoUserPoolEvent};
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use protocol_macro::protocols;
+use tracing_subscriber;
+use tracing;
 
 #[protocols("sign_up_data")]
 pub mod protocols {}
@@ -48,8 +50,9 @@ async fn function_handler(
                     language: if sign_up_data.language.is_empty() { "en".to_string() } else { sign_up_data.language },
                 };
 
+                tracing::info!("Storing user: {:?}", user_data.username);
+
                 if let Err(e) = repo.insert(user_data).await {
-                    println!("Failed to insert user: {:?}", e);
                     return Err(Error::from(format!("Failed to insert user: {:?}", e)));
                 }
             }
@@ -85,28 +88,19 @@ fn verify_not_empty(data: &SignUpData) -> Result<(), Error> {
     }
 }
 
-#[cfg(debug_assertions)]
 async fn get_table_name(config: &aws_config::SdkConfig) -> String {
     backend::shared::aws_config::get_ssm_parameter(
         config,
         "/%[ cookiecutter.project_slug ]%/users-table",
     )
     .await
-    .unwrap_or_else(|_| "users".to_string())
-}
-
-#[cfg(not(debug_assertions))]
-async fn get_table_name(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/%[ cookiecutter.project_slug ]%/users-table",
-    )
-    .await
-    .expect("SSM parameter /%[ cookiecutter.project_slug ]%/users-table must be set")
+    .expect("SSM parameter for users-table must be set")
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    tracing_subscriber::fmt().with_ansi(false).init();
+
     let config = load_aws_config().await;
     let table_name = get_table_name(&config).await;
 

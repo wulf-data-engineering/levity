@@ -1,8 +1,10 @@
 use anyhow::{anyhow, Result};
 use aws_sdk_dynamodb::Client;
 use backend::{get_sub, load_aws_config, write_response};
-use lambda_http::{run, service_fn, tracing, Body, Error, Request, Response};
+use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use protocol_macro::protocols;
+use tracing_subscriber;
+use tracing;
 
 #[protocols("user_profile")]
 pub mod protocols {}
@@ -14,7 +16,7 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing::init_default_subscriber();
+    tracing_subscriber::fmt().with_ansi(false).init();
 
     let config = load_aws_config().await;
     let table_name = get_table_name(&config).await;
@@ -54,29 +56,18 @@ async fn function_handler(req: Request, state: AppState) -> Result<Response<Body
     write_response(&profile, &req)
 }
 
-#[cfg(any(debug_assertions, test))]
 async fn get_table_name(config: &aws_config::SdkConfig) -> String {
     backend::shared::aws_config::get_ssm_parameter(
         config,
         "/%[ cookiecutter.project_slug ]%/users-table",
     )
     .await
-    .unwrap_or_else(|_| "users".to_string())
-}
-
-#[cfg(not(any(debug_assertions, test)))]
-async fn get_table_name(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/%[ cookiecutter.project_slug ]%/users-table",
-    )
-    .await
-    .expect("SSM parameter /%[ cookiecutter.project_slug ]%/users-table must be set")
+    .expect("SSM parameter for user table must be set")
 }
 
 #[cfg(any(debug_assertions, test))]
 async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
-    let email = "%[cookiecutter.test_user_email]%";
+    let email = "test@wulf.technology";
     let sub = "00000000-0000-0000-0000-000000000000";
 
     if let Ok(Some(_)) = state.repo.read(sub).await {
