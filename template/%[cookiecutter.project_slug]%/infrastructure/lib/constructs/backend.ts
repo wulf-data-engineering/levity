@@ -43,13 +43,13 @@ export class Backend extends Construct {
       projectionType: ProjectionType.ALL,
     });
 
+    const usersTableParam = new ssm.StringParameter(this, 'UsersTableParam', {
+      parameterName: '/%[ cookiecutter.project_slug ]%/users-table',
+      stringValue: usersTable.tableName,
+    });
+
     // Locally cognito-local and cargo lambda watch are used instead
     if (deploymentConfig.aws) {
-      const usersTableParam = new ssm.StringParameter(this, 'UsersTableParam', {
-        parameterName: '/%[ cookiecutter.project_slug ]%/users-table',
-        stringValue: usersTable.tableName,
-      });
-
       const identity = new Identity(this, 'Identity', {
         deploymentConfig,
         usersTable,
