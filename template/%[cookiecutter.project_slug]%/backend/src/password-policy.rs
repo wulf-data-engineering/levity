@@ -1,8 +1,9 @@
 use anyhow::{anyhow, Result};
 use aws_sdk_cognitoidentityprovider::Client;
 use backend::{load_aws_cognito_config, write_response};
-use lambda_http::{run, service_fn, tracing, Body, Error, Request, Response};
+use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use protocol_macro::protocols;
+use tracing;
 
 #[protocols("password_policy")]
 pub mod protocols {}
@@ -20,13 +21,19 @@ struct AppState {
 ///
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing::init_default_subscriber();
-
+    tracing_subscriber::fmt().with_ansi(false).init();
+    
+    tracing::info!("Starting password policy lambda");
+    
     let shared_cfg = load_aws_cognito_config().await;
-
+    
+    tracing::info!("Using shared config: {:#?}", shared_cfg);
+    
     let client = Client::new(&shared_cfg);
-
+    
     let user_pool_id = get_user_pool_id(&shared_cfg).await;
+
+    tracing::info!("Using user pool id: {:#?}", user_pool_id);
 
     let state = AppState {
         client,
@@ -35,6 +42,7 @@ async fn main() -> Result<(), Error> {
 
     // Pass state into the handler via a cloning closure
     run(service_fn(move |req| {
+        tracing::info!("Starting password policy lambda handler");
         let state = state.clone();
         async move { password_policy_handler(req, state).await }
     }))
@@ -54,13 +62,19 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
         .send()
         .await?;
 
+    tracing::info!("DescribeUserPool response: {:#?}", resp);
+
     let up = resp
         .user_pool()
         .ok_or_else(|| anyhow!("DescribeUserPool: missing user_pool"))?;
 
+
+
+
+
     let policies = up
         .policies()
-        .ok_or_else(|| anyhow!("DescribeUserPool: missing policies"))?;
+        .ok_or_else(|| anyhow!("DescribeUserPool: missing policy"))?;
 
     let p = policies
         .password_policy()
@@ -76,13 +90,8 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
 }
 
 #[cfg(debug_assertions)]
-async fn get_user_pool_id(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/%[ cookiecutter.project_slug ]%/user-pool-id",
-    )
-    .await
-    .unwrap_or_else(|_| "local_userPool".to_string())
+async fn get_user_pool_id(_config: &aws_config::SdkConfig) -> String {
+    "local_userPool".to_string()
 }
 
 #[cfg(not(debug_assertions))]
@@ -92,7 +101,7 @@ async fn get_user_pool_id(config: &aws_config::SdkConfig) -> String {
         "/%[ cookiecutter.project_slug ]%/user-pool-id",
     )
     .await
-    .expect("SSM parameter /%[ cookiecutter.project_slug ]%/user-pool-id must be set")
+    .expect("SSM parameter for user-pool-id must be set")
 }
 
 #[cfg(test)]
