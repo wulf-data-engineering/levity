@@ -1,12 +1,8 @@
 ---
 trigger: model_decision
-description: Instructions for Local and Sandbox Infrastructure Deployments
+description: Instructions for deployments
 ---
 
----
-trigger: model_decision
-description: Instructions for Local and Sandbox Infrastructure Deployments
----
 When deploying the infrastructure for local development or sandbox AWS environments, you must strictly follow the documentation in @../../infrastructure/README.md.
 
 Agents frequently fail to supply necessary CDK context variables or use the wrong commands. 
@@ -14,3 +10,7 @@ Agents frequently fail to supply necessary CDK context variables or use the wron
 Always navigate to the `infrastructure/` directory before running any `npm` or `cdk` commands.
 
 For Sandbox deployments, ask the user for the AWS profile of the sandbox, pass it to cdk and check that you have included the `-c mode=sandbox` and `-c build=true` flags as defined in the README.
+
+**If builds fail:**
+The local build for sandbox deployment and the CI build for an environment rely on a docker image: ghcr.io/wulf-data-engineering/levity-lambda-builder:<VERSION>
+If you analyze failed builds check for a newer version.
