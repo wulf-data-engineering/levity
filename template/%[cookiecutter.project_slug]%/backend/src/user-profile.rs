@@ -118,6 +118,7 @@ mod tests {
                     "email": {"S": "test@example.com"},
                     "first_name": {"S": "Test"},
                     "last_name": {"S": "User"},
+                    "language": {"S": "en"},
                     "data_version": {"N": "1"},
                     "last_write": {"N": "1234567890"}
                 }

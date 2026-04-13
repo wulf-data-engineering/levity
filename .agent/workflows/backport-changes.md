@@ -10,7 +10,10 @@ description: Backport changes from a template instance to the template source
     You have been working in the instance. You now work on the template.
 
 2.  **Verify Instance State**
-    Ensure that you have fully verified your changes in `../levity-instances/<PROJECT_SLUG>` (ran tests, checked UI, ran linters, ran formatters, etc.).
+    Ensure that you have fully verified your changes explicitly inside `../levity-instances/<PROJECT_SLUG>` by manually running:
+    - Frontend: `npm run check && npm run lint && npm run test`
+    - Backend: `cargo check && cargo clippy && cargo nextest run`
+    **CRITICAL**: NEVER run these verification commands directly in the `template/` directory. Unresolved placeholders will cause panics and false-negatives!
     **Do not backport untested and unchecked code.**
     **Do not backport unformatted code.**
 
