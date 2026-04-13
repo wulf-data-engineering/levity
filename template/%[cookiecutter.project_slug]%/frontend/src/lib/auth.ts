@@ -25,11 +25,7 @@ export const isLoadingUser = derived(currentUser, (u) => u === undefined);
 
 let configured = false;
 
-type Config = {
-    userPoolId: string;
-    userPoolClientId: string;
-    endpoint?: string;
-};
+
 
 /**
  * Configure Amplify Auth from /config.json (AWS) or environment variables (dev, defaults to local

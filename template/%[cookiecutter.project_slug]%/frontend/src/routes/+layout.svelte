@@ -10,6 +10,7 @@
 
 	if (browser) {
 		let lang = navigator.language.split('-')[0];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!locales.includes(lang as any)) {
 			lang = 'en';
 		}
