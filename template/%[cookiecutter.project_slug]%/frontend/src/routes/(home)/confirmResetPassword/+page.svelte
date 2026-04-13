@@ -15,6 +15,8 @@
     import { onMount } from 'svelte';
     import { protocolLoad } from '$lib/protocols';
     import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
+    // @ts-ignore - Paraglide generates JS with JSDoc
+    import * as m from '$lib/paraglide/messages.js';
 
     let email = $state('');
     let password = $state('');
@@ -55,24 +57,24 @@
                 newPassword: password,
                 confirmationCode: otp
             });
-            toastSuccess('Password Reset', 'Your password has been reset successfully.');
+            toastSuccess(m.auth_confirm_reset_toast_success_title(), m.auth_confirm_reset_toast_success_desc());
             await signIn(email, password);
             await goto('/');
         } catch (err) {
             console.error('Error confirming reset password:', err);
             if (err instanceof Error && err.name === 'CodeMismatchException') {
-                toastError('Password Reset', 'The provided confirmation code is incorrect.');
+                toastError(m.auth_confirm_reset_toast_failed_title(), m.auth_confirm_reset_toast_failed_desc_wrong_code());
             } else if (err instanceof Error && err.name === 'ExpiredCodeException') {
                 try {
                     await get(authApi).resetPassword({ username: email });
                     toastError(
-                        'Code Sent',
-                        'The provided confirmation code has expired. A new confirmation code has been sent to your email.'
+                        m.auth_confirm_reset_toast_sent_title(),
+                        m.auth_confirm_reset_toast_sent_desc_expired()
                     );
                 } catch {
-                    toastError('Password Reset', 'The provided confirmation code has expired.');
+                    toastError(m.auth_confirm_reset_toast_failed_title(), m.auth_confirm_reset_toast_failed_desc_expired());
                 }
-            } else toastError('Password Reset', 'Password reset failed.');
+            } else toastError(m.auth_confirm_reset_toast_failed_title(), m.auth_confirm_reset_toast_failed_desc_generic());
         } finally {
             submitting = false;
         }
@@ -90,8 +92,8 @@
 
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
     <Card.Header>
-        <Card.Title>Reset Password</Card.Title>
-        <Card.Description>Enter the code you received and the new password</Card.Description>
+        <Card.Title>{m.auth_confirm_reset_title()}</Card.Title>
+        <Card.Description>{m.auth_confirm_reset_desc()}</Card.Description>
     </Card.Header>
 
     <Card.Content>
@@ -109,7 +111,7 @@
 
                 <ValidatedInput
                         id="email"
-                        label="Email"
+                        label={m.auth_confirm_reset_email_label()}
                         type="email"
                         bind:value={email}
                         validations={[validateEmail]}
@@ -117,7 +119,7 @@
 
                 <ValidatedInput
                         id="password"
-                        label="Password"
+                        label={m.auth_confirm_reset_password_label()}
                         type="password"
                         bind:value={password}
                         data-policy={passwordPolicy ? 'true' : 'false'}
@@ -126,7 +128,7 @@
 
                 <ValidatedInput
                         id="confirm"
-                        label="Confirm"
+                        label={m.auth_confirm_reset_confirm_label()}
                         type="password"
                         bind:value={confirm}
                         validations={[(v) => validatePasswordRepetition(password, v)]}
@@ -144,7 +146,7 @@
                 type="submit"
                 form="form"
         >
-            Reset Password
+            {m.auth_confirm_reset_submit_btn()}
         </Button>
         <Button
                 id="resend-code-btn"
@@ -153,7 +155,7 @@
                 class="w-full"
                 onclick={resendCode}
         >
-            Resend Code
+            {m.auth_confirm_reset_resend_btn()}
         </Button>
     </Card.Footer>
 </Card.Root>

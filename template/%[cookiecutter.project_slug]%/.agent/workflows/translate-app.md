@@ -5,6 +5,11 @@ description: Translate all end-user texts (frontend and backend) to a newly requ
 
 Use this workflow when the user asks to "Translate the app to [Language]" or "Add [Language] support".
 
+> [!NOTE]
+> **I18N Architecture**: This project implements a Single-Page Application (SPA) compatible localization strategy. 
+> - **Frontend**: Uses `paraglide-js` (NOT `paraglide-sveltekit`). We DO NOT use language subpaths (e.g., `/de/about`). Instead, layout language discovery happens dynamically via `navigator.language` on the client in `+layout.svelte`. Never attempt to guess or enforce a `/<language>/path` strategy.
+> - **Backend**: Uses rust-i18n. Messages are resolved via the `Accept-Language` HTTP header or from the authenticated user's profile database entry.
+
 1. **Frontend (`frontend/messages/`)**:
    - Locate the English base `en.json`.
    - Create a new file for the requested language (e.g., `de.json`).

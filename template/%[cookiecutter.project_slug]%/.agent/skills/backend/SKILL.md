@@ -19,6 +19,11 @@ Handling is implemented in `backend/shared/protocols.rs`.
 
 ## Development
 
+### Localization (I18n)
+
+If you introduce new end-user texts or messages, you **MUST** add them directly to the base `backend/locales/en.yml` file.
+Additionally, you **MUST** translate these new texts and add them to all other available language files in `backend/locales/` (e.g., `de.yml`) using your translation capabilities.
+
 Define newly required or change configuration of Cloud resources in
 `infrastructure/lib/backend.ts` and its constructs in `infrastructure/lib/constructs/backend/`
 For complex changes create new constructs.

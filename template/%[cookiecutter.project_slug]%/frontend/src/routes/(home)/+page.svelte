@@ -11,15 +11,17 @@
 	import { validateEmail } from '$lib/validation';
 	import { ValidatedInput } from '$lib/components/validatedInput';
 	import { ValidatedForm } from '$lib/components/validatedForm';
+	// @ts-ignore - Paraglide generates JS with JSDoc
+	import * as m from '$lib/paraglide/messages.js';
 
 	async function signOut() {
 		try {
 			loading = true;
 			await auth.signOut();
-			toastSuccess('Signed Out', 'Successfully signed out.');
+			toastSuccess(m.auth_login_toast_sign_out_success(), m.auth_login_toast_sign_out_success());
 		} catch (err) {
 			console.error('Error signing out:', err);
-			toastError('Sign Out Failed', 'Could not sign out.');
+			toastError(m.auth_login_toast_sign_out_failed_title(), m.auth_login_toast_sign_out_failed_desc());
 		} finally {
 			loading = false;
 		}
@@ -48,7 +50,7 @@
 		loading = true;
 
 		const resetRequired = async () => {
-			toastError('Sign In Failed', 'Password reset is required.');
+			toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_reset());
 			await goto(`/resetPassword?email=${encodeURIComponent(email)}`);
 		};
 
@@ -59,12 +61,12 @@
 				// Redirect to the originally requested page
 				const redirectTo = page.url.searchParams.get('redirectTo');
 				if (redirectTo) await goto(redirectTo);
-				else toastSuccess('Signed In', 'Successfully signed in.');
+				else toastSuccess(m.auth_login_toast_sign_in_success_title(), m.auth_login_toast_sign_in_success_desc());
 			} else if (result.nextStep.signInStep === 'CONFIRM_SIGN_UP') {
-				toastSuccess('Next Step', 'Please complete the sign-up process.');
+				toastSuccess(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_confirm());
 				await goto(`/confirmSignUp?email=${encodeURIComponent(email)}`);
 			} else if (result.nextStep.signInStep === 'RESET_PASSWORD') await resetRequired();
-			else toastError('Next Step', `${result.nextStep.signInStep} is not implemented.`);
+			else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signInStep }));
 		} catch (err) {
 			console.error('Error signing in:', err);
 			if (
@@ -73,10 +75,10 @@
 					err.name === 'UserNotFoundException' ||
 					err.name === 'InvalidPasswordException')
 			)
-				toastError('Sign In Failed', 'Incorrect email or password.');
+				toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_creds());
 			else if (err instanceof Error && err.name === 'PasswordResetRequiredException')
 				await resetRequired();
-			else toastError('Sign In Failed', 'An error occurred during sign in.');
+			else toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_generic());
 		} finally {
 			loading = false;
 		}
@@ -86,16 +88,16 @@
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
 	{#if $currentUser}
 		<Card.Header>
-			<Card.Title>Signed In</Card.Title>
-			<Card.Description>You are signed in</Card.Description>
+			<Card.Title>{m.auth_login_signed_in_title()}</Card.Title>
+			<Card.Description>{m.auth_login_signed_in_desc()}</Card.Description>
 			<Card.Action>
-				<Button variant="link" href="/account">Your account</Button>
+				<Button variant="link" href="/account">{m.auth_login_your_account_link()}</Button>
 			</Card.Action>
 		</Card.Header>
 
 		<Card.Content>
 			<p>
-				You are signed in as {$currentUser.signInDetails?.loginId}.
+				{m.auth_login_signed_in_as({ loginId: $currentUser.signInDetails?.loginId ?? '' })}
 				<br />
 				<small class="text-muted-foreground">{$currentUser.userId}</small>
 			</p>
@@ -109,13 +111,13 @@
 				variant="outline"
 				class="w-full"
 			>
-				Sign Out
+				{m.auth_login_sign_out_btn()}
 			</Button>
 		</Card.Footer>
 	{:else if $currentUser === null}
 		<Card.Header>
-			<Card.Title>Sign In</Card.Title>
-			<Card.Description>Sign in to your account</Card.Description>
+			<Card.Title>{m.auth_login_title()}</Card.Title>
+			<Card.Description>{m.auth_login_desc()}</Card.Description>
 		</Card.Header>
 
 		<Card.Content>
@@ -123,7 +125,7 @@
 				<div class="flex flex-col gap-6">
 					<ValidatedInput
 						id="email"
-						label="Email"
+						label={m.auth_login_email_label()}
 						type="email"
 						bind:value={email}
 						autofocus={!autofocusPassword}
@@ -133,7 +135,7 @@
 
 					<ValidatedInput
 						id="password"
-						label="Password"
+						label={m.auth_login_password_label()}
 						type="password"
 						bind:value={password}
 						autofocus={autofocusPassword}
@@ -145,7 +147,7 @@
 
 		<Card.Footer class="flex-col gap-2">
 			<Button id="sign-in-btn" disabled={loading} class="w-full" type="submit" form="form">
-				Sign In
+				{m.auth_login_submit_btn()}
 			</Button>
 			<Button
 				id="password-forgotten-btn"
@@ -154,16 +156,16 @@
 				href={`/resetPassword?email=${encodeURIComponent(email)}`}
 				variant="outline"
 			>
-				Password Forgotten?
+				{m.auth_login_forgot_password_btn()}
 			</Button>
 			<p>
-				Don’t have an account?
-				<a id="sign-up-link" href="/signUp">Sign up</a>
+				{m.auth_login_no_account_text()}
+				<a id="sign-up-link" href="/signUp">{m.auth_login_sign_up_link()}</a>
 			</p>
 		</Card.Footer>
 	{:else}
 		<Card.Content>
-			<p>Loading…</p>
+			<p>{m.auth_login_loading_text()}</p>
 		</Card.Content>
 	{/if}
 </Card.Root>

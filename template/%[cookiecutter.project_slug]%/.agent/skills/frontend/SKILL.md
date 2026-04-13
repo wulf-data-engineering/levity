@@ -5,6 +5,14 @@ description: Develop and test features in the frontend
 
 ## Concepts
 
+### Localization (I18n)
+
+If you introduce new end-user texts or messages, you **MUST** add them directly to the base `frontend/messages/en.json` file.
+Additionally, you **MUST** translate these new texts and add them to all other available language files in `frontend/messages/` (e.g., `de.json`) using your translation capabilities.
+Always use the `m.*` imports from `$lib/paraglide/messages.js` instead of hardcoded strings in the UI components.
+
+### Svelte
+
 The stack uses Svelte 5.
 
 The stack uses static site generation.
@@ -64,6 +72,13 @@ The `svelte` MCP server is available to assist with Svelte 5 and SvelteKit devel
 The `context7` MCP server is available for general frontend library documentation.
 
 - Use `query-docs` to find documentation for TypeScript libraries (e.g., specific shadcn/svelte details not covered by the svelte server, or other util libraries).
+
+## Browser Agent Testing Guidelines
+
+When testing this frontend using an automated browser agent (e.g., Anthropic's computer use or typical browser toolchains), you **MUST** follow these heuristics to avoid UI state collisions:
+
+1. **Clear Prefilled Fields**: Some login forms (specifically Email and Password fields) may automatically load securely prefilled values locally. Directly sending type/fill commands will **append** text (e.g., `%[cookiecutter.test_user_email]%`), causing authentications to fail. You MUST completely clear these input fields utilizing your browser selection tools (e.g., highlighting and deleting, or `Ctrl+A`/`Cmd+A` -> `Backspace`) prior to sending new keystrokes.
+2. **Handle OTP/Confirmation Inputs**: The confirmation code input UI uses complicated slots that often cause issues with automated typing. Therefore, you should **keep the currently prefilled value** in the OTP boxes unconditionally. Do not attempt to retype or override the OTP input during browser flows.
 
 ## Final Checks (CRITICAL)
 
