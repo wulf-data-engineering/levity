@@ -7,6 +7,8 @@
 	import { ValidatedInput } from '$lib/components/validatedInput';
 	import { validateEmail } from '$lib/validation';
 	import { ValidatedForm } from '$lib/components/validatedForm';
+	// @ts-expect-error - Paraglide generates JS with JSDoc
+	import * as m from '$lib/paraglide/messages.js';
 
 	let email = $state('');
 
@@ -32,8 +34,8 @@
 
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
 	<Card.Header>
-		<Card.Title>Reset Password</Card.Title>
-		<Card.Description>Enter your Email address to reset your password</Card.Description>
+		<Card.Title>{m.auth_reset_title()}</Card.Title>
+		<Card.Description>{m.auth_reset_desc()}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -41,7 +43,7 @@
 			<div class="flex flex-col gap-6">
 				<ValidatedInput
 					id="email"
-					label="Email"
+					label={m.auth_reset_email_label()}
 					type="email"
 					bind:value={email}
 					validations={[validateEmail]}
@@ -53,7 +55,7 @@
 
 	<Card.Footer class="flex-col gap-2">
 		<Button id="reset-password-btn" disabled={submitting} class="w-full" type="submit" form="form">
-			Reset Password
+			{m.auth_reset_submit_btn()}
 		</Button>
 	</Card.Footer>
 </Card.Root>

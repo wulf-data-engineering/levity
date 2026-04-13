@@ -79,6 +79,7 @@ async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
         email: email.to_string(),
         first_name: "Test".to_string(),
         last_name: "User".to_string(),
+        language: "en".to_string(),
     };
 
     if let Err(e) = state.repo.insert(user_data).await {
@@ -117,6 +118,7 @@ mod tests {
                     "email": {"S": "test@example.com"},
                     "first_name": {"S": "Test"},
                     "last_name": {"S": "User"},
+                    "language": {"S": "en"},
                     "data_version": {"N": "1"},
                     "last_write": {"N": "1234567890"}
                 }

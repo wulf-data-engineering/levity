@@ -10,4 +10,10 @@ declare global {
 	}
 }
 
+declare module '$lib/paraglide/runtime' {
+    export function languageTag(): string;
+    export const sourceLanguageTag: string;
+    export const availableLanguageTags: readonly string[];
+}
+
 export {};

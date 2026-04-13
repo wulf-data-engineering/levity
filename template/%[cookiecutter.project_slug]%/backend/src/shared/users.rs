@@ -9,6 +9,7 @@ pub struct UserData {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
+    pub language: String,
 }
 
 pub type User = Versioned<UserData>;
@@ -158,6 +159,7 @@ mod tests {
             email: "test@example.com".to_string(),
             first_name: "Test".to_string(),
             last_name: "User".to_string(),
+            language: "en".to_string(),
         };
 
         let result = repo.insert(user_data).await;
@@ -177,6 +179,7 @@ mod tests {
                     "email": {"S": "test@example.com"},
                     "first_name": {"S": "Test"},
                     "last_name": {"S": "User"},
+                    "language": {"S": "en"},
                     "data_version": {"N": "1"},
                     "last_write": {"N": "1234567890"}
                 }

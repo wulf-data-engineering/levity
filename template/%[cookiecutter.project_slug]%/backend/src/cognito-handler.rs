@@ -47,6 +47,7 @@ async fn function_handler(
                         .unwrap_or_default(),
                     first_name: sign_up_data.first_name,
                     last_name: sign_up_data.last_name,
+                    language: if sign_up_data.language.is_empty() { "en".to_string() } else { sign_up_data.language },
                 };
 
                 tracing::info!("Storing user: {:?}", user_data.username);
@@ -140,7 +141,8 @@ mod tests {
 
         let sign_up_data = serde_json::json!({
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
+            "language": "en"
         })
         .to_string();
 

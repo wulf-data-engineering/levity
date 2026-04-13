@@ -13,11 +13,12 @@ without sacrificing production readiness.
 
 | Layer         | Languages / runtimes                               | Core AWS / OSS tech                                                          | External accounts      |
 | ------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------- |
-| Web client    | Svelte + TypeScript                                | Static‑site generation, S3 + CloudFront ([ADR‑001](/adrs/001-static-spa.md)) | —                      |
-| Compute       | **Rust 2021**                                      | AWS Lambda custom Rust runtime ([ADR‑002](/adrs/002-rust-backend.md))        | —                      |
-| Mobile apps   | Rust sidecar + Swift / Kotlin via **Tauri‑Mobile** | WebView shell, Fastlane lanes ([ADR‑003](/adrs/003-mobile-tauri-wrapper.md)) | Apple Dev, Google Play |
-| API contract  | Proto3 (JSON fallback)                             | HTTP 1.1 on API Gateway v2 ([ADR‑004](/adrs/004-protobuf-http.md))           | —                      |
-| Data store    | JSON documents                                     | Amazon DynamoDB tables ([ADR‑005](/adrs/005-dynamodb.md))                    | —                      |
+| Web client    | Svelte + TypeScript                                | Static‑site generation, S3 + CloudFront ([ADR‑001](/adr/001-static-spa.md)) | —                      |
+| Compute       | **Rust 2021**                                      | AWS Lambda custom Rust runtime ([ADR‑002](/adr/002-rust-backend.md))        | —                      |
+| Mobile apps   | Rust sidecar + Swift / Kotlin via **Tauri‑Mobile** | WebView shell, Fastlane lanes ([ADR‑003](/adr/003-mobile-tauri-wrapper.md)) | Apple Dev, Google Play |
+| API contract  | Proto3 (JSON fallback)                             | HTTP 1.1 on API Gateway v2 ([ADR‑004](/adr/004-protobuf-http.md))           | —                      |
+| Data store    | JSON documents                                     | Amazon DynamoDB tables ([ADR‑005](/adr/005-dynamodb.md))                    | —                      |
+| Localization  | Message JSONs and YMLs                             | ParaglideJS (SPA) & rust-i18n ([ADR‑006](/adr/006-i18n.md))          | —                      |
 | IaC           | TypeScript                                         | AWS CDK v2, multi‑account Org bootstrap                                      | AWS                    |
 | CI / CD       | —                                                  | GitHub Actions, Dependabot                                                   | GitHub                 |
 | Observability | —                                                  | CloudWatch, X‑Ray, (future) dashboards & alerts                              | Slack (alert channel)  |

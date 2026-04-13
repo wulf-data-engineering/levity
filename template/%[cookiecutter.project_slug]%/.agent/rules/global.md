@@ -26,6 +26,13 @@ During feature development check if deployment workflow needs modifications.
 **CRITICAL**: At the end of development run all final checks in the relevant skills (Frontend/Backend) before committing.
 If the user asks for a commit, make sure your ran all the final checks on all changes first.
 
+## Internationalization (I18N)
+
+This application is built to be polyglot. 
+**CRITICAL**: If you add or modify any end-user facing texts, you MUST add them to all existing language files.
+- Frontend texts go into `frontend/messages/<lang>.json` using ParaglideJS format.
+- Backend texts (like emails/notifications) go into `backend/locales/<lang>.yml` using rust-i18n format.
+
 ## MCP Tools
 
 The `github` MCP server is available to assist with repository management.

@@ -3,9 +3,19 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import protoPlugin from './vite-plugin-protobuf';
 import { svelteTesting } from '@testing-library/svelte/vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), svelteTesting(), protoPlugin()],
+	plugins: [
+		tailwindcss(), 
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide'
+		}),
+		sveltekit(), 
+		svelteTesting(), 
+		protoPlugin()
+	],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

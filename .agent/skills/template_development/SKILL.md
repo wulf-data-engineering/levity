@@ -7,6 +7,11 @@ description: Instructions for developing and testing the template itself.
 
 Because this repository is a **cookiecutter template**, you cannot run or test code directly in the `template/` directory.
 
+## 🛑 FORBIDDEN ACTIONS (CRITICAL)
+
+- **NEVER** run `npm run test`, `npm run lint`, `npm run check`, `cargo test`, `cargo check`, or ANY build commands directly inside the `template/` folder. The raw template source contains unexpanded Jinja placeholders (e.g. `%[cookiecutter...]%`) which will permanently break compilers, panicking Rust, or failing Svelte checks.
+- ALL verification commands **MUST** be executed strictly within your generated `../levity-instances/<PROJECT_SLUG>` directory BEFORE initiating any backport process.
+
 ## CRITICAL: Test-First Workflow
 
 You **MUST** follow this cycle for every feature or fix:

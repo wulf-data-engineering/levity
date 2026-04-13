@@ -14,6 +14,8 @@
 	import { onMount } from 'svelte';
 	import { protocolLoad } from '$lib/protocols';
 	import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
+	// @ts-expect-error - Paraglide generates JS with JSDoc
+	import * as m from '$lib/paraglide/messages.js';
 
 	let email = $state('');
 	let password = $state('');
@@ -39,22 +41,22 @@
 			const result = await auth.signUp(email, password);
 			console.log('Sign up:', result);
 			if (result.isSignUpComplete) {
-				toastSuccess('Signed Up', 'Successfully signed up and signed in.');
+				toastSuccess(m.auth_signup_toast_success_title(), m.auth_signup_toast_success_desc());
 				await goto('/');
 			} else if (result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-				toastSuccess('Next Step', 'Please complete the sign-up process.');
+				toastSuccess(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_confirm());
 				const params = new URLSearchParams({
 					email
 				});
 				await goto(`/confirmSignUp?${params.toString()}`);
-			} else toastError('Next Step', `${result.nextStep.signUpStep} is not implemented.`);
+			} else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signUpStep }));
 		} catch (err) {
 			console.error('Error signing up:', err);
 			if (err instanceof Error && err.name === 'UsernameExistsException')
-				toastError('Sign Up Failed', 'The Email address is already registered.');
+				toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_exists());
 			else if (err instanceof Error && err.name === 'InvalidPasswordException')
-				toastError('Sign Up Failed', 'Password does not meet the required policy.');
-			else toastError('Sign Up Failed', 'An error occurred during sign up.');
+				toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_policy());
+			else toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_generic());
 		} finally {
 			submitting = false;
 		}
@@ -63,8 +65,8 @@
 
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
 	<Card.Header>
-		<Card.Title>Sign Up</Card.Title>
-		<Card.Description>Create a new account</Card.Description>
+		<Card.Title>{m.auth_signup_title()}</Card.Title>
+		<Card.Description>{m.auth_signup_desc()}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -72,7 +74,7 @@
 			<div class="flex flex-col gap-6">
 				<ValidatedInput
 					id="email"
-					label="Email"
+					label={m.auth_signup_email_label()}
 					type="email"
 					bind:value={email}
 					validations={[validateEmail]}
@@ -80,7 +82,7 @@
 
 				<ValidatedInput
 					id="password"
-					label="Password"
+					label={m.auth_signup_password_label()}
 					type="password"
 					bind:value={password}
 					data-policy={passwordPolicy ? 'true' : 'false'}
@@ -89,7 +91,7 @@
 
 				<ValidatedInput
 					id="confirm"
-					label="Confirm"
+					label={m.auth_signup_confirm_label()}
 					type="password"
 					bind:value={confirm}
 					validations={[(v) => validatePasswordRepetition(password, v)]}
@@ -100,11 +102,11 @@
 
 	<Card.Footer class="flex-col gap-2">
 		<Button id="sign-up-btn" disabled={submitting} class="w-full" type="submit" form="form">
-			Sign Up
+			{m.auth_signup_submit_btn()}
 		</Button>
 		<p>
-			Already have an account?
-			<a id="sign-in-link" href="/">Sign in</a>
+			{m.auth_signup_already_have_account_text()}
+			<a id="sign-in-link" href="/">{m.auth_signup_sign_in_link()}</a>
 		</p>
 	</Card.Footer>
 </Card.Root>

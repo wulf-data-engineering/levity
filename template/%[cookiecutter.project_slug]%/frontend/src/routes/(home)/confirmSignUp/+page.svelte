@@ -12,6 +12,10 @@
 	import { ValidatedForm } from '$lib/components/validatedForm';
 
 	import { SignUpData } from '$lib/proto/sign_up_data/sign_up_data';
+	// @ts-expect-error - Paraglide generates JS with JSDoc, which svelte-check might complain about missing .d.ts
+	import { getLocale } from '$lib/paraglide/runtime';
+	// @ts-expect-error - Paraglide generates JS with JSDoc
+	import * as m from '$lib/paraglide/messages.js';
 
 	import { validateName } from '$lib/validation';
 	import { ValidatedInput } from '$lib/components/validatedInput';
@@ -25,7 +29,7 @@
 	onMount(async () => {
 		let maybeEmail = page.url.searchParams.get('email');
 		if (!maybeEmail) {
-			toastError('Error', 'Email is required to confirm sign up.');
+			toastError(m.auth_confirm_signup_toast_error_title(), m.auth_confirm_signup_toast_error_email_req());
 			await goto('/signUp');
 		} else {
 			email = maybeEmail;
@@ -37,34 +41,34 @@
 	async function handleSubmit() {
 		submitting = true;
 		try {
-			const signUpData: SignUpData = { firstName, lastName };
+			const signUpData: SignUpData = { firstName, lastName, language: getLocale() };
 			const result = await auth.confirmSignUp(email, otp, signUpData);
 			console.log('Confirm Sign Up:', result);
 			if (result.isSignUpComplete) {
-				toastSuccess('Signed Up', 'Successfully signed up');
+				toastSuccess(m.auth_signup_toast_success_title(), m.auth_signup_toast_success_desc());
 				if (get(auth.isSignedIn)) {
 					await goto('/');
 				} else {
 					await goto(`/?email=${encodeURIComponent(email)}`);
 				}
-			} else toastError('Next Step', 'Next step is not implemented.');
+			} else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: 'Next step' }));
 		} catch (err) {
 			console.error('Error confirming sign up:', err);
 			if (err instanceof Error && err.name === 'CodeMismatchException') {
-				toastError('Confirmation Failed', 'The provided confirmation code is incorrect.');
+				toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_wrong_code());
 			} else if (err instanceof Error && err.name === 'ExpiredCodeException') {
 				try {
 					await get(auth.authApi).resendSignUpCode({ username: email! });
 					toastError(
-						'Code Sent',
-						'The provided confirmation code has expired. A new confirmation code has been sent to your email.'
+						m.auth_confirm_signup_toast_sent_title(),
+						m.auth_confirm_signup_toast_sent_desc_expired()
 					);
 				} catch {
 					if (dev)
-						toastError('Confirmation Failed', 'Cognito local might not support resending codes.'); // erased at build time
-					else toastError('Confirmation Failed', 'The provided confirmation code has expired.');
+						toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_local()); // erased at build time
+					else toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_expired());
 				}
-			} else toastError('Confirmation Failed', 'Sign up could not be confirmed.');
+			} else toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_generic());
 		} finally {
 			submitting = false;
 		}
@@ -74,10 +78,10 @@
 		try {
 			submitting = true;
 			await get(auth.authApi).resendSignUpCode({ username: email! });
-			toastSuccess('Code Sent', 'A new confirmation code has been sent to your email.');
+			toastSuccess(m.auth_confirm_signup_toast_sent_title(), m.auth_confirm_signup_toast_sent_desc());
 		} catch (err) {
 			console.error('Error resending code:', err);
-			toastError('Error', 'Could not resend confirmation code.');
+			toastError(m.auth_confirm_signup_toast_error_title(), m.auth_confirm_signup_toast_error_resend());
 		} finally {
 			submitting = false;
 		}
@@ -86,8 +90,8 @@
 
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
 	<Card.Header>
-		<Card.Title>Confirm Account</Card.Title>
-		<Card.Description>Enter the confirmation code you received</Card.Description>
+		<Card.Title>{m.auth_confirm_signup_title()}</Card.Title>
+		<Card.Description>{m.auth_confirm_signup_desc()}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -95,7 +99,7 @@
 			<div class="flex flex-col gap-6">
 				<ValidatedInput
 					id="firstName"
-					label="First Name"
+					label={m.auth_confirm_signup_first_name_label()}
 					type="text"
 					bind:value={firstName}
 					validations={[validateName]}
@@ -103,7 +107,7 @@
 
 				<ValidatedInput
 					id="lastName"
-					label="Last Name"
+					label={m.auth_confirm_signup_last_name_label()}
 					type="text"
 					bind:value={lastName}
 					validations={[validateName]}
@@ -124,10 +128,10 @@
 
 	<Card.Footer class="flex-col gap-2">
 		<Button variant="default" disabled={submitting} class="w-full" type="submit" form="form">
-			Confirm Sign Up
+			{m.auth_confirm_signup_submit_btn()}
 		</Button>
 		<Button variant="outline" disabled={submitting} class="w-full" onclick={resendCode}>
-			Resend Code
+			{m.auth_confirm_signup_resend_btn()}
 		</Button>
 	</Card.Footer>
 </Card.Root>

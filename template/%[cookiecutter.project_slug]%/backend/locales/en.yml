@@ -1,0 +1,3 @@
+welcome_email:
+  subject: "Welcome to Levity!"
+  body: "Hello %{name}, welcome aboard."
