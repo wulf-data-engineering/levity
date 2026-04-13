@@ -1,5 +1,5 @@
 <script lang="ts">
-	// @ts-ignore - Paraglide generates JS with JSDoc
+	// @ts-expect-error - Paraglide generates JS with JSDoc
 	import * as m from '$lib/paraglide/messages.js';
 	let { children } = $props();
 </script>

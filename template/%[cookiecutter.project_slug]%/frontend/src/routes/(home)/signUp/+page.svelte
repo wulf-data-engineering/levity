@@ -14,7 +14,7 @@
 	import { onMount } from 'svelte';
 	import { protocolLoad } from '$lib/protocols';
 	import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
-	// @ts-ignore - Paraglide generates JS with JSDoc
+	// @ts-expect-error - Paraglide generates JS with JSDoc
 	import * as m from '$lib/paraglide/messages.js';
 
 	let email = $state('');

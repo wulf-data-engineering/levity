@@ -12,9 +12,9 @@
 	import { ValidatedForm } from '$lib/components/validatedForm';
 
 	import { SignUpData } from '$lib/proto/sign_up_data/sign_up_data';
-	// @ts-ignore - Paraglide generates JS with JSDoc, which svelte-check might complain about missing .d.ts
+	// @ts-expect-error - Paraglide generates JS with JSDoc, which svelte-check might complain about missing .d.ts
 	import { getLocale } from '$lib/paraglide/runtime';
-	// @ts-ignore - Paraglide generates JS with JSDoc
+	// @ts-expect-error - Paraglide generates JS with JSDoc
 	import * as m from '$lib/paraglide/messages.js';
 
 	import { validateName } from '$lib/validation';

@@ -5,7 +5,7 @@
 	import * as auth from '$lib/auth';
 	import { Toaster } from '$lib/components/ui/sonner/';
 	import { browser } from '$app/environment';
-	// @ts-ignore - Paraglide generates JS with JSDoc
+	// @ts-expect-error - Paraglide generates JS with JSDoc
 	import { setLocale, locales } from '$lib/paraglide/runtime';
 
 	if (browser) {

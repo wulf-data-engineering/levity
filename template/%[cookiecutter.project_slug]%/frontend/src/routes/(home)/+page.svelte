@@ -11,7 +11,7 @@
 	import { validateEmail } from '$lib/validation';
 	import { ValidatedInput } from '$lib/components/validatedInput';
 	import { ValidatedForm } from '$lib/components/validatedForm';
-	// @ts-ignore - Paraglide generates JS with JSDoc
+	// @ts-expect-error - Paraglide generates JS with JSDoc
 	import * as m from '$lib/paraglide/messages.js';
 
 	async function signOut() {
