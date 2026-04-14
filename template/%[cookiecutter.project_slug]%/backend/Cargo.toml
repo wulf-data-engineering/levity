@@ -38,7 +38,7 @@ schemars = "1.2"
 chrono = { version = "0.4", features = ["serde"] }
 wiremock = "0.6.5"
 base64 = "0.21"
-rust-i18n = "3"
+rust-i18n = "4"
 
 [dev-dependencies]
 expectorate = "1"
