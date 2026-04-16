@@ -30,12 +30,15 @@ echo "docker compose" && \
 docker compose version && \
 echo "aws" && \ # mac: brew install awscli; linux: sudo apt install awscli; win: winget install Amazon.AWSCLI
 aws --version &&  \
+echo "protoc" && \ # mac: brew install protobuf; linux: sudo apt install protobuf-compiler; win: winget install protobuf
+protoc --version && \
 echo "done"
 ```
 
 Your agent terminal might just see paths from `~/.zshenv` (not `~/.zshrc`) or `~/.bash_profile` (not `~/.bashrc`).
 If users specify their `$PATH` in the wrong file, you might not see installed tools.
 I you see few or no dependencies use `echo $PATH` to check the path and ask the developer wether `$PATH` is in the wrong file.
+If the developer fixed path issues, run `source ~/.zshenv` (or your respective file) and run the requirements check again.
 
 If there are missing dependencies:
 
