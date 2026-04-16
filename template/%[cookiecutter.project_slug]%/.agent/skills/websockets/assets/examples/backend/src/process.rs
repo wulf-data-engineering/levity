@@ -16,6 +16,7 @@ struct AppState {
 
 #[derive(Serialize)]
 struct ProcessPayload {
+    user_id: String,
     topic_id: String,
     input: String,
 }
@@ -44,9 +45,10 @@ async fn function_handler(req: Request, state: AppState) -> Result<Response<Body
     let payload: ProcessRequest = read_request(&req)?;
     let input = payload.create_process.unwrap_or_default().input;
 
-    let topic = state.connections.register(sub, "process", None, None).await?;
+    let topic = state.connections.register(&sub, "process", None, None).await?;
 
     let message_body = serde_json::to_string(&ProcessPayload {
+        user_id: sub.clone(),
         topic_id: topic.clone(),
         input,
     })?;

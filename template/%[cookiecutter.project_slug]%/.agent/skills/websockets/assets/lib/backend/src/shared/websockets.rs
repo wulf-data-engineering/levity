@@ -50,7 +50,7 @@ impl WebsocketConnections {
     /// The full topic id in the format `{topic}-{id}`.
     pub async fn register(
         &self,
-        user_id: String,
+        user_id: &str,
         topic: &str,
         id: Option<String>,
         ttl_duration: Option<std::time::Duration>,
@@ -69,9 +69,8 @@ impl WebsocketConnections {
         self.db
             .put_item()
             .table_name(&self.table_name)
-            .item("userId", AttributeValue::S(user_id))
+            .item("userId", AttributeValue::S(user_id.to_string()))
             .item("topicId", AttributeValue::S(topic_id.clone()))
-            .item("value", AttributeValue::S("".to_string()))
             .item("ttl", AttributeValue::N(ttl.to_string()))
             .send()
             .await
@@ -80,49 +79,29 @@ impl WebsocketConnections {
         Ok(topic_id)
     }
 
-    /// Sets the connectionId for a given topicId.
-    ///
-    /// This uses the 'topic-index' GSI to find the correct entry (since topicId is unique)
-    /// and then updates the main item with the connectionId.
-    pub async fn set_connection_id(&self, topic_id: String, connection_id: String) -> Result<(), Error> {
-        let items = self.db
-            .query()
+    /// Sets the connectionId for a given userId and topicId.
+    pub async fn set_connection_id(&self, user_id: &str, topic_id: &str, connection_id: &str) -> Result<(), Error> {
+        self.db
+            .update_item()
             .table_name(&self.table_name)
-            .index_name("topic-index")
-            .key_condition_expression("topicId = :t")
-            .expression_attribute_values(":t", AttributeValue::S(topic_id.clone()))
+            .key("userId", AttributeValue::S(user_id.to_string()))
+            .key("topicId", AttributeValue::S(topic_id.to_string()))
+            .update_expression("SET connectionId = :c")
+            .expression_attribute_values(":c", AttributeValue::S(connection_id.to_string()))
             .send()
             .await
-            .map_err(|e| anyhow!("Failed to query topic: {:?}", e))?;
+            .map_err(|e| anyhow!("Failed to update connectionId: {:?}", e))?;
 
-        if let Some(item) = items.items().first() {
-            let user_id = item.get("userId").ok_or_else(|| anyhow!("Missing userId"))?.as_s().map_err(|_| anyhow!("userId not a string"))?;
-
-            self.db
-                .update_item()
-                .table_name(&self.table_name)
-                .key("userId", AttributeValue::S(user_id.to_string()))
-                .key("topicId", AttributeValue::S(topic_id))
-                .update_expression("SET connectionId = :c")
-                .expression_attribute_values(":c", AttributeValue::S(connection_id))
-                .send()
-                .await
-                .map_err(|e| anyhow!("Failed to update connectionId: {:?}", e))?;
-
-            Ok(())
-        } else {
-            Err(anyhow!("Topic {} not found", topic_id).into())
-        }
+        Ok(())
     }
 
     /// Directly upserts the connectionId for a given userId and topicId.
-    /// This bypasses the topic-index GSI check and is useful for whitelisted topics
-    /// that are not pre-registered.
+    /// This is useful for whitelisted topics that are not pre-registered.
     pub async fn upsert_connection_id(
         &self,
-        user_id: String,
-        topic_id: String,
-        connection_id: String,
+        user_id: &str,
+        topic_id: &str,
+        connection_id: &str,
     ) -> Result<(), Error> {
         let now = Utc::now().timestamp();
         let ttl_seconds = DEFAULT_TTL_SECONDS;
@@ -131,10 +110,9 @@ impl WebsocketConnections {
         self.db
             .put_item()
             .table_name(&self.table_name)
-            .item("userId", AttributeValue::S(user_id))
-            .item("topicId", AttributeValue::S(topic_id))
-            .item("connectionId", AttributeValue::S(connection_id))
-            .item("value", AttributeValue::S("".to_string()))
+            .item("userId", AttributeValue::S(user_id.to_string()))
+            .item("topicId", AttributeValue::S(topic_id.to_string()))
+            .item("connectionId", AttributeValue::S(connection_id.to_string()))
             .item("ttl", AttributeValue::N(ttl.to_string()))
             .send()
             .await
@@ -143,72 +121,51 @@ impl WebsocketConnections {
         Ok(())
     }
 
-    /// Clears the value for a given topicId by setting it to an empty string.
-    pub async fn clear_value(&self, topic_id: String) -> Result<(), Error> {
+    /// Looks up a connection via the `connection-index` GSI and clears its connectionId.
+    pub async fn clear_connection(&self, connection_id: &str) -> Result<(), Error> {
         let items = self.db
             .query()
             .table_name(&self.table_name)
-            .index_name("topic-index")
-            .key_condition_expression("topicId = :t")
-            .expression_attribute_values(":t", AttributeValue::S(topic_id.clone()))
+            .index_name("connection-index")
+            .key_condition_expression("connectionId = :c")
+            .expression_attribute_values(":c", AttributeValue::S(connection_id.to_string()))
             .send()
             .await
-            .map_err(|e| anyhow!("Failed to query topic: {:?}", e))?;
+            .map_err(|e| anyhow!("Failed to query connection-index: {:?}", e))?;
 
         if let Some(item) = items.items().first() {
-            let user_id = item.get("userId").ok_or_else(|| anyhow!("Missing userId"))?.as_s().map_err(|_| anyhow!("userId not a string"))?;
+            let user_id = item.get("userId").ok_or_else(|| anyhow!("Missing userId"))?.as_s()?.to_string();
+            let topic_id = item.get("topicId").ok_or_else(|| anyhow!("Missing topicId"))?.as_s()?.to_string();
 
             self.db
                 .update_item()
                 .table_name(&self.table_name)
-                .key("userId", AttributeValue::S(user_id.to_string()))
+                .key("userId", AttributeValue::S(user_id))
                 .key("topicId", AttributeValue::S(topic_id))
-                .update_expression("SET #v = :empty")
-                .expression_attribute_names("#v", "value".to_string())
-                .expression_attribute_values(":empty", AttributeValue::S("".to_string()))
+                .update_expression("REMOVE connectionId")
                 .send()
                 .await
-                .map_err(|e| anyhow!("Failed to clear value: {:?}", e))?;
-
-            Ok(())
-        } else {
-            Err(anyhow!("Topic {} not found", topic_id).into())
+                .map_err(|e| anyhow!("Failed to remove connectionId: {:?}", e))?;
         }
-    }
-
-    pub async fn clear_value_explicit(&self, user_id: String, topic_id: String) -> Result<(), Error> {
-        self.db
-            .update_item()
-            .table_name(&self.table_name)
-            .key("userId", AttributeValue::S(user_id))
-            .key("topicId", AttributeValue::S(topic_id))
-            .update_expression("SET #v = :empty")
-            .expression_attribute_names("#v", "value".to_string())
-            .expression_attribute_values(":empty", AttributeValue::S("".to_string()))
-            .send()
-            .await
-            .map_err(|e| anyhow!("Failed to clear value explicitly: {:?}", e))?;
-
+        
         Ok(())
     }
 
-    /// Looks up the connectionId for a given topicId via the topic-index GSI.
-    pub async fn get_connection_id(&self, topic_id: &str) -> Result<Option<String>, Error> {
-        let items = self.db
-            .query()
+    /// Looks up the connectionId for a given userId and topicId.
+    pub async fn get_connection_id(&self, user_id: &str, topic_id: &str) -> Result<Option<String>, Error> {
+        let item = self.db
+            .get_item()
             .table_name(&self.table_name)
-            .index_name("topic-index")
-            .key_condition_expression("topicId = :t")
-            .expression_attribute_values(":t", AttributeValue::S(topic_id.to_string()))
+            .key("userId", AttributeValue::S(user_id.to_string()))
+            .key("topicId", AttributeValue::S(topic_id.to_string()))
             .send()
             .await
-            .map_err(|e| anyhow!("Failed to query topic: {:?}", e))?;
+            .map_err(|e| anyhow!("Failed to get topic: {:?}", e))?;
 
-        if let Some(item) = items.items().first() {
+        if let Some(mut item) = item.item {
             let conn_id = item
-                .get("connectionId")
-                .and_then(|v| v.as_s().ok())
-                .map(|s| s.to_string());
+                .remove("connectionId")
+                .and_then(|v| v.as_s().ok().cloned());
             Ok(conn_id)
         } else {
             Ok(None)
@@ -259,4 +216,3 @@ impl WebsocketConnections {
         Ok(())
     }
 }
-

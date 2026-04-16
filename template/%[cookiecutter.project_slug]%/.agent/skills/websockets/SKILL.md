@@ -82,21 +82,32 @@ Make sure the architecture is ready.
 ### 1. CDK Construct: Backend
 In `infrastructure/lib/constructs/backend.ts`:
 
+- Create the `websocketConnectionsTable` with a partition key of `userId` and a sort key of `topicId` (using the `VersionedTable` construct that enables TTL and billing modes out-of-the-box):
+```typescript
+    const websocketConnectionsTable = new VersionedTable(this, 'WebsocketConnectionsTable', {
+      tableName: 'websocket_connections',
+      partitionKey: 'userId',
+      sortKey: 'topicId',
+      timeToLiveAttribute: 'ttl',
+      removalPolicy: deploymentConfig.removalPolicy,
+    });
+```
+
+- Add `connection-index` to the `websocketConnectionsTable` so `$disconnect` handlers can actively clean up sessions:
+```typescript
+websocketConnectionsTable.addGlobalSecondaryIndex({
+    indexName: 'connection-index',
+    partitionKey: { name: 'connectionId', type: AttributeType.STRING },
+    projectionType: ProjectionType.KEYS_ONLY,
+});
+```
+
 - Create an SSM parameter for the websocket connections table name so the backend lambdas can look it up during execution:
 ```typescript
     const websocketConnectionsTableParam = new ssm.StringParameter(this, "WebsocketConnectionsTableParam", {
       parameterName: "/app/websocket-connections-table-name",
       stringValue: websocketConnectionsTable.tableName,
     });
-```
-
-- Add `topic-index` to the `websocketConnectionsTable`:
-```typescript
-websocketConnectionsTable.addGlobalSecondaryIndex({
-    indexName: 'topic-index',
-    partitionKey: { name: 'topicId', type: AttributeType.STRING },
-    projectionType: ProjectionType.ALL,
-});
 ```
 
 - Expose `webSocketUrl` from the Backend class and update `api` props appropriately. 
