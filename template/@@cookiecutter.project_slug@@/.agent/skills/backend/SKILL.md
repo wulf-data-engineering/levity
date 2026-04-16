@@ -19,11 +19,6 @@ Handling is implemented in `backend/shared/protocols.rs`.
 
 ## Development
 
-### Localization (I18n)
-
-If you introduce new end-user texts or messages, you **MUST** add them directly to the base `backend/locales/en.yml` file.
-Additionally, you **MUST** translate these new texts and add them to all other available language files in `backend/locales/` (e.g., `de.yml`) using your translation capabilities.
-
 Define newly required or change configuration of Cloud resources in
 `infrastructure/lib/backend.ts` and its constructs in `infrastructure/lib/constructs/backend/`
 For complex changes create new constructs.
@@ -43,6 +38,11 @@ To get an AWS SDK client, use the backend helper that takes care of aws & locals
 let config = backend::load_aws_config().await;
 ```
 
+### Localization (I18n)
+
+If you introduce new end-user texts or messages, you **MUST** add them directly to the base `backend/locales/en.yml` file.
+Additionally, you **MUST** translate these new texts and add them to all other available language files in `backend/locales/` (e.g., `de.yml`) using your translation capabilities.
+
 ### Protocols
 
 To use a protocol defined in `protocols/<name>.proto`:
@@ -55,6 +55,8 @@ pub mod protocols {
 pub use protocols::*;
 ```
 This pattern will make the Protocol Buffer types available in the current scope.
+
+### Local Development vs Deployed AWS Environment
 
 If code depends on local development or deployed AWS environment separate that behavior in two functions with same name.
 Annotate the local version with `#[cfg(any(debug_assertions, test))]`.
@@ -103,15 +105,3 @@ If you modified `infrastructure/package.json`, run `npm install` in `infrastruct
 Run `npm run format` in `infrastructure/`.
 
 At the end of development run `cargo format`, `cargo check` & `cargo clippy`.
-
-## Troubleshooting
-
-### Rust build
-
-If the Rust build fails in `cdk synth` (especially linking errors or missing system dependencies), check if the Docker image in `infrastructure/lib/constructs/backend/backend-lambda.ts` is outdated.
-
-**Steps to verify:**
-
-1.  Locate the current image tag (e.g., `20251227`) in `backend-lambda.ts`.
-2.  Compare it with the tag used in the [upstream template](https://github.com/wulf-data-engineering/levity/blob/main/template/%25%5Bcookiecutter.project_slug%5D%25/infrastructure/lib/constructs/backend/backend-lambda.ts).
-3.  If a newer date-based tag exists upstream, suggest updating the local version.

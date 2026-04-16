@@ -33,6 +33,10 @@ aws --version &&  \
 echo "done"
 ```
 
+Your agent terminal might just see paths from `~/.zshenv` (not `~/.zshrc`) or `~/.bash_profile` (not `~/.bashrc`).
+If users specify their `$PATH` in the wrong file, you might not see installed tools.
+I you see few or no dependencies use `echo $PATH` to check the path and ask the developer wether `$PATH` is in the wrong file.
+
 If there are missing dependencies:
 
 - Turn artifact into implementation plan
