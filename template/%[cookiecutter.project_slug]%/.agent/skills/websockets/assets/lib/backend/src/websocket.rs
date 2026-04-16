@@ -74,13 +74,13 @@ async fn function_handler(event: LambdaEvent<WebsocketEvent>) -> Result<(), Erro
     match route_key.as_str() {
         "$connect" => {
             if let Some(topic_id) = event.payload.query_string_parameters.get("topicId") {
+                let user_id = get_sub(&event.payload)?;
                 if TOPIC_WHITELIST.contains(topic_id.as_str()) {
-                    let user_id = get_sub(&event.payload)?;
                     tracing::info!("Whitelisted topic connection: {} for user: {}", topic_id, user_id);
-                    connections.upsert_connection_id(user_id, topic_id.clone(), connection_id.clone()).await?;
+                    connections.upsert_connection_id(&user_id, topic_id, connection_id).await?;
                 } else {
-                    tracing::info!("Connecting to topic: {}", topic_id);
-                    if let Err(e) = connections.set_connection_id(topic_id.clone(), connection_id.clone()).await {
+                    tracing::info!("Connecting to topic: {} for user: {}", topic_id, user_id);
+                    if let Err(e) = connections.set_connection_id(&user_id, topic_id, connection_id).await {
                         tracing::warn!("Failed to link connection: {:?}", e);
                         return Err(e);
                     }
@@ -88,18 +88,9 @@ async fn function_handler(event: LambdaEvent<WebsocketEvent>) -> Result<(), Erro
             }
         }
         "$disconnect" => {
-            if let Some(topic_id) = event.payload.query_string_parameters.get("topicId") {
-                if TOPIC_WHITELIST.contains(topic_id.as_str()) {
-                    if let Ok(user_id) = get_sub(&event.payload) {
-                        tracing::info!("Whitelisted topic disconnect: {} for user: {}", topic_id, user_id);
-                        connections.clear_value_explicit(user_id, topic_id.clone()).await?;
-                    }
-                } else {
-                    tracing::info!("Disconnected: {connection_id}, clearing topic {topic_id}");
-                    if let Err(e) = connections.clear_value(topic_id.clone()).await {
-                        tracing::warn!("Failed to clear value: {:?}", e);
-                    }
-                }
+            tracing::info!("Disconnected: {connection_id}, removing connectionId from active sessions.");
+            if let Err(e) = connections.clear_connection(connection_id).await {
+                tracing::warn!("Failed to clear connectionId: {:?}", e);
             }
         }
         _ => {

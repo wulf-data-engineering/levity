@@ -13,6 +13,7 @@ rust_i18n::i18n!("locales", fallback = "en");
 
 #[derive(Deserialize)]
 struct ProcessPayload {
+    user_id: String,
     topic_id: String,
     input: String,
 }
@@ -88,7 +89,7 @@ async fn process_item(payload: &ProcessPayload, state: &AppState) {
             total = 10
         );
         
-        match state.connections.get_connection_id(&payload.topic_id).await {
+        match state.connections.get_connection_id(&payload.user_id, &payload.topic_id).await {
             Ok(Some(connection_id)) => {
                 if let Err(e) = WebsocketConnections::send_message(&state.apigw_client, &connection_id, &message).await {
                     tracing::warn!("Failed to send process update: {:?}", e);
@@ -99,7 +100,7 @@ async fn process_item(payload: &ProcessPayload, state: &AppState) {
         }
     }
 
-    if let Ok(Some(connection_id)) = state.connections.get_connection_id(&payload.topic_id).await {
+    if let Ok(Some(connection_id)) = state.connections.get_connection_id(&payload.user_id, &payload.topic_id).await {
         if let Err(e) = WebsocketConnections::delete_connection(&state.apigw_client, &connection_id).await {
             tracing::warn!("Failed to close connection: {}", e);
         }
