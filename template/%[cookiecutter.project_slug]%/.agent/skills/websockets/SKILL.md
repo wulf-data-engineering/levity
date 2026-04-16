@@ -73,6 +73,8 @@ In `docker-compose.yml`, add the `websocket-mock` service so that local endpoint
       - "host.docker.internal:host-gateway"
 ```
 
+**Note:** The websocket-mock is NOT defined in this project.
+
 ## Architecture Change
 
 Make sure the architecture is ready.

@@ -10,6 +10,6 @@ ARG TARGETARCH
 COPY output/${TARGETARCH}/websocket-mock /usr/local/bin/websocket-mock
 RUN chmod +x /usr/local/bin/websocket-mock
 
-EXPOSE 8080
+EXPOSE 3001
 
 ENTRYPOINT ["/usr/local/bin/websocket-mock"]
