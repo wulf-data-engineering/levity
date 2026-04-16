@@ -9,6 +9,8 @@ use std::time::Duration;
 use tokio::time::sleep;
 use rand::Rng;
 
+rust_i18n::i18n!("locales", fallback = "en");
+
 #[derive(Deserialize)]
 struct ProcessPayload {
     topic_id: String,

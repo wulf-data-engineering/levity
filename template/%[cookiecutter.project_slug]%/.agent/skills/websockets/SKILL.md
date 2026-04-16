@@ -49,6 +49,11 @@ Copy the files from `assets/lib/` into the corresponding folders:
 - `assets/lib/frontend/src/lib/config.ts` -> `frontend/src/lib/config.ts`
 - `assets/lib/frontend/src/lib/websockets.ts` -> `frontend/src/lib/websockets.ts`
 
+Update `backend/src/shared/mod.rs` to declare the module:
+```rust
+pub mod websockets;
+```
+
 Update `backend/src/lib.rs` to export the websockets module:
 ```rust
 pub use shared::websockets::{self, *};
@@ -75,6 +80,14 @@ Make sure the architecture is ready.
 ### 1. CDK Construct: Backend
 In `infrastructure/lib/constructs/backend.ts`:
 
+- Create an SSM parameter for the websocket connections table name so the backend lambdas can look it up during execution:
+```typescript
+    const websocketConnectionsTableParam = new ssm.StringParameter(this, "WebsocketConnectionsTableParam", {
+      parameterName: "/app/websocket-connections-table-name",
+      stringValue: websocketConnectionsTable.tableName,
+    });
+```
+
 - Add `topic-index` to the `websocketConnectionsTable`:
 ```typescript
 websocketConnectionsTable.addGlobalSecondaryIndex({
@@ -85,7 +98,10 @@ websocketConnectionsTable.addGlobalSecondaryIndex({
 ```
 
 - Expose `webSocketUrl` from the Backend class and update `api` props appropriately. 
-- Ensure you pass `websocketConnectionsTable` to the API stack, and instantiate `processQueue` if you're using the example processor.
+- Ensure you pass `websocketConnectionsTable` to the API stack.
+- **CRITICAL**: Ensure you grant the `websocketConnectionsTable` read/write access AND the `websocketConnectionsTableParam` read access to any relevant Lambda functions (like the `websocket` lambda from API or the `processorFunction` from the example).
+
+If you are using the processor example, also instantiate `processQueue` and its SSM queue URL parameter, and grant the `processorFunction` read access to that parameter.
 
 ### 2. CDK Construct: API
 In `infrastructure/lib/constructs/backend/api.ts`:
