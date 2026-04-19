@@ -134,8 +134,8 @@ impl WebsocketConnections {
             .map_err(|e| anyhow!("Failed to query connection-index: {:?}", e))?;
 
         if let Some(item) = items.items().first() {
-            let user_id = item.get("userId").ok_or_else(|| anyhow!("Missing userId"))?.as_s()?.to_string();
-            let topic_id = item.get("topicId").ok_or_else(|| anyhow!("Missing topicId"))?.as_s()?.to_string();
+            let user_id = item.get("userId").ok_or_else(|| anyhow!("Missing userId"))?.as_s().map_err(|e| anyhow!("{:?}", e))?.to_string();
+            let topic_id = item.get("topicId").ok_or_else(|| anyhow!("Missing topicId"))?.as_s().map_err(|e| anyhow!("{:?}", e))?.to_string();
 
             self.db
                 .update_item()
