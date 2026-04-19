@@ -1,4 +1,5 @@
 ---
+name: WASM Integration
 description: Instructions and assets for adding Web Assembly (WASM) integrations.
 ---
 
