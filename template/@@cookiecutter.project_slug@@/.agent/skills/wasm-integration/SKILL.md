@@ -31,7 +31,7 @@ Update `frontend/vite.config.ts` to allow Vite to serve files from outside the i
 ```typescript
 	server: {
 		fs: {
-			allow: ['..']
+			allow: ['..'] /* NEW */
 		},
 ```
 
