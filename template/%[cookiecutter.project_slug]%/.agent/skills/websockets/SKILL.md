@@ -38,6 +38,15 @@ name = "websocket"
 path = "src/websocket.rs"
 ```
 
+### Infrastructure Dependencies
+
+Add the following to `infrastructure/package.json`:
+```json
+"@aws-cdk/aws-apigatewayv2-alpha": "^2.133.0-alpha.0",
+"@aws-cdk/aws-apigatewayv2-authorizers-alpha": "^2.133.0-alpha.0",
+"@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.133.0-alpha.0",
+```
+
 ## Libraries
 
 Make sure the libraries are in place.
@@ -46,7 +55,6 @@ Copy the files from `assets/lib/` into the corresponding folders:
 - `assets/lib/backend/src/cognito-authorizer.rs` -> `backend/src/cognito-authorizer.rs`
 - `assets/lib/backend/src/websocket.rs` -> `backend/src/websocket.rs`
 - `assets/lib/backend/src/shared/websockets.rs` -> `backend/src/shared/websockets.rs`
-- `assets/lib/frontend/src/lib/config.ts` -> `frontend/src/lib/config.ts`
 - `assets/lib/frontend/src/lib/websockets.ts` -> `frontend/src/lib/websockets.ts`
 
 Update `backend/src/shared/mod.rs` to declare the module:
@@ -82,7 +90,12 @@ Make sure the architecture is ready.
 ### 1. CDK Construct: Backend
 In `infrastructure/lib/constructs/backend.ts`:
 
-- Create the `websocketConnectionsTable` with a partition key of `userId` and a sort key of `topicId` (using the `VersionedTable` construct that enables TTL and billing modes out-of-the-box):
+Add the `VersionedTable` import:
+```typescript
+import { VersionedTable } from "./dynamodb";
+```
+
+Create the `websocketConnectionsTable` inside the class:
 ```typescript
     const websocketConnectionsTable = new VersionedTable(this, 'WebsocketConnectionsTable', {
       tableName: 'websocket_connections',
@@ -91,44 +104,101 @@ In `infrastructure/lib/constructs/backend.ts`:
       timeToLiveAttribute: 'ttl',
       removalPolicy: deploymentConfig.removalPolicy,
     });
-```
 
-- Add `connection-index` to the `websocketConnectionsTable` so `$disconnect` handlers can actively clean up sessions:
-```typescript
-websocketConnectionsTable.addGlobalSecondaryIndex({
-    indexName: 'connection-index',
-    partitionKey: { name: 'connectionId', type: AttributeType.STRING },
-    projectionType: ProjectionType.KEYS_ONLY,
-});
-```
+    websocketConnectionsTable.addGlobalSecondaryIndex({
+        indexName: 'connection-index',
+        partitionKey: { name: 'connectionId', type: dynamodb.AttributeType.STRING },
+        projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
 
-- Create an SSM parameter for the websocket connections table name so the backend lambdas can look it up during execution:
-```typescript
     const websocketConnectionsTableParam = new ssm.StringParameter(this, "WebsocketConnectionsTableParam", {
       parameterName: "/app/websocket-connections-table-name",
       stringValue: websocketConnectionsTable.tableName,
     });
 ```
 
-- Expose `webSocketUrl` from the Backend class and update `api` props appropriately. 
-- Ensure you pass `websocketConnectionsTable` to the API stack.
-- **CRITICAL**: Ensure you grant the `websocketConnectionsTable` read/write access AND the `websocketConnectionsTableParam` read access to any relevant Lambda functions (like the `websocket` lambda from API or the `processorFunction` from the example).
+Expose `webSocketUrl` from the Backend class and update `api` props appropriately. Pass `websocketConnectionsTable` to the API stack.
 
-If you are using the processor example, also instantiate `processQueue` and its SSM queue URL parameter, and grant the `processorFunction` read access to that parameter.
+Ensure you grant the `websocketConnectionsTable` read/write access AND the `websocketConnectionsTableParam` read access to any relevant Lambda functions (like the `websocket` lambda from API or the `processorFunction` from the example).
+
+If you deploy a background worker (e.g. `processorFunction` or `translatorLambda`) that needs to send messages back to the WebSocket, you MUST inject the `WEBSOCKET_API_URL` environment variable:
+```typescript
+    workerLambda.addEnvironment('WEBSOCKET_API_URL', this.webSocketUrl!);
+```
 
 ### 2. CDK Construct: API
-In `infrastructure/lib/constructs/backend/api.ts`:
-- Define the `WebSocketApi` (from `@aws-cdk/aws-apigatewayv2-alpha`).
-- Create a `backendLambda` for `cognito-authorizer` and `websocket`.
-- Set up a `$connect`, `$disconnect`, and `$default` route integrated with the `websocket` lambda.
-- Bind the authorizer to the `$connect` route.
-- Make sure to grant the websocket lambda permissions to `manageConnections` on the API, and `readWriteData` on the `websocketConnectionsTable`.
+In `infrastructure/lib/constructs/backend/api.ts`, add the API Gateway v2 imports:
+
+```typescript
+import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
+import { WebSocketLambdaAuthorizer } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
+import { WebSocketLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
+import { backendLambda } from "./backend-lambda";
+```
+
+Define the `WebSocketApi`, set up the authorizer, and explicitly use `backendLambda` (NOT `backendLambdaApi`) for the routing:
+
+```typescript
+    // Websocket API
+    const websocketApi = new apigwv2.WebSocketApi(this, "WebSocketApi");
+    
+    const cognitoAuthorizerFunction = backendLambda(this, "CognitoAuthorizerFunction", {
+      deploymentConfig: props.deploymentConfig,
+      binaryName: "cognito-authorizer",
+    });
+    props.userPoolParam.grantRead(cognitoAuthorizerFunction);
+
+    const websocketAuthorizer = new WebSocketLambdaAuthorizer("WebsocketAuthorizer", cognitoAuthorizerFunction, {
+      identitySource: ["route.request.header.Sec-WebSocket-Protocol"],
+    });
+
+    const websocketFunction = backendLambda(this, "WebsocketFunction", {
+      deploymentConfig: props.deploymentConfig,
+      binaryName: "websocket",
+    });
+    props.websocketConnectionsTableParam.grantRead(websocketFunction);
+    props.websocketConnectionsTable.grantReadWriteData(websocketFunction);
+
+    websocketApi.addRoute("$connect", {
+      integration: new WebSocketLambdaIntegration("ConnectIntegration", websocketFunction),
+      authorizer: websocketAuthorizer,
+    });
+
+    const websocketIntegration = new WebSocketLambdaIntegration("WebsocketIntegration", websocketFunction);
+    websocketApi.addRoute("$disconnect", { integration: websocketIntegration });
+    websocketApi.addRoute("$default", { integration: websocketIntegration });
+
+    websocketApi.grantManageConnections(websocketFunction);
+```
 
 ### 3. Frontend Integration
 
-In `frontend/vite.config.ts`, update the development proxy section to handle WebSocket requests (`ws: true`) if you are testing locally against a websocket mock or actual local API gateway.
+In `frontend/src/lib/config.ts`, add `webSocketUrl` to the Config type:
 
-In `frontend/src/lib/auth.ts`, after user authentication, establish the WebSocket connection by calling `connectWebSocket()`. Make sure to pass the JWT token in `Sec-WebSocket-Protocol` header.
+```typescript
+    export type Config = {
+        userPoolId: string;
+        userPoolClientId: string;
+        endpoint?: string;
+        webSocketUrl?: string; /* NEW */
+    };
+```
+
+And initialize it statically for local development at the bottom of the config setup:
+
+```typescript
+        if (dev) {
+            cachedConfig = {
+                userPoolId: import.meta.env.VITE_USER_POOL_ID || 'local_userPool',
+                userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID || 'local_userPoolClient',
+                endpoint: import.meta.env.VITE_COGNITO_ENDPOINT || 'http://localhost:9229',
+                webSocketUrl: import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001/' /* NEW */
+            };
+        }
+```
+
+In `frontend/src/lib/auth.ts` or whenever user authentication succeeds, establish the WebSocket connection by calling `connectWebSocket(topicId)` from `$lib/websockets.ts`. The implementation inside the asset automatically parses the JWT and applies it strictly via `Sec-WebSocket-Protocol`.
+
 
 ## Examples
 
