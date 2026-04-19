@@ -1,4 +1,5 @@
 ---
+name: WebSockets Integration
 description: Instructions and assets for adding WebSockets and background processing with SQS.
 ---
 

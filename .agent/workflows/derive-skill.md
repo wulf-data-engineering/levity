@@ -47,8 +47,11 @@ description: Derive a new skill from changes made in a template instance
 
     The `SKILL.md` must include YAML frontmatter and clear step-by-step instructions:
 
+    Do not forget the name in the frontmatter! It's essential for the skill discovery.
+
     ````markdown
     ---
+    name: <Feature Name>
     description: Instructions and assets for adding <Feature Name>.
     ---
 
