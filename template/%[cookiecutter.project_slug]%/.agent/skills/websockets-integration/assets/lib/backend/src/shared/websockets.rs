@@ -21,12 +21,12 @@ impl WebsocketConnections {
 
     /// Creates a new instance of WebsocketConnections.
     ///
-    /// Loads the DynamoDB table name from SSM parameter `/app/websocket-connections-table-name`
+    /// Loads the DynamoDB table name from SSM parameter `/%[ cookiecutter.project_slug ]%/websocket-connections-table-name`
     /// and initializes the AWS SDK client.
     pub async fn new() -> Self {
         let config = load_aws_config().await;
         
-        let table_name = get_ssm_parameter(&config, "/app/websocket-connections-table-name")
+        let table_name = get_ssm_parameter(&config, "/%[ cookiecutter.project_slug ]%/websocket-connections-table-name")
             .await
             .expect("Failed to get SSM parameter for websocket-connections-table-name");
 
