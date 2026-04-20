@@ -3,8 +3,7 @@ services:
     image: localstack/localstack:4.14.0
     container_name: %[ cookiecutter.project_slug ]%-localstack
     ports:
-      - "4566:4566"
-      - "4571:4571"
+      - "${LOCALSTACK_PORT:-4566}:4566"
     extra_hosts:
       - "host.docker.internal:host-gateway" # to connect cargo lambda watch
     environment:
@@ -24,6 +23,7 @@ services:
       sh -c "
           cp -n /app/.cognito/db/clients.json.template /app/.cognito/db/clients.json || true;
           cp -n /app/.cognito/db/local_userPool.json.template /app/.cognito/db/local_userPool.json || true;
+          sed \"s/9000/\${BACKEND_PORT:-9000}/g\" /app/.cognito/config.json.template > /app/.cognito/config.json || true;
         "
   cognito-local:
     image: jagregory/cognito-local
@@ -32,7 +32,7 @@ services:
       cognito-local-init: # Started after the init container has prepared an initial database
         condition: service_completed_successfully
     ports:
-      - "9229:9229"
+      - "${COGNITO_LOCAL_PORT:-9229}:9229"
     extra_hosts:
       - "host.docker.internal:host-gateway" # to connect cargo lambda watch
     environment:

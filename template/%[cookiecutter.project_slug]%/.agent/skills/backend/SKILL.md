@@ -1,6 +1,6 @@
 ---
 name: Backend Development
-description: Develop and test features in the backend
+description: Develop and test features in the backend (lambdas, protocols, infrastructure)
 ---
 
 # Change Backend
@@ -64,10 +64,11 @@ Annotate the deployed version with `#[cfg(not(any(debug_assertions, test)))]`.
 
 Register new lambdas in Cargo.toml.
 
-To try out new APIs use `curl` against the `cargo lambda watch` endpoint:
+**CRITICAL:** If you add new APIs, always check them out using `curl` against the `cargo-lambda-watch.sh` server endpoint:
 ```bash
-curl -v -H 'Accept: application/json' http://localhost:9000/lambda-url/{lambda}/
+curl -v -H 'Accept: application/json' http://localhost:${BACKEND_PORT:-9000}/lambda-url/{lambda}/
 ```
+After verifying the API directly, redeploy to LocalStack once (`npm run cdklocal:deploy` in the `infrastructure/` folder) so that it's also routed and available through `/api/{lambda}` on the `npm run dev` frontend server.
 
 Define new API lambdas in `infrastructure/lib/constructs/backend/api.ts`.
 

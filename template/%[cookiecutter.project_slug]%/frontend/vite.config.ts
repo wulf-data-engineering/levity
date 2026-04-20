@@ -1,12 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import { loadEnv } from 'vite';
 import protoPlugin from './vite-plugin-protobuf';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
-export default defineConfig({
-	plugins: [
+export default defineConfig(({ mode }) => {
+	const env = loadEnv(mode, '../', '');
+	process.env.VITE_COGNITO_LOCAL_PORT = env.COGNITO_LOCAL_PORT || '9229';
+
+	return {
+		plugins: [
 		tailwindcss(), 
 		paraglideVitePlugin({
 			project: './project.inlang',
@@ -32,10 +37,11 @@ export default defineConfig({
 		]
 	},
 	server: {
+		port: parseInt(env.FRONTEND_PORT || '5173'),
 		proxy: {
 			// On dev redirect "/api/..." to cargo lambda watch "/lambda-url/.../"
 			'/api': {
-				target: 'http://localhost:9000',
+				target: `http://localhost:${env.BACKEND_PORT || '9000'}`,
 				changeOrigin: true,
 				secure: false,
 				rewrite: (path) => {
@@ -45,4 +51,5 @@ export default defineConfig({
 			}
 		}
 	}
+	};
 });

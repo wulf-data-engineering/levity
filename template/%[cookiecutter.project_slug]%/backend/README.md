@@ -2,5 +2,5 @@
 ## Local Testing
 
 ```bash
-cargo lambda watch
+./cargo-lambda-watch.sh
 ```

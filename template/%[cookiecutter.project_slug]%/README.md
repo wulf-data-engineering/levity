@@ -20,6 +20,7 @@ Just type `/onboarding` in the chat. The agent will guide you through the onboar
 
 ## Docker Service
 
+If you need to adjust ports for local development, copy `.env.example` to `.env` beforehand.
 First you need to start the docker containers in one terminal:
 
 ```bash
@@ -35,7 +36,7 @@ Then start the backend in another terminal:
 
 ```bash
 cd backend
-cargo lambda watch
+./cargo-lambda-watch.sh
 ```
 
 The lambda functions will be automatically rebuilt on code changes.
@@ -54,7 +55,7 @@ Infrastructure is deployed against **localstack**.
 Cognito is not deployed automatically because **cognito-local** is used for local
 development. But there is an initial user pool, a client and a test user _%[cookiecutter.test_user_email]%_
 with password _%[cookiecutter.test_user_password]%_.  
-The lambdas are forwarded to **cargo lambda watch**.
+The lambdas are forwarded to **`backend/cargo-lambda-watch.sh`** (cargo lambda watch respecting .env).
 
 ## Frontend
 

@@ -21,7 +21,7 @@ export async function loadConfig(): Promise<Config> {
             cachedConfig = {
                 userPoolId: import.meta.env.VITE_USER_POOL_ID || 'local_userPool',
                 userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID || 'local_userPoolClient',
-                endpoint: import.meta.env.VITE_COGNITO_ENDPOINT || 'http://localhost:9229'
+                endpoint: import.meta.env.VITE_COGNITO_ENDPOINT || `http://localhost:${import.meta.env.VITE_COGNITO_LOCAL_PORT || '9229'}`
             };
         } else {
             const response = await fetch('/config.json');
