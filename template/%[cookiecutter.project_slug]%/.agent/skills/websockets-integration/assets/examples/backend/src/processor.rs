@@ -3,7 +3,6 @@ use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use aws_sdk_apigatewaymanagement::Client as ApiGatewayClient;
 use serde::Deserialize;
 use backend::{load_aws_config, WebsocketConnections};
-#[cfg(not(debug_assertions))]
 use std::env;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -32,7 +31,7 @@ async fn main() -> Result<(), Error> {
     let aws_config = load_aws_config().await;
     
     #[cfg(debug_assertions)]
-    let endpoint_url = "http://localhost:3001".to_string();
+    let endpoint_url = format!("http://localhost:{}", env::var("WEBSOCKET_MOCK_PORT").unwrap_or_else(|_| "3001".to_string()));
     #[cfg(not(debug_assertions))]
     let endpoint_url = env::var("WEBSOCKET_API_URL").expect("WEBSOCKET_API_URL must be set");
 
