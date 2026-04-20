@@ -28,7 +28,7 @@ async fn main() -> Result<(), Error> {
     let aws_config = load_aws_config().await;
     let connections = WebsocketConnections::new().await;
     let sqs_client = SqsClient::new(&aws_config);
-    let queue_url = get_ssm_parameter(&aws_config, "/app/process-queue-url").await?;
+    let queue_url = get_ssm_parameter(&aws_config, "/%[ cookiecutter.project_slug ]%/process-queue-url").await?;
 
     let state = AppState { connections, sqs_client, queue_url };
 

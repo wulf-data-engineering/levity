@@ -113,7 +113,7 @@ Create the `websocketConnectionsTable` inside the class:
     });
 
     const websocketConnectionsTableParam = new ssm.StringParameter(this, "WebsocketConnectionsTableParam", {
-      parameterName: "/app/websocket-connections-table-name",
+      parameterName: '/%[ cookiecutter.project_slug ]%/websocket-connections-table-name',
       stringValue: websocketConnectionsTable.tableName,
     });
 ```
@@ -208,7 +208,54 @@ To fully test the WebSocket implementation, you can use the `process` example, w
 2. A worker (`processor.rs`) pulling from SQS, doing work, and utilizing the WebSocket connections table to push results directly to the user.
 3. The frontend setup (`api/process.ts` and `process.proto`).
 
-Copy the files from `assets/examples/` to use them. Make sure to define the route and SQS queue appropriately in `infrastructure`. Also add the following config to your `backend/Cargo.toml`:
+Copy the files from `assets/examples/` to use them.
+
+### Infrastructure for the Example
+
+To support the example worker and API, configure the queue, parameter, and background worker in `infrastructure/lib/constructs/backend.ts`:
+
+```typescript
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+
+const processQueue = new sqs.Queue(this, 'ProcessQueue', {
+    visibilityTimeout: cdk.Duration.seconds(300),
+});
+
+const processQueueUrlParam = new ssm.StringParameter(this, 'ProcessQueueUrlParam', {
+    parameterName: '/%[ cookiecutter.project_slug ]%/process-queue-url',
+    stringValue: processQueue.queueUrl,
+});
+
+const processorFunction = backendLambda(this, 'ProcessorFunction', {
+    deploymentConfig: props.deploymentConfig,
+    binaryName: 'processor',
+    timeout: cdk.Duration.seconds(300),
+});
+processorFunction.addEventSource(new SqsEventSource(processQueue));
+websocketConnectionsTableParam.grantRead(processorFunction);
+websocketConnectionsTable.grantReadWriteData(processorFunction);
+processorFunction.addEnvironment('WEBSOCKET_API_URL', this.webSocketUrl!);
+```
+
+Pass `processQueue` and `processQueueUrlParam` into the `api` stack. In `infrastructure/lib/constructs/backend/api.ts`, configure the API handler and grant permissions:
+
+```typescript
+    const processFunction = backendLambda(this, 'ProcessFunction', {
+      deploymentConfig: props.deploymentConfig,
+      binaryName: 'process',
+    });
+    props.processQueue.grantSendMessages(processFunction);
+    props.processQueueUrlParam.grantRead(processFunction);
+    props.websocketConnectionsTable.grantReadWriteData(processFunction);
+    
+    // Add rest endpoints mapping if using REST...
+```
+
+### Backend Config
+
+Also add the following config to your `backend/Cargo.toml`:
 
 ```toml
 [[bin]]
