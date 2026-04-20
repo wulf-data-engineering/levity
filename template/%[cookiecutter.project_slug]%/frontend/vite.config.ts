@@ -8,7 +8,7 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, '../', '');
-	process.env.VITE_COGNITO_LOCAL_PORT = env.COGNITO_LOCAL_PORT;
+	process.env.VITE_COGNITO_LOCAL_PORT = env.COGNITO_LOCAL_PORT || '9229';
 
 	return {
 		plugins: [
