@@ -36,10 +36,10 @@ Start the backend lambdas in another terminal:
 ```bash
 // turbo
 cd backend
-cargo lambda watch
+./cargo-lambda-watch.sh
 ```
 
-If you encounter port problems suggest `kill -9 $(lsof -ti:9000)` to the user.
+If you encounter port problems suggest `kill -9 $(lsof -ti:${BACKEND_PORT:-9000})` to the user. Always use the port from the `.env` file instead of by name.
 
 Deploy the infrastructure in another terminal:
 
@@ -58,4 +58,4 @@ cd frontend
 npm run dev
 ```
 
-The application is accessible at `http://localhost:5173`.
+The application is accessible at `http://localhost:${FRONTEND_PORT:-5173}` (check your `.env` for the configured port).

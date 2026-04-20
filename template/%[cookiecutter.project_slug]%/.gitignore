@@ -7,3 +7,6 @@ local/cognito-local-volume/db/clients.json
 local/cognito-local-volume/db/local_userPool.json
 # Generate protobuf files
 protocols/gen/
+# environment variables
+.env
+local/cognito-local-volume/config.json

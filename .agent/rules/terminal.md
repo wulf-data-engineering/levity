@@ -18,6 +18,7 @@ If you do not quote the path, the shell will try to expand `%[...]%` and fail wi
 git add template/%[cookiecutter.project_slug]%/file.txt
 rm template/%[cookiecutter.project_slug]%/file.txt
 ls template/%[cookiecutter.project_slug]%
+grep -rn template/%[cookiecutter.project_slug]% "Foo"
 cp Source template/%[cookiecutter.project_slug]%/Dest
 
 #### ✅ Correct (Will Succeed)
@@ -26,4 +27,5 @@ git add "template/%[cookiecutter.project_slug]%/file.txt"
 rm "template/%[cookiecutter.project_slug]%/file.txt"
 ls "template/%[cookiecutter.project_slug]%"
 cp Source "template/%[cookiecutter.project_slug]%/Dest"
+grep -rn "template/%[cookiecutter.project_slug]%" "Foo"
 git add "template/%[cookiecutter.project_slug]%/file.txt"

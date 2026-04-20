@@ -61,7 +61,7 @@ You need to pass `-c build=true` to build backend and frontend locally during CD
 Deploys against **localstack**.
 
 - Cognito is not deployed automatically because **cognito-local** is used for local development.
-- For local development all Lambda functions are forwarded to **cargo lambda watch**.
+- For local development all Lambda functions are forwarded to **`backend/cargo-lambda-watch.sh`** (cargo lambda watch).
 - Frontend is not deployed to CloudFront & S3 and served by **npm run dev** instead.
 
 ## Requirements

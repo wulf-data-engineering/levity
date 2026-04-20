@@ -6,7 +6,7 @@ const DEFAULT_REGION: &str = "eu-central-1";
 // LocalStack endpoint for local development and integration testing
 #[cfg(any(debug_assertions, test))]
 fn default_endpoint() -> Option<String> {
-    Some("http://localhost:4566".into())
+    Some(format!("http://localhost:{}", std::env::var("LOCALSTACK_PORT").unwrap_or_else(|_| "4566".to_string())))
 }
 
 #[cfg(not(any(debug_assertions, test)))]
@@ -17,7 +17,7 @@ fn default_endpoint() -> Option<String> {
 // cognito-local endpoint for local development and integration testing
 #[cfg(any(debug_assertions, test))]
 fn default_cognito_endpoint() -> Option<String> {
-    Some("http://localhost:9229".into())
+    Some(format!("http://localhost:{}", std::env::var("COGNITO_LOCAL_PORT").unwrap_or_else(|_| "9229".to_string())))
 }
 
 #[cfg(not(any(debug_assertions, test)))]

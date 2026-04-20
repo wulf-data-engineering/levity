@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: new URL('../.env', import.meta.url).pathname });
 
 const chrome = {
 	name: 'chromium',
@@ -40,7 +43,7 @@ export default defineConfig({
 	projects: process.env.CI ? allProjects : [chrome],
 	webServer: {
 		command: process.env.CI ? undefined : 'npm run dev', // prevent starting on CI (will fail in playwright container)
-		port: 5173,
+		port: parseInt(process.env.FRONTEND_PORT || '5173'),
 		reuseExistingServer: true
 	}
 });
