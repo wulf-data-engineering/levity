@@ -58,9 +58,10 @@ to test the changes in the browser.
 
 ## Tests
 
-If you introduce a new feature or make a change it has to be reflected in tests.
+**CRITICAL**: You **MUST** write unit or integration tests for any newly added feature or component. Do not finish a task without providing corresponding test coverage.
 If there are existing unit or end-to-end tests, extend or update them.
-If not, evaluate if unit and/or end-to-end tests are appropriate to test the change.
+**CRITICAL**: You **MUST** write the test for a new pure function together with the function itself.
+**CRITICAL**: You are highly encouraged to add descriptive comments to every function, component, or UI element that has more than 3 lines of code.
 
 ## MCP Tools
 

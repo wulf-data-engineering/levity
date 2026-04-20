@@ -83,9 +83,10 @@ If applicable consult `.agent/workflows/run-locally.md` to test the changes in t
 
 ### Testing
 
-If you introduce a new feature or make a change it has to be reflected in tests.
+**CRITICAL**: You **MUST** write unit or integration tests for any newly added feature or module. Do not finish a task without providing corresponding test coverage.
 If there are existing unit or integration tests, extend or update them.
-If not, evaluate if unit and/or integration tests are appropriate to test the change.
+**CRITICAL**: You **MUST** write the test for a new pure function together with the function itself.
+**CRITICAL**: You are highly encouraged to add descriptive comments to every function or struct, or construct that has more than 3 lines of code.
 
 ## MCP Tools
 
