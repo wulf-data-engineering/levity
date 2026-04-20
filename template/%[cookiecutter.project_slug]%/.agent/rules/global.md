@@ -15,9 +15,10 @@ This is a monorepo.
 
 ## Development
 
-If you introduce a new feature or make a change it has to be reflected in tests.
-If there are existing unit, integration or end-to-end tests, extend or update them.
-If not, evaluate which test type or tests with different type are appropriate to test the change.
+**CRITICAL**: You **MUST** write unit or integration tests for any newly added feature or component. Do not finish a task without providing corresponding test coverage.
+If there are existing unit, integration, or end-to-end tests, extend or update them.
+**CRITICAL**: You **MUST** write the test for a new pure function together with the function itself.
+**CRITICAL**: You are highly encouraged to add descriptive comments to every function, struct, or construct that has more than 3 lines of code.
 
 **CRITICAL**: If the user asks for a _plan_, **DO NOT** modify any files yet. Other agents might be planning or editing in parallel. Only modify files after the user approves the plan, and you switch to execution mode.
 
