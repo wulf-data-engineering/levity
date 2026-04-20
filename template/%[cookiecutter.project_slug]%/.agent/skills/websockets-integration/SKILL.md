@@ -77,7 +77,7 @@ In `docker-compose.yml`, add the `websocket-mock` service so that local endpoint
     image: ghcr.io/wulf-data-engineering/levity-websocket-mock:latest
     container_name: %[ cookiecutter.project_slug ]%-websocket-mock
     ports:
-      - "3001:3001"
+      - "${WEBSOCKET_MOCK_PORT:-3001}:3001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
 ```
@@ -192,10 +192,26 @@ And initialize it statically for local development at the bottom of the config s
             cachedConfig = {
                 userPoolId: import.meta.env.VITE_USER_POOL_ID || 'local_userPool',
                 userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID || 'local_userPoolClient',
-                endpoint: import.meta.env.VITE_COGNITO_ENDPOINT || 'http://localhost:9229',
-                webSocketUrl: import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001/' /* NEW */
+                endpoint: import.meta.env.VITE_COGNITO_ENDPOINT || `http://localhost:${import.meta.env.VITE_COGNITO_LOCAL_PORT || '9229'}`,
+                webSocketUrl: import.meta.env.VITE_WEBSOCKET_URL || `ws://localhost:${import.meta.env.VITE_WEBSOCKET_MOCK_PORT || '3001'}/` /* NEW */
             };
         }
+```
+
+In `frontend/vite.config.ts`, expose the `.env` variable to Vite:
+
+```typescript
+export default defineConfig(({ mode }) => {
+	const env = loadEnv(mode, '../', '');
+	process.env.VITE_COGNITO_LOCAL_PORT = env.COGNITO_LOCAL_PORT || '9229';
+	process.env.VITE_WEBSOCKET_MOCK_PORT = env.WEBSOCKET_MOCK_PORT || '3001'; /* NEW */
+    ...
+```
+
+To complete the setup, document the new port in your project root `.env.example`:
+
+```env
+WEBSOCKET_MOCK_PORT=3001
 ```
 
 In `frontend/src/lib/auth.ts` or whenever user authentication succeeds, establish the WebSocket connection by calling `connectWebSocket(topicId)` from `$lib/websockets.ts`. The implementation inside the asset automatically parses the JWT and applies it strictly via `Sec-WebSocket-Protocol`.
