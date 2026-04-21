@@ -17,8 +17,10 @@ This is a monorepo.
 
 **CRITICAL**: You **MUST** write unit or integration tests for any newly added feature or component. Do not finish a task without providing corresponding test coverage.
 If there are existing unit, integration, or end-to-end tests, extend or update them.
-**CRITICAL**: You **MUST** write the test for a new pure function together with the function itself.
-**CRITICAL**: You are highly encouraged to add descriptive comments to every function, struct, or construct that has more than 3 lines of code.
+**CRITICAL**: You **MUST** write the test for a new pure function at the same time.
+
+Add descriptive comments to every function, struct, class or construct that has more than 3 lines of code.
+**CRITICAL:** If you change a function, struct, or construct that has a comment, you **MUST** update the comment as well. Check the comment for correctness and completeness and update it if necessary.
 
 **CRITICAL**: If the user asks for a _plan_, **DO NOT** modify any files yet. Other agents might be planning or editing in parallel. Only modify files after the user approves the plan, and you switch to execution mode.
 
