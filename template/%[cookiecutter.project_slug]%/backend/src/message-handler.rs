@@ -1,6 +1,5 @@
 use aws_lambda_events::event::sqs::SqsEvent;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use tracing_subscriber;
 use tracing;
 
 /// This is the main body for the function.
@@ -15,7 +14,7 @@ async fn function_handler(event: LambdaEvent<SqsEvent>) -> Result<(), Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt().with_ansi(false).init();
+    backend::shared::lambda::init_logger();
     tracing::info!("Starting message handler");
 
     run(service_fn(function_handler)).await

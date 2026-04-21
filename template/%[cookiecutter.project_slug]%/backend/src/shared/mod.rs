@@ -5,3 +5,4 @@ pub mod http;
 pub mod protocols;
 pub mod users;
 pub mod i18n;
+pub mod lambda;

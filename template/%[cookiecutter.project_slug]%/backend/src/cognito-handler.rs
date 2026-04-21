@@ -2,7 +2,6 @@ use aws_sdk_dynamodb::Client;
 use backend::{load_aws_config, CognitoUserPoolEvent};
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use protocol_macro::protocols;
-use tracing_subscriber;
 use tracing;
 
 #[protocols("sign_up_data")]
@@ -99,7 +98,7 @@ async fn get_table_name(config: &aws_config::SdkConfig) -> String {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt().with_ansi(false).init();
+    backend::shared::lambda::init_logger();
 
     let config = load_aws_config().await;
     let table_name = get_table_name(&config).await;

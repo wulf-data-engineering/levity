@@ -21,7 +21,7 @@ struct AppState {
 ///
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt().with_ansi(false).init();
+    backend::shared::lambda::init_logger();
     
     tracing::info!("Starting password policy lambda");
     

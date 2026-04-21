@@ -3,7 +3,6 @@ use aws_sdk_dynamodb::Client;
 use backend::{get_sub, load_aws_config, write_response};
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use protocol_macro::protocols;
-use tracing_subscriber;
 use tracing;
 
 #[protocols("user_profile")]
@@ -16,7 +15,7 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt().with_ansi(false).init();
+    backend::shared::lambda::init_logger();
 
     let config = load_aws_config().await;
     let table_name = get_table_name(&config).await;

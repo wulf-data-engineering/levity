@@ -19,6 +19,7 @@ git add template/%[cookiecutter.project_slug]%/file.txt
 rm template/%[cookiecutter.project_slug]%/file.txt
 ls template/%[cookiecutter.project_slug]%
 grep -rn template/%[cookiecutter.project_slug]% "Foo"
+find template/%[cookiecutter.project_slug]% -name "Foo"
 cp Source template/%[cookiecutter.project_slug]%/Dest
 
 #### ✅ Correct (Will Succeed)
@@ -28,4 +29,5 @@ rm "template/%[cookiecutter.project_slug]%/file.txt"
 ls "template/%[cookiecutter.project_slug]%"
 cp Source "template/%[cookiecutter.project_slug]%/Dest"
 grep -rn "template/%[cookiecutter.project_slug]%" "Foo"
+find "template/%[cookiecutter.project_slug]%" -name "Foo"
 git add "template/%[cookiecutter.project_slug]%/file.txt"
