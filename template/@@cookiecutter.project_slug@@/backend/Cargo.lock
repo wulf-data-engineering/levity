@@ -563,7 +563,6 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-types",
- "protocol_macro",
  "rust-i18n",
  "schemars 1.2.1",
  "serde",
@@ -1957,15 +1956,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8991c4cbdb8bc5b11f0b074ffe286c30e523de90fee5ba8132f1399f23cb3dd7"
 dependencies = [
  "prost",
-]
-
-[[package]]
-name = "protocol_macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

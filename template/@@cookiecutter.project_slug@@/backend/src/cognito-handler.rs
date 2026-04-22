@@ -1,11 +1,12 @@
 use aws_sdk_dynamodb::Client;
 use backend::{load_aws_config, CognitoUserPoolEvent};
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use protocol_macro::protocols;
 use tracing;
 
-#[protocols("sign_up_data")]
-pub mod protocols {}
+pub mod protocols {
+    include!(concat!(env!("OUT_DIR"), "/sign_up_data.rs"));
+}
+pub use protocols::*;
 
 ///
 /// This lambda reacts on Cognito's lifecycle events.
