@@ -12,9 +12,9 @@ When modifying files within the `template/` directory, you **MUST** use the foll
 
 | Type         | Standard    | **Project Custom** |
 | :----------- | :---------- | :----------------- |
-| **Variable** | `{{ ... }}` | **`%[ ... ]%`**    |
-| **Block**    | `{% ... %}` | **`%%[ ... ]%%`**  |
-| **Comment**  | `{# ... #}` | **`%[# ... #]%`**  |
+| **Variable** | `{{ ... }}` | **`@@ ... @@`**    |
+| **Block**    | `{% ... %}` | **`@= ... =@`**  |
+| **Comment**  | `{# ... #}` | **`@- ... -@`**  |
 
 ### Examples
 
@@ -29,9 +29,9 @@ When modifying files within the `template/` directory, you **MUST** use the foll
 #### ✅ Correct
 
 ```jinja
-%[ cookiecutter.project_name ]%
-%%[ if cookiecutter.use_docker ]%%
-%[# This is a comment #]%
+@@ cookiecutter.project_name @@
+@= if cookiecutter.use_docker =@
+@- This is a comment -@
 ```
 
 ### Reference

@@ -1,0 +1,15 @@
+{
+  "LambdaClient": {
+    "endpoint": "http://host.docker.internal:9000",
+    "region": "@@ cookiecutter.default_region @@",
+    "credentials": {
+      "accessKeyId": "test",
+      "secretAccessKey": "test"
+    }
+  },
+  "TriggerFunctions": {
+    "PreSignUp": "cognito-handler",
+    "PostConfirmation": "cognito-handler",
+    "CustomMessage": "cognito-handler"
+  }
+}

@@ -12,7 +12,7 @@ First, read the high-level documentation to understand the vision and architectu
 
 - @../../README.md: The project vision and features.
 - `adr/`: The architectural decisions.
-- @../../template/%[cookiecutter.project_slug]%/README.md: The current template documentation (if different).
+- @../../template/@@cookiecutter.project_slug@@/README.md: The current template documentation (if different).
 
 Then, explore the `template/` directory to understand the current implementation state.
 
@@ -46,7 +46,7 @@ You are tasked with [Task Description].
 
 1.  **Analyze & Clarify (IMPORTANT)**:
     -   **Clarify**: Ask clarifying questions.
-    -   **New Technology**: Evaluate if new tools/tech are introduced. Research and suggest MCP servers. Check if `@../../template/%[cookiecutter.project_slug]%/.agent/workflows/onboarding.md` needs updates.
+    -   **New Technology**: Evaluate if new tools/tech are introduced. Research and suggest MCP servers. Check if `@../../template/@@cookiecutter.project_slug@@/.agent/workflows/onboarding.md` needs updates.
     -   **Context**: Read relevant ADRs and READMEs.
 2.  **Plan**:
     -   Create a detailed implementation plan.
@@ -59,4 +59,4 @@ You are tasked with [Task Description].
     -   **Approval**: Show the user the result in the test instance and ask for approval.
     -   **Clean State**: After approval, verify the template repo is on a clean `main` branch.
     -   **Branching**: Checkout a new feature branch for the template.
-    -   **Backport**: Apply the changes to the template, preserving cookiecutter variables (`%[ ... ]%`).
+    -   **Backport**: Apply the changes to the template, preserving cookiecutter variables (`@@ ... @@`).
