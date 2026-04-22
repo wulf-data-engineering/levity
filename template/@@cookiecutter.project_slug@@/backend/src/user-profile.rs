@@ -2,11 +2,12 @@ use anyhow::{anyhow, Result};
 use aws_sdk_dynamodb::Client;
 use backend::{get_sub, load_aws_config, write_response};
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
-use protocol_macro::protocols;
 use tracing;
 
-#[protocols("user_profile")]
-pub mod protocols {}
+pub mod protocols {
+    include!(concat!(env!("OUT_DIR"), "/user_profile.rs"));
+}
+pub use protocols::*;
 
 #[derive(Clone)]
 struct AppState {

@@ -47,16 +47,14 @@ let config = backend::load_aws_config().await;
 
 To use a protocol defined in `protocols/<name>.proto`:
 
-1.  Import the `protocol_macro`:
-    ```rust
-    use protocol_macro::protocols;
-    ```
-2.  Define a module for the protocol:
-    `rust
-    #[protocols("<name>")]
-    pub mod protocols {}
-    `
-    The macro will make the Protocol Buffer types in the module available with `use`.
+Include it directly in a `protocols` module:
+```rust
+pub mod protocols {
+    include!(concat!(env!("OUT_DIR"), "/<name>.rs"));
+}
+pub use protocols::*;
+```
+This pattern will make the Protocol Buffer types available in the current scope.
 
 If code depends on local development or deployed AWS environment separate that behavior in two functions with same name.
 Annotate the local version with `#[cfg(any(debug_assertions, test))]`.

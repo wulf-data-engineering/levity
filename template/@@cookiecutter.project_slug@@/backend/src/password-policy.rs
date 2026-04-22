@@ -2,11 +2,12 @@ use anyhow::{anyhow, Result};
 use aws_sdk_cognitoidentityprovider::Client;
 use backend::{load_aws_cognito_config, write_response};
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
-use protocol_macro::protocols;
 use tracing;
 
-#[protocols("password_policy")]
-pub mod protocols {}
+pub mod protocols {
+    include!(concat!(env!("OUT_DIR"), "/password_policy.rs"));
+}
+pub use protocols::*;
 
 #[derive(Clone)]
 struct AppState {
