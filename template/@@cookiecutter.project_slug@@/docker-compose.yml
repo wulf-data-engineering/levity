@@ -1,0 +1,47 @@
+services:
+  localstack:
+    image: localstack/localstack:4.14.0
+    container_name: @@ cookiecutter.project_slug @@-localstack
+    ports:
+      - "${LOCALSTACK_PORT:-4566}:4566"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # to connect cargo lambda watch
+    environment:
+      - DEBUG=0
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DEFAULT_REGION=@@ cookiecutter.default_region @@
+    volumes:
+      - "./local/localstack-volume:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock" # required for lambdas
+  cognito-local-init: # Makes sure the cognito-local container has the necessary files
+    image: alpine
+    container_name: @@ cookiecutter.project_slug @@-cognito-local-init
+    volumes:
+      - "./local/cognito-local-volume:/app/.cognito"
+    command: >
+      sh -c "
+          cp -n /app/.cognito/db/clients.json.template /app/.cognito/db/clients.json || true;
+          cp -n /app/.cognito/db/local_userPool.json.template /app/.cognito/db/local_userPool.json || true;
+          sed \"s/9000/\${BACKEND_PORT:-9000}/g\" /app/.cognito/config.json.template > /app/.cognito/config.json || true;
+        "
+  cognito-local:
+    image: jagregory/cognito-local
+    container_name: @@ cookiecutter.project_slug @@-cognito-local
+    depends_on:
+      cognito-local-init: # Started after the init container has prepared an initial database
+        condition: service_completed_successfully
+    ports:
+      - "${COGNITO_LOCAL_PORT:-9229}:9229"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # to connect cargo lambda watch
+    environment:
+      - CODE=123456 # fixed code for UI tests
+      - AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - "./local/cognito-local-volume:/app/.cognito"
+
+volumes:
+  cognito-data:

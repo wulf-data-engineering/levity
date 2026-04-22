@@ -31,13 +31,13 @@ description: Derive a new skill from changes made in a template instance
 
 6.  **Create the Skill Directory**
     Determine a concise name for the skill (e.g., `durable-lambdas`). Create a new directory for it in the template repository:
-    `template/%[cookiecutter.project_slug]%/.agent/skills/<skill-name>`
+    `template/@@cookiecutter.project_slug@@/.agent/skills/<skill-name>`
 
 7.  **Handle New Files (Assets)**
     For any entirely *new* files added during development:
     1. Create an `assets/` subdirectory inside your new skill directory.
     2. Copy the new files into `assets/lib/` or `assets/examples/`.
-    3. **CRITICAL**: Re-parameterize the asset files. You MUST restore Jinja2 placeholders! Replace any hardcoded instances of the project name or slug from the test instance with the appropriate Cookiecutter variables (e.g., `%[ cookiecutter.project_slug ]%`). (Refer to @../../cookiecutter.json for available variables and @../rules/jinja-delimiters.md for custom syntax).
+    3. **CRITICAL**: Re-parameterize the asset files. You MUST restore Jinja2 placeholders! Replace any hardcoded instances of the project name or slug from the test instance with the appropriate Cookiecutter variables (e.g., `@@ cookiecutter.project_slug @@`). (Refer to @../../cookiecutter.json for available variables and @../rules/jinja-delimiters.md for custom syntax).
 
 8.  **Handle Modified Files (Semantic Instructions in SKILL.md)**
     For existing files that were *modified* to integrate the feature (e.g., `package.json`, `app-stack.ts`, etc.):

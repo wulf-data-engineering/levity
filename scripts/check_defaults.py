@@ -7,7 +7,7 @@ Features:
 - --check takes pairs: var_name literal_string
 - Ignores variables starting with '_' or in --ignore
 - Enforces explicit --check for defaults starting with Jinja2 start delimiter
-- Git-diff output with %[cookiecutter.var_name]% replacements
+- Git-diff output with @@cookiecutter.var_name@@ replacements
 
 Usage:
 python scripts/check_defaults.py --template cookiecutter.json --generated out/MyProj --extra extra_context.json \

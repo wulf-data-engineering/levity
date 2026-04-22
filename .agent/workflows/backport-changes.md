@@ -2,7 +2,7 @@
 description: Backport changes from a template instance to the template source
 ---
 
-**CRITICAL**: This is the most important step. You must copy your working code from `../levity-instances/<PROJECT_SLUG>` back to `template/%[cookiecutter.project_slug]%`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
+**CRITICAL**: This is the most important step. You must copy your working code from `../levity-instances/<PROJECT_SLUG>` back to `template/@@cookiecutter.project_slug@@`, but you must **RESTORE JINJA2 PLACEHOLDERS**.
 
 ## Steps
 
@@ -42,23 +42,23 @@ description: Backport changes from a template instance to the template source
     _Mapping Example_:
     `../levity-instances/<PROJECT_SLUG>/frontend/src/routes/+page.svelte`
     maps to
-    `template/%[cookiecutter.project_slug]%/frontend/src/routes/+page.svelte`
+    `template/@@cookiecutter.project_slug@@/frontend/src/routes/+page.svelte`
 
     Create a diff for the changed files:
 
     ```bash
-    for f in ...; do echo "Comparing $f"; diff -u "../levity-instances/<PROJECT_SLUG>/$f" "template/%[cookiecutter.project_slug]%/$f" || true; done
+    for f in ...; do echo "Comparing $f"; diff -u "../levity-instances/<PROJECT_SLUG>/$f" "template/@@cookiecutter.project_slug@@/$f" || true; done
     ```
 
 5.  **Apply Changes (Carefully)**
 
-    **DO NOT** simply copy the file over if the original template file contains placeholders like `%[ cookiecutter.project_slug ]%`.
+    **DO NOT** simply copy the file over if the original template file contains placeholders like `@@ cookiecutter.project_slug @@`.
 
     **Procedure**:
     1.  Read the content of the _template_ file.
     2.  Read the content of the _instance_ file (your modified version).
     3.  Apply the logic changes from the instance to the template file.
-    4.  **Check for Placeholders**: Ensure that any dynamic values (project names, slugs, etc.) are still represented by their Jinja2 tags (`%[ ... ]%`) in the template file.
+    4.  **Check for Placeholders**: Ensure that any dynamic values (project names, slugs, etc.) are still represented by their Jinja2 tags (`@@ ... @@`) in the template file.
     5. **Check for TODOs** You might have placed TODO comments with the correct placeholders during @develop-feature.md
 
     > **Warning**: If you introduced a _new_ file, check if it needs any placeholders (e.g., if it imports the package name).
@@ -72,7 +72,7 @@ description: Backport changes from a template instance to the template source
     After backporting, run the @instantiate-template.md workflow _again_ to a _new_ location (e.g., `../levity-instances/<VERIFICATION_SLUG>`) and verify that:
     1.  Cookiecutter runs without error.
     2.  The new instance contains your changes.
-    3.  The placeholders were correctly substituted (i.e., you don't see `%[ ... ]%` in the generated file).
+    3.  The placeholders were correctly substituted (i.e., you don't see `@@ ... @@` in the generated file).
 
 7.  **Cleanup**
     **Important:** Suggest that the temporary instances should be removed.
