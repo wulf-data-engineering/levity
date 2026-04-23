@@ -1,4 +1,5 @@
 ---
+name: WASM Integration
 description: Instructions and assets for adding Web Assembly (WASM) integrations.
 ---
 
@@ -31,7 +32,7 @@ Update `frontend/vite.config.ts` to allow Vite to serve files from outside the i
 ```typescript
 	server: {
 		fs: {
-			allow: ['..']
+			allow: ['..'] /* NEW */
 		},
 ```
 

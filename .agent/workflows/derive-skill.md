@@ -17,7 +17,7 @@ description: Derive a new skill from changes made in a template instance
     Check the branch and state of this repository (the template repository).
     Follow the rule @../rules/changing-files.md. You should be on a feature branch (e.g. `derive-xyz-skill`) before proceeding.
 
-4.  **Ask for User Approval (CRITICAL)** 
+4.  **Ask for User Approval (CRITICAL)**
     Summarize the scope of the skill you intend to create. Explicitly ask the user if they want to proceed with the skill derivation.
     **CRITICAL: Wait for the user to confirm.**
 
@@ -34,44 +34,51 @@ description: Derive a new skill from changes made in a template instance
     `template/@@cookiecutter.project_slug@@/.agent/skills/<skill-name>`
 
 7.  **Handle New Files (Assets)**
-    For any entirely *new* files added during development:
+    Never handle files as assets that were already in the old implementation.
+    For any **entirely new** files added during development:
     1. Create an `assets/` subdirectory inside your new skill directory.
     2. Copy the new files into `assets/lib/` or `assets/examples/`.
     3. **CRITICAL**: Re-parameterize the asset files. You MUST restore Jinja2 placeholders! Replace any hardcoded instances of the project name or slug from the test instance with the appropriate Cookiecutter variables (e.g., `@@ cookiecutter.project_slug @@`). (Refer to @../../cookiecutter.json for available variables and @../rules/jinja-delimiters.md for custom syntax).
 
 8.  **Handle Modified Files (Semantic Instructions in SKILL.md)**
-    For existing files that were *modified* to integrate the feature (e.g., `package.json`, `app-stack.ts`, etc.):
+    For existing files that were _modified_ to integrate the feature (e.g., `package.json`, `app-stack.ts`, etc.):
     Do **not** use raw git diffs as they are brittle.
     Instead, write a `SKILL.md` file in the root of the skill directory providing clear semantic instructions on how an agent should apply the changes to a fresh instance.
 
     The `SKILL.md` must include YAML frontmatter and clear step-by-step instructions:
-    
-    ```markdown
+
+    Do not forget the name in the frontmatter! It's essential for the skill discovery.
+
+    ````markdown
     ---
+    name: <Feature Name>
     description: Instructions and assets for adding <Feature Name>.
     ---
-    
+
     # Adding <Feature Name>
 
     ## Dependencies
 
     Make sure the dependencies were added.
-    
+
     ### Backend Dependencies
 
     Add the following to `backend/Cargo.toml`:
+
     - `@aws-cdk/some-package`
     - ...
 
     ### Frontend Dependencies
 
     Add the following to `infrastructure/package.json`:
+
     - `@aws-something/some-package`
     - ...
 
     ### Infrastructure Dependencies
 
     Add the following to `infrastructure/package.json`:
+
     - `@aws-cdk/some-package`
     - ...
 
@@ -80,15 +87,41 @@ description: Derive a new skill from changes made in a template instance
     Make sure the libraries are in place.
 
     Copy the files from `assets/lib/` into the corresponding folders.
-    
+
     ## Architecture Change
 
     Make sure the architecture is ready.
 
-    In `infrastructure/lib/app-stack.ts`, `X` has to be imported and `Y` instantiated.
+    In `infrastructure/lib/app-stack.ts`, `X` has to be imported and `Y` instantiated:
 
-    In the frontend, `X` has to be loaded `onMount` of every page.
+    ```typescript
+    ...
+    import {X} from ... /* NEW */
     
+    // ... instantiated modules
+    // Y provides ... /* NEW */
+    const y = new Y(); /* NEW */
+    ```
+    ````
+
+    In the frontend, `X` has to be loaded `onMount` of every page:
+
+    ```typescript
+    <script lang="ts">
+        ...
+        onMount(async () => {
+            ...
+            // load X to ... /* NEW */
+            X.load() /* NEW */
+        });
+        ...
+    </script>
+    ```
+
+    If you are just inserting lines into an existing contiguous block, use `/* NEW */` at the end of the line. If you are instructing the user to insert an entire new block or function, you do not need to add the `NEW` tag on every line.
+
+    The new assets and the diffs in SKILL.md need enough comments/documentation so that developers and agents can understand them.
+
     ## Create a new <Feature Expression>
 
     Use `assets/examples/<backend-part>` as template for the new feature in the backend.
@@ -96,10 +129,9 @@ description: Derive a new skill from changes made in a template instance
     Use `assets/examples/<frontend-part>` as template for the new feature in the backend.
 
     Make sure you add it to `infrastructure/<infrastructure-file>` as `X`.
-    ```
 
 9.  **Verify the Derived Skill**
-    Run the @instantiate-template.md workflow again to generate a *fresh* test instance (`../levity-instances/<TEST_SKILL_SLUG>`).
+    Run the @instantiate-template.md workflow again to generate a _fresh_ test instance (`../levity-instances/<TEST_SKILL_SLUG>`).
     Then, instruct that fresh instance to apply your newly derived skill by following the `SKILL.md`. Ensure that Cookiecutter correctly unpacked the parametrized placeholders in the `assets/` folder and that the integration works seamlessly.
 
 10. **Cleanup**

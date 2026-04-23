@@ -1,14 +1,14 @@
 {
-  "project_name": "Tool-Set Project",
+  "project_name": "Levity Project",
   "project_slug": "@@ cookiecutter.project_name.lower().replace(' ', '-') @@",
   "package_name": "@@ cookiecutter.project_slug.replace('-', '_') @@",
-  "project_description": "A Tool-Set application.",
+  "project_description": "A Levity based application.",
   "author": "Wulf Data Engineering GmbH",
   "author_email": "christoph@wulf.technology",
   "license": ["MIT", "BSD-3-Clause", "GPL-3.0-only", "Apache-2.0", "empty"],
   "copyright_initial_year": "@= now 'utc', '%Y' =@",
   "default_region": "eu-central-1",
-  "domain_name": "levity.wulf.technology",
+  "domain_name": "@@ cookiecutter.project_slug @@.wulf.technology",
 
   "email_sender_address": "no-reply",
   "email_sender_name": "@@ cookiecutter.project_name @@",
@@ -34,9 +34,9 @@
     "copyright_initial_year": "Initial year for copyright statement",
     "domain_name": "FQDN of your application in production. Envs. like staging will be subdomains of this domain.",
 
-    "email_sender_address": "Email address part before @@@ cookiecutter.domain_name ] used as sender for outgoing mails (e.g. password resets).",
+    "email_sender_address": "Email address part before @ used as sender for outgoing mails (e.g. password resets).",
     "email_sender_name": "Readable name used as sender for outgoing mails",
-    "email_replyto": "Reply-To email address part before @@@ cookiecutter.domain_name ] for outgoing mails",
+    "email_replyto": "Reply-To email address part before @ for outgoing mails",
     "test_user_email": "Email for initial test user in development",
     "test_user_password": "Initial password for the test user",
     "default_region": "Default AWS region for the project"

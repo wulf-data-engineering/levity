@@ -5,14 +5,6 @@ description: Develop and test features in the frontend
 
 ## Concepts
 
-### Localization (I18n)
-
-If you introduce new end-user texts or messages, you **MUST** add them directly to the base `frontend/messages/en.json` file.
-Additionally, you **MUST** translate these new texts and add them to all other available language files in `frontend/messages/` (e.g., `de.json`) using your translation capabilities.
-Always use the `m.*` imports from `$lib/paraglide/messages.js` instead of hardcoded strings in the UI components.
-
-### Svelte
-
 The stack uses Svelte 5.
 
 The stack uses static site generation.
@@ -24,6 +16,8 @@ Use placeholder content while loading data.
 The stack uses https://shadcn-svelte.com/ components for UI.
 
 The stack uses storybook to display styling & usage of shadcn/svelte and derived components.
+
+## Development
 
 Add or change pages and layouts in `frontend/src/routes/`.
 
@@ -56,14 +50,27 @@ Run `npm run test:unit` during development.
 Consult @../workflows/run-locally.md to test the changes in the browser.
 to test the changes in the browser.
 
-## Tests
+### Localization (I18n)
+
+If you introduce new end-user texts or messages, you **MUST** add them directly to the base `frontend/messages/en.json` file.
+Additionally, you **MUST** translate these new texts and add them to all other available language files in `frontend/messages/` (e.g., `de.json`) using your translation capabilities.
+Always use the `m.*` imports from `$lib/paraglide/messages.js` instead of hardcoded strings in the UI components.
+
+### Testing
 
 **CRITICAL**: You **MUST** write unit or integration tests for any newly added feature or component. Do not finish a task without providing corresponding test coverage.
 If there are existing unit or end-to-end tests, extend or update them.
 **CRITICAL**: You **MUST** write the test for a new pure function together with the function itself.
 **CRITICAL**: You are highly encouraged to add descriptive comments to every function, component, or UI element that has more than 3 lines of code.
 
-## MCP Tools
+#### Browser Agent Testing Guidelines
+
+When testing this frontend using an automated browser agent (e.g., Anthropic's computer use or typical browser toolchains), you **MUST** follow these heuristics to avoid UI state collisions:
+
+1. **Clear Prefilled Fields**: Some login forms (specifically Email and Password fields) may automatically load securely prefilled values locally. Directly sending type/fill commands will **append** text (e.g., `@@cookiecutter.test_user_email@@`), causing authentications to fail. You MUST completely clear these input fields utilizing your browser selection tools (e.g., highlighting and deleting, or `Ctrl+A`/`Cmd+A` -> `Backspace`) prior to sending new keystrokes.
+2. **Handle OTP/Confirmation Inputs**: The confirmation code input UI uses complicated slots that often cause issues with automated typing. Therefore, you should **keep the currently prefilled value** in the OTP boxes unconditionally. Do not attempt to retype or override the OTP input during browser flows.
+
+### MCP Tools
 
 The `svelte` MCP server is available to assist with Svelte 5 and SvelteKit development.
 
@@ -76,7 +83,7 @@ The `context7` MCP server is available for general frontend library documentatio
 
 ## Browser Agent Testing Guidelines
 
-When testing this frontend using an automated browser agent (e.g., Anthropic's computer use or typical browser toolchains), you **MUST** follow these heuristics to avoid UI state collisions:
+When testing this frontend using an automated browser agent, you **MUST** follow these heuristics to avoid UI state collisions:
 
 1. **Clear Prefilled Fields**: Some login forms (specifically Email and Password fields) may automatically load securely prefilled values locally. Directly sending type/fill commands will **append** text (e.g., `@@cookiecutter.test_user_email@@`), causing authentications to fail. You MUST completely clear these input fields utilizing your browser selection tools (e.g., highlighting and deleting, or `Ctrl+A`/`Cmd+A` -> `Backspace`) prior to sending new keystrokes.
 2. **Handle OTP/Confirmation Inputs**: The confirmation code input UI uses complicated slots that often cause issues with automated typing. Therefore, you should **keep the currently prefilled value** in the OTP boxes unconditionally. Do not attempt to retype or override the OTP input during browser flows.
