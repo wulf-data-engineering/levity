@@ -42,22 +42,21 @@ jobs:
             author_email="git@hub.actions" \
             default_region="us-west-2" \
             domain_name="foo.bar" \
-            hosted_zone_id="undefined" \
-            staging_hosted_zone_id="undefined" \
-            email_sender_address="no-reply@foo.bar" \
+            email_sender_address="reply" \
             email_sender_name="Email Sender Name" \
-            email_replyto="reply@foo.bar" \
+            email_replyto="reply" \
             test_user_email="test@hub.actions" \
             test_user_password="Test456$"
       - name: Verify template contains no default values
         run: |
           python scripts/check_defaults.py --template template/cookiecutter.json --generated test-instance \
-            -c project_slug "tool-set-project" \
-            -c package_name "tool_set_project" \
-            -c email_sender_address "no-reply@levity.wulf.technology" \
-            -c email_sender_name "Tool-Set Project" \
-            -c email_replyto "no-reply@levity.wulf.technology" \
-            --ignore license hosted_zone_id staging_hosted_zone_id
+            -c project_slug "Levity-project" \
+            -c package_name "levity_project" \
+            -c domain_name "levity-project.wulf.technology" \
+            -c email_sender_address "no-reply" \
+            -c email_sender_name "Levity Project" \
+            -c email_replyto "no-reply" \
+            --ignore license
       - name: Generate test template instance
         run: |
           # Overwrite defaults to make sure defaults are not part of the seeded template due to copy & paste
