@@ -1,8 +1,8 @@
 {
-  "project_name": "Tool-Set Project",
+  "project_name": "Levity Project",
   "project_slug": "@@ cookiecutter.project_name.lower().replace(' ', '-') @@",
   "package_name": "@@ cookiecutter.project_slug.replace('-', '_') @@",
-  "project_description": "A Tool-Set application.",
+  "project_description": "A Levity based application.",
   "author": "Wulf Data Engineering GmbH",
   "author_email": "christoph@wulf.technology",
   "license": ["MIT", "BSD-3-Clause", "GPL-3.0-only", "Apache-2.0", "empty"],
