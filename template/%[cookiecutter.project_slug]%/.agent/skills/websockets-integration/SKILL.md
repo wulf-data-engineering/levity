@@ -75,7 +75,7 @@ In `docker-compose.yml`, add the `websocket-mock` service so that local endpoint
 ```yaml
   websocket-mock:
     image: ghcr.io/wulf-data-engineering/levity-websocket-mock:latest
-    container_name: %[ cookiecutter.project_slug ]%-websocket-mock
+    container_name: @@ cookiecutter.project_slug @@-websocket-mock
     ports:
       - "${WEBSOCKET_MOCK_PORT:-3001}:3001"
     extra_hosts:
@@ -113,7 +113,7 @@ Create the `websocketConnectionsTable` inside the class:
     });
 
     const websocketConnectionsTableParam = new ssm.StringParameter(this, "WebsocketConnectionsTableParam", {
-      parameterName: '/%[ cookiecutter.project_slug ]%/websocket-connections-table-name',
+      parameterName: '/@@ cookiecutter.project_slug @@/websocket-connections-table-name',
       stringValue: websocketConnectionsTable.tableName,
     });
 ```
@@ -240,7 +240,7 @@ const processQueue = new sqs.Queue(this, 'ProcessQueue', {
 });
 
 const processQueueUrlParam = new ssm.StringParameter(this, 'ProcessQueueUrlParam', {
-    parameterName: '/%[ cookiecutter.project_slug ]%/process-queue-url',
+    parameterName: '/@@ cookiecutter.project_slug @@/process-queue-url',
     stringValue: processQueue.queueUrl,
 });
 
