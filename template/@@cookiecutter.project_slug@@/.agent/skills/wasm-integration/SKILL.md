@@ -98,3 +98,8 @@ You need a WASM Rust project within `frontend-wasm/` and a corresponding fronten
 Follow the examples located in `assets/examples/` to see how the connection is made:
 - `assets/examples/frontend-wasm/`: An example high-performance Rust WASM project setup (`markdown-parser`), along with the root README.
 - `assets/examples/frontend-markdown-route`: An example Svelte page showcasing how to natively load, bind to, and trigger the compiled WASM logic `onMount`.
+
+## Verification (CRITICAL)
+
+**Always verify your implementations against this skill's exact examples.** 
+You are strongly encouraged to check your implementation step-by-step against the instructions provided here. Do not pass a new feature based on this skill over to the user without making sure it works locally. Test the integration end-to-end (e.g. compiling the WASM and verifying it runs in the frontend) before completing your task.
