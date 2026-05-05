@@ -20,6 +20,11 @@ interface ApiProps {
  * Sets up the API Gateway with a resource /api as entrypoint for CloudFront.
  *
  * Sets up the API Lambda functions of the backend and routes them.
+ * 
+ * **WARNING:** This construct is skipped in local development environments (e.g., `cdklocal` when `deploymentConfig.aws === false`). 
+ * Therefore, you MUST NOT define background workers (like SQS consumers, EventBridge targets, or cron jobs) in this file.
+ * Only define Lambdas here that are strictly triggered by API Gateway (e.g., `backendLambdaApi` or Protocol Buffer based endpoints).
+ * Background workers must be defined in `backend.ts` to ensure they are properly deployed and mapped locally.
  */
 export class Api extends Construct {
   public readonly gateway: apigateway.RestApi;

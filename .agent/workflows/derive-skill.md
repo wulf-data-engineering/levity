@@ -130,6 +130,11 @@ description: Derive a new skill from changes made in a template instance
 
     Make sure you add it to `infrastructure/<infrastructure-file>` as `X`.
 
+    ## Verification (CRITICAL)
+
+    **Always verify your implementations against this skill's exact examples.** 
+    You are strongly encouraged to check your implementation step-by-step against the instructions provided here. Do not pass a new skill-based feature over to the user without making sure it works locally. Test the integration end-to-end to ensure it flows correctly before completing your task.
+
 9.  **Verify the Derived Skill**
     Run the @instantiate-template.md workflow again to generate a _fresh_ test instance (`../levity-instances/<TEST_SKILL_SLUG>`).
     Then, instruct that fresh instance to apply your newly derived skill by following the `SKILL.md`. Ensure that Cookiecutter correctly unpacked the parametrized placeholders in the `assets/` folder and that the integration works seamlessly.

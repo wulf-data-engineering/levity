@@ -47,6 +47,8 @@
     "**/.idea/**",
     "**/.git/**",
     "**/build/**",
+    "**/target/**",
+    "**/.svelte-kit/**",
     "**/*.wasm",
     "**/*.mjs",
     "**/Cargo.lock",
