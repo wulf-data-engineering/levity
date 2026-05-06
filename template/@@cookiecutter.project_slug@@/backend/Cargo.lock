@@ -560,6 +560,7 @@ dependencies = [
  "expectorate",
  "lambda_http",
  "lambda_runtime",
+ "once_cell",
  "prost",
  "prost-build",
  "prost-types",

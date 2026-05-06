@@ -88,21 +88,16 @@ fn verify_not_empty(data: &SignUpData) -> Result<(), Error> {
     }
 }
 
-async fn get_table_name(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/@@ cookiecutter.project_slug @@/users-table",
-    )
-    .await
-    .expect("SSM parameter for users-table must be set")
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     backend::shared::lambda::init_logger();
 
     let config = load_aws_config().await;
-    let table_name = get_table_name(&config).await;
+    let table_name = backend::shared::aws_config::SsmParameter::new(
+        &config,
+        "/@@ cookiecutter.project_slug @@/users-table",
+    );
 
     let client = Client::new(&config);
     let repo = backend::shared::users::UserRepo::new(client, table_name);
@@ -137,7 +132,8 @@ mod tests {
 
         let shared_config = backend::shared::aws_config::load_aws_config_for_mock(&server).await;
         let client = aws_sdk_dynamodb::Client::new(&shared_config);
-        let repo = backend::shared::users::UserRepo::new(client, "users".to_string());
+        let table_name = backend::shared::aws_config::SsmParameter::new(&shared_config, "users");
+        let repo = backend::shared::users::UserRepo::new(client, table_name);
 
         let sign_up_data = serde_json::json!({
             "first_name": "Test",

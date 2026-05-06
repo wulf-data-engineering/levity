@@ -12,7 +12,7 @@ pub use protocols::*;
 #[derive(Clone)]
 struct AppState {
     client: Client,
-    user_pool_id: String,
+    user_pool_id: backend::shared::aws_config::SsmParameter,
 }
 
 ///
@@ -32,14 +32,16 @@ async fn main() -> Result<(), Error> {
     
     let client = Client::new(&shared_cfg);
     
-    let user_pool_id = get_user_pool_id(&shared_cfg).await;
+    #[cfg(not(debug_assertions))]
+    let user_pool_id = backend::shared::aws_config::SsmParameter::new(
+        &shared_cfg,
+        "/@@ cookiecutter.project_slug @@/user-pool-id",
+    );
 
-    tracing::info!("Using user pool id: {:#?}", user_pool_id);
-
-    let state = AppState {
-        client,
-        user_pool_id,
-    };
+    #[cfg(debug_assertions)]
+    let user_pool_id = backend::shared::aws_config::SsmParameter::fixed("local_userPool");
+    
+    let state = AppState { client, user_pool_id };
 
     // Pass state into the handler via a cloning closure
     run(service_fn(move |req| {
@@ -59,7 +61,7 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
     let resp = state
         .client
         .describe_user_pool()
-        .user_pool_id(&state.user_pool_id)
+        .user_pool_id(state.user_pool_id.get().await.map_err(|e| anyhow::anyhow!("Failed to get user pool id: {}", e))?)
         .send()
         .await?;
 
@@ -90,20 +92,7 @@ async fn get_password_policy(state: &AppState) -> Result<PasswordPolicy> {
     })
 }
 
-#[cfg(debug_assertions)]
-async fn get_user_pool_id(_config: &aws_config::SdkConfig) -> String {
-    "local_userPool".to_string()
-}
 
-#[cfg(not(debug_assertions))]
-async fn get_user_pool_id(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/@@ cookiecutter.project_slug @@/user-pool-id",
-    )
-    .await
-    .expect("SSM parameter for user-pool-id must be set")
-}
 
 #[cfg(test)]
 mod tests {
@@ -148,7 +137,7 @@ mod tests {
         let client = aws_sdk_cognitoidentityprovider::Client::new(&shared_config);
         let app_state = AppState {
             client,
-            user_pool_id: "test-pool".to_string(),
+            user_pool_id: backend::shared::aws_config::SsmParameter::fixed("test-pool"),
         };
 
         let result = get_password_policy(&app_state).await.unwrap();
@@ -191,7 +180,7 @@ mod tests {
         let client = aws_sdk_cognitoidentityprovider::Client::new(&shared_config);
         let app_state = AppState {
             client,
-            user_pool_id: "test-pool".to_string(),
+            user_pool_id: backend::shared::aws_config::SsmParameter::fixed("test-pool"),
         };
 
         let result = get_password_policy(&app_state).await.unwrap();
