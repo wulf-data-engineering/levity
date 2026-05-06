@@ -17,11 +17,11 @@ pub type User = Versioned<UserData>;
 #[derive(Clone)]
 pub struct UserRepo {
     client: Client,
-    table_name: String,
+    table_name: crate::shared::aws_config::SsmParameter,
 }
 
 impl UserRepo {
-    pub fn new(client: Client, table_name: String) -> Self {
+    pub fn new(client: Client, table_name: crate::shared::aws_config::SsmParameter) -> Self {
         Self { client, table_name }
     }
 
@@ -40,7 +40,7 @@ impl UserRepo {
 
         self.client
             .put_item()
-            .table_name(&self.table_name)
+            .table_name(&self.table_name.get().await?)
             .set_item(Some(item_map))
             .condition_expression("attribute_not_exists(pk)")
             .send()
@@ -53,7 +53,7 @@ impl UserRepo {
         let resp = self
             .client
             .get_item()
-            .table_name(&self.table_name)
+            .table_name(&self.table_name.get().await?)
             .key(
                 "pk",
                 aws_sdk_dynamodb::types::AttributeValue::S(username.to_string()),
@@ -72,7 +72,7 @@ impl UserRepo {
         let resp = self
             .client
             .query()
-            .table_name(&self.table_name)
+            .table_name(&self.table_name.get().await?)
             .index_name("email-index")
             .key_condition_expression("email = :email")
             .expression_attribute_values(
@@ -104,7 +104,7 @@ impl UserRepo {
 
         self.client
             .put_item()
-            .table_name(&self.table_name)
+            .table_name(&self.table_name.get().await?)
             .set_item(Some(item_map))
             .condition_expression("data_version = :version")
             .expression_attribute_values(
@@ -120,7 +120,7 @@ impl UserRepo {
     pub async fn delete(&self, username: String, version: u16) -> Result<(), anyhow::Error> {
         self.client
             .delete_item()
-            .table_name(&self.table_name)
+            .table_name(&self.table_name.get().await?)
             .key("pk", aws_sdk_dynamodb::types::AttributeValue::S(username))
             .condition_expression("data_version = :version")
             .expression_attribute_values(
@@ -152,7 +152,7 @@ mod tests {
 
         let shared_config = crate::shared::aws_config::load_aws_config_for_mock(&server).await;
         let client = aws_sdk_dynamodb::Client::new(&shared_config);
-        let repo = UserRepo::new(client, "users".to_string());
+        let repo = UserRepo::new(client, crate::shared::aws_config::SsmParameter::fixed("users"));
 
         let user_data = UserData {
             username: "test_user".to_string(),
@@ -189,7 +189,7 @@ mod tests {
 
         let shared_config = crate::shared::aws_config::load_aws_config_for_mock(&server).await;
         let client = aws_sdk_dynamodb::Client::new(&shared_config);
-        let repo = UserRepo::new(client, "users".to_string());
+        let repo = UserRepo::new(client, crate::shared::aws_config::SsmParameter::fixed("users"));
 
         let result = repo.read("test_user").await;
         assert!(result.is_ok());

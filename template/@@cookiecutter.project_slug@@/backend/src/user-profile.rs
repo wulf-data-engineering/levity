@@ -19,7 +19,10 @@ async fn main() -> Result<(), Error> {
     backend::shared::lambda::init_logger();
 
     let config = load_aws_config().await;
-    let table_name = get_table_name(&config).await;
+    let table_name = backend::shared::aws_config::SsmParameter::new(
+        &config,
+        "/@@ cookiecutter.project_slug @@/users-table",
+    );
 
     let client = Client::new(&config);
     let repo = backend::shared::users::UserRepo::new(client, table_name);
@@ -56,14 +59,7 @@ async fn function_handler(req: Request, state: AppState) -> Result<Response<Body
     write_response(&profile, &req)
 }
 
-async fn get_table_name(config: &aws_config::SdkConfig) -> String {
-    backend::shared::aws_config::get_ssm_parameter(
-        config,
-        "/@@ cookiecutter.project_slug @@/users-table",
-    )
-    .await
-    .expect("SSM parameter for user table must be set")
-}
+
 
 #[cfg(any(debug_assertions, test))]
 async fn ensure_test_user_profile(state: &AppState) -> Result<(), Error> {
@@ -128,7 +124,8 @@ mod tests {
 
         let shared_config = backend::shared::aws_config::load_aws_config_for_mock(&server).await;
         let client = aws_sdk_dynamodb::Client::new(&shared_config);
-        let repo = backend::shared::users::UserRepo::new(client, "users".to_string());
+        let table_name = backend::shared::aws_config::SsmParameter::fixed("users");
+        let repo = backend::shared::users::UserRepo::new(client, table_name);
         let state = AppState { repo };
 
         // Create a dummy JWT

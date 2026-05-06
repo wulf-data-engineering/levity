@@ -74,7 +74,7 @@ async fn load_aws_config_for_endpoint(endpoint: Option<String>) -> SdkConfig {
 }
 
 ///
-/// Unit test can use this loader to get default credentials and using given mock server.
+/// Unit tests can use this loader to get default credentials and using given mock server.
 ///
 /// ```
 /// use wiremock::matchers::{method, path, header};
@@ -98,6 +98,58 @@ async fn load_aws_config_for_endpoint(endpoint: Option<String>) -> SdkConfig {
 #[cfg(any(debug_assertions, test))]
 pub async fn load_aws_config_for_mock(mock_server: &wiremock::MockServer) -> SdkConfig {
     load_aws_config_for_endpoint(Some(mock_server.uri())).await
+}
+
+
+/// This is a wrapper around an SSM parameter that caches the value in release mode on first access,
+/// but always fetches the freshest value in dev/debug mode (to survive localstack redeployments).
+#[derive(Clone)]
+pub enum SsmParameter {
+    Aws {
+        config: SdkConfig,
+        name: String,
+        value: std::sync::Arc<tokio::sync::OnceCell<String>>,
+    },
+    #[cfg(any(debug_assertions, test))]
+    FixedSsmValue(String),
+}
+
+impl SsmParameter {
+    pub fn new(config: &SdkConfig, name: impl Into<String>) -> Self {
+        Self::Aws {
+            config: config.clone(),
+            name: name.into(),
+            value: std::sync::Arc::new(tokio::sync::OnceCell::new()),
+        }
+    }
+
+    #[cfg(any(debug_assertions, test))]
+    pub fn fixed(value: impl Into<String>) -> Self {
+        Self::FixedSsmValue(value.into())
+    }
+
+    /// Gets the value of the SSM parameter.
+    pub async fn get(&self) -> anyhow::Result<String> {
+        match self {
+            Self::Aws { config, name, value } => {
+                #[cfg(not(any(debug_assertions, test)))]
+                {
+                    let val = value.get_or_try_init(|| async {
+                        get_ssm_parameter(config, name).await
+                    }).await?;
+                    Ok(val.clone())
+                }
+                #[cfg(any(debug_assertions, test))]
+                {
+                    let _ = value; // Avoid unused field warning
+                    // In debug/test, always fetch fresh to survive localstack restarts
+                    get_ssm_parameter(config, name).await
+                }
+            }
+            #[cfg(any(debug_assertions, test))]
+            Self::FixedSsmValue(val) => Ok(val.clone()),
+        }
+    }
 }
 
 /// Helper to pull strings from AWS Systems Manager Parameter Store
