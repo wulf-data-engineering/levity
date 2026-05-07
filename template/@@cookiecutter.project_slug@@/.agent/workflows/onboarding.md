@@ -14,23 +14,23 @@ Run command exactly to check for missing requirements:
 // turbo-all
 
 ```bash
-echo "git" && \ # mac: brew install git; linux: sudo apt install git; win: winget install Git.Git
+echo "git" && \
 git --version && \
-echo "cargo" && \ # mac: brew install rustup; linux: curl https://sh.rustup.rs -sSf | sh; win: winget install Rustlang.Rustup
+echo "cargo" && \
 cargo --version && \
-echo "cargo lambda" && \ # cargo install cargo-lambda
+echo "cargo lambda" && \
 cargo lambda --version && \ # Should be above 1.9
-echo "cargo nextest" && \ # cargo install cargo-nextest --locked
+echo "cargo nextest" && \
 cargo nextest --version && \
-echo "npm" && \ # mac: brew install node; linux: sudo apt install nodejs npm; win: winget install OpenJS.NodeJS
+echo "npm" && \
 npm --version && \
-echo "docker" && \ # mac: brew install --cask docker; linux: sudo apt install docker.io; win: winget install Docker.DockerDesktop
+echo "docker" && \
 docker --version && \
 echo "docker compose" && \
 docker compose version && \
-echo "aws" && \ # mac: brew install awscli; linux: sudo apt install awscli; win: winget install Amazon.AWSCLI
-aws --version &&  \
-echo "protoc" && \ # mac: brew install protobuf; linux: sudo apt install protobuf-compiler; win: winget install protobuf
+echo "aws" && \
+aws --version && \
+echo "protoc" && \
 protoc --version && \
 echo "done"
 ```
@@ -46,6 +46,17 @@ If there are missing dependencies:
 - Add tasks to install missing dependencies to the plan
 - State which you can and will install
 - State in detail which need to be installed manually and how
+
+| Tool          | mac                                  | linux                                | win                                  |
+| ------------- | ------------------------------------ | ------------------------------------ | ------------------------------------ |
+| git           | brew install git                     | sudo apt install git                 | winget install Git.Git               |
+| cargo         | brew install rustup                  | curl https://sh.rustup.rs -sSf \| sh | winget install Rustlang.Rustup       |
+| cargo lambda  | cargo install cargo-lambda           | cargo install cargo-lambda           | cargo install cargo-lambda           |
+| cargo nextest | cargo install cargo-nextest --locked | cargo install cargo-nextest --locked | cargo install cargo-nextest --locked |
+| npm           | brew install node                    | sudo apt install nodejs npm          | winget install OpenJS.NodeJS         |
+| docker        | brew install --cask docker           | sudo apt install docker.io           | winget install Docker.DockerDesktop  |
+| aws           | brew install awscli                  | sudo apt install awscli              | winget install Amazon.AWSCLI         |
+| protoc        | brew install protobuf                | sudo apt install protobuf-compiler   | winget install protobuf              |
 
 # Git Repo
 

@@ -40,3 +40,8 @@ The source code for the generated project lives in `template/`.
 
 The `template/` directory contains the source for a **Levity Application**.
 Even when working on the template repo itself, you must understand the architecture and rules of the application it generates.
+
+## .env
+
+Check if there is a .env file using `cat .env` (it is in .gitignore and derived from the committed .env.example).
+If that's the case, use the ports defined in that file.
