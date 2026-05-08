@@ -36,8 +36,15 @@ This application is built to be polyglot.
 - Frontend texts go into `frontend/messages/<lang>.json` using ParaglideJS format.
 - Backend texts (like emails/notifications) go into `backend/locales/<lang>.yml` using rust-i18n format.
 
-## MCP Tools
+## MCP Usage
 
-The `github` MCP server is available to assist with repository management.
+Prefer MCP usage over command line tools if MCP supports the intended action.
+E.g. looking into a Github PR is easily done with Github MCP. It doesn't require usage of `gh` which might need manual approval by the developer.
+Other examples for Github are search issues, create comments, or manage pull requests.
+Use `gh` just for actions not supported by the MCP like repository configuration.
+That applies to all MCP servers.
 
-- Use it to search issues, create comments, or manage pull requests if relevant to the task.
+## .env
+
+Check if there is a .env file using `cat .env` (it is in .gitignore and derived from the committed .env.example).
+If that's the case, use the ports defined in that file.
