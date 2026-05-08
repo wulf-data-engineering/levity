@@ -41,7 +41,16 @@ The source code for the generated project lives in `template/`.
 The `template/` directory contains the source for a **Levity Application**.
 Even when working on the template repo itself, you must understand the architecture and rules of the application it generates.
 
-## .env
+## Building and Test
 
-Check if there is a .env file using `cat .env` (it is in .gitignore and derived from the committed .env.example).
-If that's the case, use the ports defined in that file.
+Never run `npm run build|check` or `cargo update|check` etc. directly in the `template/` sub directories.
+Apply the skill @../skills/template_development/
+If you need to check the code, create a test instance using @../workflows/initiate-template.md.
+
+## MCP Usage
+
+Prefer MCP usage over command line tools if MCP supports the intended action.
+E.g. looking into a Github PR is easily done with Github MCP. It doesn't require usage of `gh` which might need manual approval by the developer.
+Other examples for Github are search issues, create comments, or manage pull requests.
+Use `gh` just for actions not supported by the MCP like repository configuration.
+That applies to all MCP servers.
