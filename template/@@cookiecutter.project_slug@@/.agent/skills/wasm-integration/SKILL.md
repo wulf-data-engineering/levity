@@ -56,6 +56,20 @@ In `infrastructure/lib/constructs/frontend/deployment.ts`, update `tryBundle` to
 
 *(Note: You must adapt the path parameter `<your-wasm-project>` depending on what your wasm component is called).*
 
+## Editor Configuration
+
+If WASM sub-projects are added in `frontend-wasm/`, they are not configured to use the rust-analyzer in VSCode by default.
+Create or extend `.vscode/settings.json` to include the `rust-analyzer.linkedProjects` setting:
+
+```json
+{
+  "rust-analyzer.linkedProjects": [
+    "backend/Cargo.toml",
+    "frontend-wasm/<your-wasm-project>/Cargo.toml"
+  ]
+}
+```
+
 ## CI/CD Workflows
 
 ### Pull Requests & Continuous Deployment
