@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { checkEmail, checkNewPassword, validateNewPassword } from '$lib/validation';
+import {
+	checkEmail,
+	checkNewPassword,
+	validateNewPassword,
+	validateEmail,
+	validatePasswordRepetition,
+	validateName
+} from '$lib/validation';
+// @ts-expect-error - Paraglide generates JS with JSDoc
+import { setLocale } from '$lib/paraglide/runtime';
 
 describe('validation', () => {
 	it('check Emails', async () => {
@@ -53,5 +62,37 @@ describe('validation', () => {
 
 		expect(checkNewPassword('TEST12', simplePolicy)).toBeFalsy();
 		expect(validateNewPassword('TEST12', simplePolicy)).not.toBeNull();
+	});
+
+	/**
+	 * Verify that localized validation error messages are correctly returned.
+	 */
+	it('returns localized error messages', async () => {
+		// Test English locale
+		await setLocale('en');
+
+		expect(validateEmail('')).toBe('Email address is required.');
+		expect(validateEmail('invalid')).toBe('Email address is not valid.');
+
+		expect(validateName('')).toBe('Name is required.');
+		expect(validateName('   ')).toBe('Name is required.');
+		expect(validateName('Alice')).toBeNull();
+
+		expect(validatePasswordRepetition('pass1', 'pass2')).toBe(
+			'Password does not match its repetition.'
+		);
+		expect(validatePasswordRepetition('pass1', 'pass1')).toBeNull();
+
+		const defaultPolicy = {
+			minimumLength: 8,
+			requireUppercase: true,
+			requireLowercase: true,
+			requireNumbers: true,
+			requireSymbols: true
+		};
+		expect(validateNewPassword('', defaultPolicy)).toBe('Password is required.');
+		expect(validateNewPassword('Short1!', defaultPolicy)).toBe(
+			'Password is missing some requirements: 8 characters'
+		);
 	});
 });
