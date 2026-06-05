@@ -24,6 +24,54 @@ where
         .map_err(Into::into)
 }
 
+/// Helper to extract a claim from the authorizer in the request context.
+/// Supports both API Gateway V2 (JWT authorizer) and V1 (Cognito User Pools / custom context).
+pub fn extract_claim_from_authorizer(
+    auth: &aws_lambda_events::event::apigw::ApiGatewayRequestAuthorizer,
+    claim_name: &str,
+) -> Option<String> {
+    // 1. Try V2 JWT claims
+    if let Some(jwt) = &auth.jwt {
+        if let Some(val) = jwt.claims.get(claim_name) {
+            return Some(val.clone());
+        }
+    }
+
+    // 2. Try V1 Cognito claims under fields["claims"]
+    if let Some(claims_val) = auth.fields.get("claims") {
+        if let Some(claim_val) = claims_val.get(claim_name) {
+            if let Some(s) = claim_val.as_str() {
+                return Some(s.to_string());
+            }
+        }
+    }
+
+    // 3. Try flat fields (fallback)
+    if let Some(val) = auth.fields.get(claim_name) {
+        if let Some(s) = val.as_str() {
+            return Some(s.to_string());
+        }
+    }
+
+    // 4. Try V1 Cognito claims under other["claims"] (catch-all fields nested)
+    if let Some(claims_val) = auth.other.get("claims") {
+        if let Some(claim_val) = claims_val.get(claim_name) {
+            if let Some(s) = claim_val.as_str() {
+                return Some(s.to_string());
+            }
+        }
+    }
+
+    // 5. Try flat other (catch-all fields fallback)
+    if let Some(val) = auth.other.get(claim_name) {
+        if let Some(s) = val.as_str() {
+            return Some(s.to_string());
+        }
+    }
+
+    None
+}
+
 /// Gets the sub from the authorizer in the request context.
 #[cfg(not(any(debug_assertions, test)))]
 pub fn get_sub(req: &Request) -> Result<String, Error> {
@@ -31,11 +79,7 @@ pub fn get_sub(req: &Request) -> Result<String, Error> {
     let request_context = req.request_context();
     request_context
         .authorizer()
-        .and_then(|auth| {
-            auth.jwt
-                .as_ref()
-                .and_then(|jwt| jwt.claims.get("sub").cloned())
-        })
+        .and_then(|auth| extract_claim_from_authorizer(auth, "sub"))
         .ok_or_else(|| anyhow!("Missing sub in claims").into())
 }
 
@@ -68,7 +112,7 @@ pub fn get_claims_from_token(token: &str) -> Result<serde_json::Value, Error> {
     use base64::{engine::general_purpose, Engine as _};
     let payload = parts[1];
     let len = payload.len();
-    let padded = if len % 4 != 0 {
+    let padded = if !len.is_multiple_of(4) {
         let pad_len = 4 - (len % 4);
         format!("{}{}", payload, "=".repeat(pad_len))
     } else {
@@ -119,5 +163,119 @@ mod tests {
 
         let got: Foo = serde_json::from_slice(&body_bytes(&resp)).unwrap();
         assert_eq!(got, sample());
+    }
+
+    #[test]
+    fn test_extract_claim_v2() {
+        use aws_lambda_events::event::apigw::ApiGatewayV2httpRequestContext;
+        use serde_json::json;
+
+        let context: ApiGatewayV2httpRequestContext = serde_json::from_value(json!({
+            "authorizer": {
+                "jwt": {
+                    "claims": {
+                        "sub": "test-sub-v2"
+                    }
+                }
+            },
+            "http": {
+                "method": "GET"
+            }
+        }))
+        .unwrap();
+        let auth = context.authorizer.as_ref().expect("authorizer should be present");
+
+        assert_eq!(
+            super::extract_claim_from_authorizer(auth, "sub"),
+            Some("test-sub-v2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_claim_v1_nested() {
+        use aws_lambda_events::event::apigw::ApiGatewayProxyRequestContext;
+        use serde_json::json;
+
+        let context: ApiGatewayProxyRequestContext = serde_json::from_value(json!({
+            "authorizer": {
+                "claims": {
+                    "sub": "test-sub-v1"
+                }
+            },
+            "httpMethod": "GET"
+        }))
+        .unwrap();
+        let auth = &context.authorizer;
+
+        assert_eq!(
+            super::extract_claim_from_authorizer(auth, "sub"),
+            Some("test-sub-v1".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_claim_v1_flat() {
+        use aws_lambda_events::event::apigw::ApiGatewayProxyRequestContext;
+        use serde_json::json;
+
+        let context: ApiGatewayProxyRequestContext = serde_json::from_value(json!({
+            "authorizer": {
+                "sub": "test-sub-flat"
+            },
+            "httpMethod": "GET"
+        }))
+        .unwrap();
+        let auth = &context.authorizer;
+
+        assert_eq!(
+            super::extract_claim_from_authorizer(auth, "sub"),
+            Some("test-sub-flat".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_claim_v2_other_nested() {
+        use aws_lambda_events::event::apigw::ApiGatewayV2httpRequestContext;
+        use serde_json::json;
+
+        let context: ApiGatewayV2httpRequestContext = serde_json::from_value(json!({
+            "authorizer": {
+                "claims": {
+                    "sub": "test-sub-v2-other-nested"
+                }
+            },
+            "http": {
+                "method": "GET"
+            }
+        }))
+        .unwrap();
+        let auth = context.authorizer.as_ref().expect("authorizer should be present");
+
+        assert_eq!(
+            super::extract_claim_from_authorizer(auth, "sub"),
+            Some("test-sub-v2-other-nested".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_claim_v2_other_flat() {
+        use aws_lambda_events::event::apigw::ApiGatewayV2httpRequestContext;
+        use serde_json::json;
+
+        let context: ApiGatewayV2httpRequestContext = serde_json::from_value(json!({
+            "authorizer": {
+                "sub": "test-sub-v2-other-flat"
+            },
+            "http": {
+                "method": "GET"
+            }
+        }))
+        .unwrap();
+        let auth = context.authorizer.as_ref().expect("authorizer should be present");
+
+        assert_eq!(
+            super::extract_claim_from_authorizer(auth, "sub"),
+            Some("test-sub-v2-other-flat".to_string())
+        );
     }
 }
