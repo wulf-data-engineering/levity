@@ -126,6 +126,15 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 
 	const res = await fetch(url, init);
 
+	if (!res) {
+		throw new Error('Request failed: No response received');
+	}
+
+	if (!res.ok) {
+		const text = await res.text();
+		throw new Error(`Request failed with status ${res.status} (${res.statusText}): ${text || 'No response body'}`);
+	}
+
 	if (responseProto) {
 		const resContentType = res.headers.get('content-type') ?? '';
 		if (resContentType.includes('application/json')) {
