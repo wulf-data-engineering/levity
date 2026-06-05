@@ -17,11 +17,14 @@
 		setLocale(lang);
 		document.documentElement.lang = lang;
 	}
+	let hydrated = $state(false);
+
 	onMount(async () => {
 		// If the static splash was injected (only on the fallback file), remove it.
 		document.getElementById('cf-splash')?.remove();
 		document.getElementById('cf-splash-style')?.remove();
 		await auth.configureAuth();
+		hydrated = true;
 	});
 
 	let { children } = $props();
@@ -33,7 +36,9 @@
 
 <Toaster />
 
-{@render children?.()}
+<div data-hydrated={hydrated}>
+	{@render children?.()}
+</div>
 
 <style>
 	:global(.link-button) {

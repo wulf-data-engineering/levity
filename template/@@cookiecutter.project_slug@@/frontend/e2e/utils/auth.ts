@@ -6,6 +6,7 @@ export async function signUpAndSignIn(page: Page) {
   const password = '@@cookiecutter.test_user_password@@';
 
 	await page.goto('/');
+	await page.waitForSelector('[data-hydrated="true"]');
 	await page.locator('#sign-up-link').click();
 
 	// Sign Up
