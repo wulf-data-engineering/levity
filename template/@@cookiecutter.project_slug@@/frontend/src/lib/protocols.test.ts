@@ -14,7 +14,7 @@ describe('protocols', () => {
 			const requestHeaders = new Headers(init!.headers!);
 			sentContentType = requestHeaders.get('content-type');
 			sentBody = init?.body;
-			Promise.resolve({
+			return Promise.resolve({
 				ok: true
 			});
 		}) as never;
@@ -101,7 +101,7 @@ describe('protocols', () => {
 			const requestHeaders = new Headers(init!.headers!);
 			sentContentType = requestHeaders.get('content-type');
 			sentBody = init?.body;
-			Promise.resolve({
+			return Promise.resolve({
 				ok: true
 			});
 		}) as never;
@@ -124,7 +124,7 @@ describe('protocols', () => {
 			sentContentType = requestHeaders.get('content-type');
 			sentContentEncoding = requestHeaders.get('content-encoding');
 			sentBody = init?.body;
-			Promise.resolve({
+			return Promise.resolve({
 				ok: true
 			});
 		}) as never;
@@ -221,6 +221,60 @@ describe('protocols', () => {
 
 		expect(sentAccept).toBe('application/x-protobuf');
 		expect(response).toEqual(responseMessage);
+	});
+
+	it('should throw error on failed request with JSON error body', async () => {
+		const responseHeaders = new Headers();
+		responseHeaders.set('content-type', 'application/json');
+		global.fetch = vi.fn(() =>
+			Promise.resolve({
+				ok: false,
+				status: 500,
+				statusText: 'Internal Server Error',
+				headers: responseHeaders,
+				text: () => Promise.resolve(JSON.stringify({ message: 'Database crash' }))
+			})
+		) as never;
+
+		await expect(
+			protocolRequest<ProtoMock, ProtoMock>('/', { value: 'ping' }, ProtoMock, ProtoMock)
+		).rejects.toThrowError('Request failed with status 500 (Internal Server Error): {"message":"Database crash"}');
+	});
+
+	it('should throw error on failed request with text error body', async () => {
+		const responseHeaders = new Headers();
+		responseHeaders.set('content-type', 'text/plain');
+		global.fetch = vi.fn(() =>
+			Promise.resolve({
+				ok: false,
+				status: 400,
+				statusText: 'Bad Request',
+				headers: responseHeaders,
+				text: () => Promise.resolve('Invalid input format')
+			})
+		) as never;
+
+		await expect(
+			protocolRequest<ProtoMock, ProtoMock>('/', { value: 'ping' }, ProtoMock, ProtoMock)
+		).rejects.toThrowError('Request failed with status 400 (Bad Request): Invalid input format');
+	});
+
+	it('should throw error for command requests if response is not ok', async () => {
+		const responseHeaders = new Headers();
+		responseHeaders.set('content-type', 'text/plain');
+		global.fetch = vi.fn(() =>
+			Promise.resolve({
+				ok: false,
+				status: 403,
+				statusText: 'Forbidden',
+				headers: responseHeaders,
+				text: () => Promise.resolve('')
+			})
+		) as never;
+
+		await expect(
+			protocolCommand<ProtoMock>('/', { value: 'ping' }, ProtoMock)
+		).rejects.toThrowError('Request failed with status 403 (Forbidden): No response body');
 	});
 });
 
