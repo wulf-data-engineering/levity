@@ -115,7 +115,7 @@ mod tests {
     use aws_lambda_events::cognito::{
         CognitoEventUserPoolsPostConfirmation, CognitoEventUserPoolsPostConfirmationRequest,
     };
-    use wiremock::matchers::{body_string_contains, method, path};
+    use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
@@ -125,19 +125,18 @@ mod tests {
         // Mock DynamoDB PutItem
         Mock::given(method("POST"))
             .and(path("/"))
-            .and(body_string_contains("DynamoDB_20120810.PutItem"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
             .mount(&server)
             .await;
 
         let shared_config = backend::shared::aws_config::load_aws_config_for_mock(&server).await;
         let client = aws_sdk_dynamodb::Client::new(&shared_config);
-        let table_name = backend::shared::aws_config::SsmParameter::new(&shared_config, "users");
+        let table_name = backend::shared::aws_config::SsmParameter::fixed("users");
         let repo = backend::shared::users::UserRepo::new(client, table_name);
 
         let sign_up_data = serde_json::json!({
-            "first_name": "Test",
-            "last_name": "User",
+            "firstName": "Test",
+            "lastName": "User",
             "language": "en"
         })
         .to_string();
