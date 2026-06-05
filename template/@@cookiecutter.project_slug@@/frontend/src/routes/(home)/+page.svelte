@@ -86,7 +86,7 @@
 </script>
 
 <Card.Root class="m-auto mt-5 w-full max-w-sm">
-	{#if $currentUser}
+	{#if $currentUser && !loading}
 		<Card.Header>
 			<Card.Title>{m.auth_login_signed_in_title()}</Card.Title>
 			<Card.Description>{m.auth_login_signed_in_desc()}</Card.Description>
@@ -114,7 +114,7 @@
 				{m.auth_login_sign_out_btn()}
 			</Button>
 		</Card.Footer>
-	{:else if $currentUser === null}
+	{:else}
 		<Card.Header>
 			<Card.Title>{m.auth_login_title()}</Card.Title>
 			<Card.Description>{m.auth_login_desc()}</Card.Description>
@@ -163,9 +163,5 @@
 				<a id="sign-up-link" href="/signUp">{m.auth_login_sign_up_link()}</a>
 			</p>
 		</Card.Footer>
-	{:else}
-		<Card.Content>
-			<p>{m.auth_login_loading_text()}</p>
-		</Card.Content>
 	{/if}
 </Card.Root>
