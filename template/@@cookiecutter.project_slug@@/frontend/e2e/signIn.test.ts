@@ -4,6 +4,7 @@ test('sign in', async ({ page }) => {
 	// Given: the home page with sign in box
 
 	await page.goto('/');
+	await page.waitForSelector('[data-hydrated="true"]');
 	await expect(page.locator('h1')).toBeVisible();
 
 	const email = page.locator('#email');

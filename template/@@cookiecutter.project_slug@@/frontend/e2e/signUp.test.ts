@@ -7,6 +7,7 @@ test('sign up', async ({ page, browser }) => {
 	const newEmail = testUserEmail.replace('@', `+e2e-${new Date().getTime()}-confirm@`);
 
 	await page.goto('/');
+	await page.waitForSelector('[data-hydrated="true"]');
 	await expect(page.locator('h1')).toBeVisible();
 
 	const email = page.locator('#email');
