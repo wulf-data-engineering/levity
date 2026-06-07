@@ -48,3 +48,17 @@ That applies to all MCP servers.
 
 Check if there is a .env file using `cat .env` (it is in .gitignore and derived from the committed .env.example).
 If that's the case, use the ports defined in that file.
+
+## AWS CLI & Profile Rules
+
+**CRITICAL**: In this project, all AWS operations (both AWS CLI `aws ...` and AWS CDK `cdk ...`) **MUST** use an explicit `--profile` flag. Never execute AWS commands without a profile.
+
+The standard profile names are:
+- **Staging**: `@@ cookiecutter.project_slug @@-staging`
+- **Production**: `@@ cookiecutter.project_slug @@-production`
+- **Sandbox**: Ask the user for their sandbox profile name (defaults to `@@ cookiecutter.project_slug @@-sandbox` or developer's own name).
+
+Example command:
+```bash
+aws sts get-caller-identity --profile @@ cookiecutter.project_slug @@-staging
+```

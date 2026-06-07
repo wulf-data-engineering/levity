@@ -9,4 +9,7 @@ Agents frequently fail to supply necessary CDK context variables or use the wron
 
 Always navigate to the `infrastructure/` directory before running any `npm` or `cdk` commands.
 
-For Sandbox deployments, ask the user for the AWS profile of the sandbox, pass it to cdk and check that you have included the `-c mode=sandbox` and `-c build=true` flags as defined in the README.
+### Profile Rules for Deployment
+- **Staging**: Always deploy with `--profile @@ cookiecutter.project_slug @@-staging` and `-c environment=staging`.
+- **Production**: Always deploy with `--profile @@ cookiecutter.project_slug @@-production` and `-c environment=production`.
+- **Sandbox**: Ask the user for the sandbox AWS profile name (e.g. `@@ cookiecutter.project_slug @@-sandbox`) before deploying, and pass it via `--profile <profile_name>`. Ensure you include `-c mode=sandbox` and `-c build=true`.

@@ -1,3 +1,4 @@
 welcome_email:
   subject: "Welcome to Levity!"
   body: "Hello %{name}, welcome aboard."
+registration_sandbox_error: "Registration is just supported for %{domain} addresses for now."

@@ -3,6 +3,7 @@ import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as iam from "aws-cdk-lib/aws-iam";
 import { backendLambda } from "./backend-lambda";
 import { DeploymentConfig } from "../../config";
 
@@ -30,10 +31,20 @@ export class Identity extends Construct {
     this.cognitoHandler = backendLambda(this, "CognitoHandlerFunction", {
       deploymentConfig: props.deploymentConfig,
       binaryName: "cognito-handler",
+      environment: {
+        DOMAIN_NAME: props.deploymentConfig.domainName || "",
+      },
     });
 
     props.usersTable.grantReadWriteData(this.cognitoHandler);
     props.usersTableParam.grantRead(this.cognitoHandler);
+
+    this.cognitoHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ses:GetSendQuota"],
+        resources: ["*"],
+      })
+    );
 
     let userPoolEmail: cognito.UserPoolEmail | undefined = undefined;
 
