@@ -1,6 +1,3 @@
-// Initialize rust-i18n macro
-rust_i18n::i18n!("locales", fallback = "en");
-
 /// Extract language from Accept-Language header
 pub fn extact_language_from_header(accept_language: Option<&str>) -> String {
     if let Some(header) = accept_language {
@@ -12,4 +9,9 @@ pub fn extact_language_from_header(accept_language: Option<&str>) -> String {
         }
     }
     "en".to_string()
+}
+
+/// Translate registration sandbox error
+pub fn translate_sandbox_error(domain: &str) -> String {
+    rust_i18n::t!("registration_sandbox_error", domain = domain).to_string()
 }
