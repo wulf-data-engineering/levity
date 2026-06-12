@@ -2,6 +2,8 @@ import { get } from 'svelte/store';
 import { toastError, toastSuccess } from '../toasts';
 import { goto } from '$app/navigation';
 import { authApi } from '$lib/auth';
+// @ts-expect-error - Paraglide generates JS with JSDoc
+import { getLocale } from '$lib/paraglide/runtime';
 
 /**
  * Request a password reset for the given email address using the Cognito API.
@@ -11,7 +13,12 @@ import { authApi } from '$lib/auth';
 export async function requestPasswordReset(email: string) {
 	try {
 		const result = await get(authApi).resetPassword({
-			username: email
+			username: email,
+			options: {
+				clientMetadata: {
+					language: getLocale()
+				}
+			}
 		});
 		switch (result.nextStep.codeDeliveryDetails.deliveryMedium) {
 			case 'EMAIL':

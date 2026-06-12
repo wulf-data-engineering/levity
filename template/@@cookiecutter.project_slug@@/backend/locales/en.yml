@@ -1,4 +1,7 @@
-welcome_email:
-  subject: "Welcome to Levity!"
-  body: "Hello %{name}, welcome aboard."
 registration_sandbox_error: "Registration is just supported for %{domain} addresses for now."
+signup_email:
+  subject: "Confirm your @@ cookiecutter.project_name @@ account"
+  body: "Welcome%{name}! Your verification code is %{code}."
+forgot_password_email:
+  subject: "Reset your @@ cookiecutter.project_name @@ password"
+  body: "Hello%{name}, your verification code to reset your password is %{code}."
