@@ -136,10 +136,6 @@ jobs:
         with:
           workspaces: ./test-instance/backend
           cache-on-failure: true
-      - name: Run cargo check
-        id: check
-        run: cargo check
-        continue-on-error: true
       - name: Run clippy
         id: clippy
         run: cargo clippy
