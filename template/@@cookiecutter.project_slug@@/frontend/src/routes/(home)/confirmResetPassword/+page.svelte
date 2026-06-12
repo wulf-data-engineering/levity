@@ -17,6 +17,8 @@
     import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
     // @ts-expect-error - Paraglide generates JS with JSDoc
     import * as m from '$lib/paraglide/messages.js';
+    // @ts-expect-error - Paraglide generates JS with JSDoc
+    import { getLocale } from '$lib/paraglide/runtime';
 
     let email = $state('');
     let password = $state('');
@@ -55,7 +57,12 @@
             await get(authApi).confirmResetPassword({
                 username: email,
                 newPassword: password,
-                confirmationCode: otp
+                confirmationCode: otp,
+                options: {
+                    clientMetadata: {
+                        language: getLocale()
+                    }
+                }
             });
             toastSuccess(m.auth_confirm_reset_toast_success_title(), m.auth_confirm_reset_toast_success_desc());
             await signIn(email, password);
@@ -66,7 +73,14 @@
                 toastError(m.auth_confirm_reset_toast_failed_title(), m.auth_confirm_reset_toast_failed_desc_wrong_code());
             } else if (err instanceof Error && err.name === 'ExpiredCodeException') {
                 try {
-                    await get(authApi).resetPassword({ username: email });
+                    await get(authApi).resetPassword({
+                        username: email,
+                        options: {
+                            clientMetadata: {
+                                language: getLocale()
+                            }
+                        }
+                    });
                     toastError(
                         m.auth_confirm_reset_toast_sent_title(),
                         m.auth_confirm_reset_toast_sent_desc_expired()

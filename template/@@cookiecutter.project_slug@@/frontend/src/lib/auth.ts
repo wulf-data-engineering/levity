@@ -6,6 +6,8 @@ import type {GetCurrentUserOutput} from 'aws-amplify/auth';
 import type * as Auth from 'aws-amplify/auth';
 import {SignUpData} from '$lib/proto/sign_up_data/sign_up_data';
 import { loadConfig } from './config';
+// @ts-expect-error - Paraglide generates JS with JSDoc
+import { getLocale } from '$lib/paraglide/runtime';
 
 export type Amplify = typeof Amplify;
 export type AuthApi = typeof Auth;
@@ -94,6 +96,9 @@ export async function signUp(
             userAttributes: {
                 email: email
             },
+            clientMetadata: {
+                language: getLocale()
+            },
             autoSignIn
         }
     });
@@ -110,7 +115,8 @@ export async function confirmSignUp(email: string, otp: string, signUpData: Sign
         confirmationCode: otp,
         options: {
             clientMetadata: {
-                sign_up_data: JSON.stringify(signUpData)
+                sign_up_data: JSON.stringify(signUpData),
+                language: getLocale()
             }
         }
     });
