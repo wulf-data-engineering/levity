@@ -87,20 +87,27 @@ export class FrontendDistribution extends Construct {
     // reuse the same S3 Origin for default and immutable asset behaviors
     const s3Origin = origins.S3BucketOrigin.withOriginAccessControl(siteBucket);
 
-    // rewrites pre-rendered /somePath to /somePath.html so S3 can find the object.
+    // rewrites dynamic SPA requests to fallback.html so Svelte can handle client-side routing,
+    // while keeping direct requests to pre-rendered index.html and static files.
     const rewriteFunction = new cloudfront.Function(this, 'RewriteFunction', {
       code: cloudfront.FunctionCode.fromInline(`
         function handler(event) {
           var request = event.request;
           var uri = request.uri;
           
-          // If the URI doesn't have an extension (no dot in the last segment)
-          // and doesn't end with a slash, append .html
-          // e.g., /signUp -> /signUp.html
-          if (!uri.includes('.')) {
-             request.uri += '.html';
+          // If it is the root "/", serve index.html
+          if (uri === '/' || uri === '/index.html') {
+             request.uri = '/index.html';
+             return request;
           }
           
+          // If the request is for an API or asset file, pass it through unchanged
+          if (uri.startsWith('/api/') || uri.startsWith('/_app/') || uri.includes('.')) {
+             return request;
+          }
+          
+          // Otherwise, rewrite to fallback.html for SvelteKit client-side routing
+          request.uri = '/fallback.html';
           return request;
         }
       `),
@@ -111,24 +118,6 @@ export class FrontendDistribution extends Construct {
       certificate,
       domainNames: deploymentConfig.domainName ? [deploymentConfig.domainName] : undefined,
       defaultRootObject: 'index.html',
-
-      // fallback for SPA/Dynamic routes
-      // If S3 returns 403/404 (because rewrite to .html didn't match a static file),
-      // serve fallback.html with a 200 OK status so Svelte can handle client-side routing.
-      errorResponses: [
-        {
-          httpStatus: 403, // S3 often returns 403 for missing keys with OAC
-          responseHttpStatus: 200,
-          responsePagePath: '/fallback.html',
-          ttl: cdk.Duration.minutes(0), // don't cache errors
-        },
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/fallback.html',
-          ttl: cdk.Duration.minutes(0),
-        },
-      ],
 
       // root HTML files -> short cache, rewrite URLs
       defaultBehavior: {
