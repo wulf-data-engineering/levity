@@ -26,8 +26,7 @@ Add descriptive comments to every function, struct, class or construct that has 
 
 During feature development check if deployment workflow needs modifications.
 
-**CRITICAL**: At the end of development run all final checks in the relevant skills (Frontend/Backend) before committing.
-If the user asks for a commit, make sure your ran all the final checks on all changes first.
+**CRITICAL**: Note that formatting is handled automatically by the `pre-commit` hook. Linting and type-checking are automatically enforced by the `pre-push` hook. You do not need to run formatters or linters manually before committing.
 
 ## Internationalization (I18N)
 
