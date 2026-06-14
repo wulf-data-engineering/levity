@@ -2,7 +2,16 @@ import { expect, Page } from '@playwright/test';
 
 export async function signUpAndSignIn(page: Page) {
   const testUserEmail = '@@cookiecutter.test_user_email@@';
-  const email = testUserEmail.replace('@', `+e2e-${new Date().getTime()}-userProfile@`);
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${yy}${mm}${dd}${hh}${min}${ss}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 5);
+  const email = testUserEmail.replace('@', `+e2e-${timestamp}-${randomSuffix}@`);
   const password = '@@cookiecutter.test_user_password@@';
 
 	await page.goto('/');
