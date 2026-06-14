@@ -63,6 +63,12 @@ If there are missing dependencies:
 Check if this repository is a git repository.
 If not mention that in the artifact.
 
+Suggest the developer to run the following command to activate the project's pre-commit and pre-push hooks:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 # MCP servers
 
 Check which MCP servers are already available by inspecting your available tools.

@@ -35,6 +35,12 @@ If not:
   git remote add origin <repo-url>
   ```
 
+Suggest the developer to run the following command to activate the project's pre-commit and pre-push hooks:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## AWS Account Setup
 
 Explain to the user that **two AWS accounts** are required for a proper staging and production separation.

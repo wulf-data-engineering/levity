@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+echo "Running linters on frontend, backend, and infrastructure..."
+
+if [ -d "frontend" ]; then
+    echo "Linting frontend..."
+    npm --prefix frontend run lint
+    npm --prefix frontend run check
+fi
+
+if [ -d "infrastructure" ]; then
+    echo "Linting infrastructure..."
+    # No linting scripts in infrastructure yet
+fi
+
+if [ -d "backend" ]; then
+    echo "Linting backend..."
+    (cd backend && cargo clippy -- -D warnings)
+fi
+
+echo "All linter checks passed!"
+exit 0

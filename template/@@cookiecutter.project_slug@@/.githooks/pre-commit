@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+echo "Running formatters on staged files..."
+
+for FILE in $STAGED_FILES; do
+  # Skip if file was deleted or doesn't exist
+  if [ ! -f "$FILE" ]; then
+    continue
+  fi
+
+  # Frontend files -> Prettier
+  if [[ "$FILE" == frontend/* ]]; then
+    echo "Formatting $FILE..."
+    (cd frontend && npx prettier --ignore-unknown --write "../$FILE")
+    git add "$FILE"
+  
+  # Infrastructure files -> Prettier
+  elif [[ "$FILE" == infrastructure/* ]]; then
+    echo "Formatting $FILE..."
+    (cd infrastructure && npx prettier --ignore-unknown --write "../$FILE")
+    git add "$FILE"
+
+  # Backend files -> cargo fmt
+  elif [[ "$FILE" == backend/* ]] && [[ "$FILE" == *.rs ]]; then
+    echo "Formatting $FILE..."
+    # Extract the path relative to the backend directory
+    REL_PATH="${FILE#backend/}"
+    (cd backend && cargo fmt -- "$REL_PATH")
+    git add "$FILE"
+  fi
+done
+
+echo "Formatters completed."
+exit 0
