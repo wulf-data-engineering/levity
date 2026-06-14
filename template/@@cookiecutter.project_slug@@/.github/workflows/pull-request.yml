@@ -225,20 +225,23 @@ jobs:
         run: |
           npm ci
           npm run gen:proto
-          npm run dev &>/tmp/npm-dev.log &
+          npm run dev -- --host 127.0.0.1 &>/tmp/npm-dev.log &
           NPM_PID=$!
           echo "NPM_PID=$NPM_PID" >> $GITHUB_ENV
           echo "Started npm run dev running on pid $NPM_PID"
-          npx wait-on http://localhost:5173 --timeout 60000
+          FRONTEND_PORT=$(grep -E '^FRONTEND_PORT=' ../.env | cut -d '=' -f2 | tr -d '\r' || echo 5173)
+          FRONTEND_PORT=${FRONTEND_PORT:-5173}
+          npx wait-on http://127.0.0.1:$FRONTEND_PORT --timeout 60000
       - name: Run Playwright tests
         working-directory: frontend/
         run: |
+          PLAYWRIGHT_VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")
           docker run --rm \
             --network host \
-            -v $(pwd):/work \
-            -w /work \
+            -v $(pwd)/..:/work \
+            -w /work/frontend \
             -e CI=true \
-            mcr.microsoft.com/playwright:v1.59.1-noble \
+            mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble \
             npx playwright test
       - name: Upload Playwright test results
         id: upload-playwright

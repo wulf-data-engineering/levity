@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: new URL('../.env', import.meta.url).pathname });
+dotenv.config({ path: new URL('../.env', import.meta.url).pathname, quiet: true });
 
 const chrome = {
 	name: 'chromium',
@@ -36,14 +36,18 @@ export default defineConfig({
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: 'on-first-retry'
+		trace: 'on-first-retry',
+		locale: 'en-US',
+		baseURL: `http://127.0.0.1:${process.env.FRONTEND_PORT || '5173'}`
 	},
-
 	/* Configure projects for major browsers */
 	projects: process.env.CI ? allProjects : [chrome],
-	webServer: {
-		command: process.env.CI ? undefined : 'npm run dev', // prevent starting on CI (will fail in playwright container)
-		port: parseInt(process.env.FRONTEND_PORT || '5173'),
-		reuseExistingServer: true
-	}
+	/* On CI, the server will already be running. */
+	webServer: process.env.CI
+		? undefined
+		: {
+				command: 'npm run dev',
+				port: parseInt(process.env.FRONTEND_PORT || '5173'),
+				reuseExistingServer: true
+			}
 });
