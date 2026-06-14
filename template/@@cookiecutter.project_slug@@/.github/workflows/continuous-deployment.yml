@@ -90,6 +90,9 @@ jobs:
   deploy-staging:
     needs: [build-backend, build-frontend]
     uses: ./.github/workflows/deploy.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       environment: staging
       domain: ${{ vars.DOMAIN_STAGING }}
@@ -99,6 +102,9 @@ jobs:
   deploy-production:
     needs: [deploy-staging]
     uses: ./.github/workflows/deploy.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       environment: production
       domain: ${{ vars.DOMAIN_PRODUCTION }}
