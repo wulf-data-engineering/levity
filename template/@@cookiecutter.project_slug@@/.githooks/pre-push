@@ -10,8 +10,8 @@ if [ -d "frontend" ]; then
 fi
 
 if [ -d "infrastructure" ]; then
-    echo "Linting infrastructure..."
-    # No linting scripts in infrastructure yet
+    echo "Checking infrastructure..."
+    npm --prefix infrastructure run lint
 fi
 
 if [ -d "backend" ]; then
