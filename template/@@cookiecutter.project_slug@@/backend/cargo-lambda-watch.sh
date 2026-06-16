@@ -29,5 +29,10 @@ if [ -n "$PIDS" ]; then
   fi
 fi
 
+BIND_ADDRESS="0.0.0.0"
+if [ "$CI" = "true" ]; then
+  BIND_ADDRESS="127.0.0.1"
+fi
+
 cargo build || exit 1 # Always run this first to ensure that the code compiles and starts fast
-cargo lambda watch -A 0.0.0.0 -P $PORT
+cargo lambda watch -A $BIND_ADDRESS -P $PORT
