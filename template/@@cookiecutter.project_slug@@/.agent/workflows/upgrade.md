@@ -64,7 +64,11 @@ Once all selected PRs are rebased onto the `upgrades-YYYYMMDD` branch, verify th
 
 - **Fix Problems**: If any check, compilation, or test fails due to breaking changes or dependency mismatch, attempt to fix the compatibility issues in the codebase.
 
-## 5. Commit, Push, and PR
+## 5. Rebase again
+
+Fetch latest main and rebase onto origin/main
+
+## 6. Commit, Push, and PR
 
 - If any code changes or fixes were applied to make the upgrades compile or pass tests, commit those fixes to the branch:
   ```bash
