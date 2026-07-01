@@ -1,5 +1,6 @@
 import { compress, uncompress } from 'snappyjs';
 import type { BinaryWriter } from '@bufbuild/protobuf/wire';
+import { getAuthToken } from './auth';
 
 // The protocol fetch methods use this type to describe the encode/decode functions for a message type.
 type ProtoType<T> = {
@@ -110,7 +111,8 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 	}
 
 	const contentType = asJson ? 'application/json' : 'application/x-protobuf';
-
+	const authToken = await getAuthToken();
+	
 	const init: RequestInit = options;
 	if (!init.method) {
 		init.method = body ? 'POST' : 'GET';
@@ -118,6 +120,7 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 	init.headers = {
 		...init.headers,
 		accept: contentType,
+		...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
 		...(body ? { 'content-type': contentType } : {}),
 		...(compressed ? { 'content-encoding': 'snappy' } : {})
 	};

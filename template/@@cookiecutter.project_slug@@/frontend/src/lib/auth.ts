@@ -24,6 +24,17 @@ export const currentUser = writable<CurrentUser>(undefined);
 export const isSignedIn = derived(currentUser, (u) => !!u);
 export const isSignedOut = derived(currentUser, (u) => u === null);
 export const isLoadingUser = derived(currentUser, (u) => u === undefined);
+export const getAuthToken = async () => {
+	const api = get(authApi);
+	if (!api) return undefined;
+	try {
+		const session = await api.fetchAuthSession();
+		return session.tokens?.idToken?.toString();
+	} catch (e) {
+		console.error('[auth] Failed to fetch auth session', e);
+		return undefined;
+	}
+};
 
 let configured = false;
 
