@@ -104,6 +104,7 @@ function rustLambda(scope: Construct, id: string, props: BackendLambdaProps) {
   }
 
   return new lambda.Function(scope, id, {
+    timeout: cdk.Duration.seconds(30),
     ...props,
     functionName: props.functionName || props.binaryName,
     runtime: lambda.Runtime.PROVIDED_AL2023,
@@ -156,6 +157,8 @@ function proxyLambda(scope: Construct, id: string, props: BackendLambdaProps) {
   const port = process.env.BACKEND_PORT || '9000';
   const url = `http://host.docker.internal:${port}/2015-03-31/functions/${lambdaPath}/invocations`;
   return new lambda.Function(scope, id, {
+    timeout: cdk.Duration.seconds(30),
+    ...props,
     functionName: props.functionName || props.binaryName,
     runtime: lambda.Runtime.NODEJS_22_X,
     handler: 'index.handler',
