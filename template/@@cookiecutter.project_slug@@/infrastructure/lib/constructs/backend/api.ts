@@ -45,7 +45,6 @@ export class Api extends Construct {
         cognitoUserPools: [props.userPool],
       },
     );
-    authorizer._attachToApi(this.gateway); // required until some lambda uses it
 
     const passwordPolicyFunction = backendLambdaApi(
       this,
