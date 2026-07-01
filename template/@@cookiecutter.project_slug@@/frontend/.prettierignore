@@ -6,4 +6,7 @@ pnpm-lock.yaml
 /static/
 src/lib/components/ui/
 src/lib/proto/
+src/lib/paraglide/
+src/paraglide/
+project.inlang/
 components.json
