@@ -36,44 +36,45 @@ export const getAuthToken = async () => {
 	}
 };
 
-let configured = false;
-
-
+let configPromise: Promise<void> | null = null;
 
 /**
  * Configure Amplify Auth from /config.json (AWS) or environment variables (dev, defaults to local
  * Cognito mock values).
  * Provides the configured Amplify and Auth namespaces via Svelte stores.
- * Called in onMount of the base layout.
+ * Called in onMount of the base layout or in load functions of authorized routes.
  */
 export async function configureAuth() {
-    if (configured) return;
+	if (configPromise) return configPromise;
 
-    const {userPoolId, userPoolClientId, endpoint} = await loadConfig();
+	configPromise = (async () => {
+		const { userPoolId, userPoolClientId, endpoint } = await loadConfig();
 
-    const importedAmplify: Amplify = (await import('aws-amplify')).Amplify;
-    const importedAuthApi: AuthApi = await import('aws-amplify/auth');
+		const importedAmplify: Amplify = (await import('aws-amplify')).Amplify;
+		const importedAuthApi: AuthApi = await import('aws-amplify/auth');
 
-    importedAmplify.configure(
-        {
-            Auth: {
-                Cognito: {
-                    userPoolId,
-                    userPoolClientId,
-                    userPoolEndpoint: endpoint
-                }
-            }
-        },
-        {ssr: false}
-    );
+		importedAmplify.configure(
+			{
+				Auth: {
+					Cognito: {
+						userPoolId,
+						userPoolClientId,
+						userPoolEndpoint: endpoint
+					}
+				}
+			},
+			{ ssr: false }
+		);
 
-    amplify.set(importedAmplify);
-    authApi.set(importedAuthApi);
+		amplify.set(importedAmplify);
+		authApi.set(importedAuthApi);
 
-    await loadCurrentUser();
+		await loadCurrentUser();
 
-    configured = true;
-    console.log('[auth] Amplify configured', {userPoolId, userPoolClientId, endpoint});
+		console.log('[auth] Amplify configured', { userPoolId, userPoolClientId, endpoint });
+	})();
+
+	return configPromise;
 }
 
 export async function loadCurrentUser() {
