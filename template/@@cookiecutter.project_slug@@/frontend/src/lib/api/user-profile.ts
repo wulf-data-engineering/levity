@@ -11,9 +11,5 @@ export async function loadUserProfile(): Promise<UserProfile> {
         throw new Error('No auth token available');
     }
 
-    return await protocolLoad('/api/user-profile', UserProfile, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+    return await protocolLoad('/api/user-profile', UserProfile);
 }
