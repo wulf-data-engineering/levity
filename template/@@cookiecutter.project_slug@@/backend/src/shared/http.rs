@@ -86,11 +86,22 @@ pub fn get_sub(req: &Request) -> Result<String, Error> {
 /// Gets the sub from the JWT in request's Authorization header (in debug with localstack).
 #[cfg(any(debug_assertions, test))]
 pub fn get_sub(req: &Request) -> Result<String, Error> {
-    req.headers()
-        .get("authorization").or_else(|| req.headers().get("Authorization"))
+    let auth_header = req
+        .headers()
+        .get("authorization")
+        .or_else(|| req.headers().get("Authorization"))
         .and_then(|h| h.to_str().ok())
-        .and_then(|h| get_sub_from_authorization(h).ok())
-        .ok_or_else(|| anyhow!("Missing sub in claims").into())
+        .ok_or_else(|| anyhow!("Missing Authorization header"))?;
+
+    // Robustness: Handle multiple values (some proxies or combined headers may result in commas)
+    for value in auth_header.split(',') {
+        let value = value.trim();
+        if let Ok(sub) = get_sub_from_authorization(value) {
+            return Ok(sub);
+        }
+    }
+
+    Err(anyhow!("Missing sub in claims").into())
 }
 
 /// Extracts the sub from the JWT in given Authorization header (in debug with localstack).
@@ -277,5 +288,27 @@ mod tests {
             super::extract_claim_from_authorizer(auth, "sub"),
             Some("test-sub-v2-other-flat".to_string())
         );
+    }
+
+    #[test]
+    fn test_get_sub_with_multiple_headers() {
+        use lambda_http::http::Request;
+        let payload = serde_json::json!({
+            "sub": "test-sub-multi"
+        })
+        .to_string();
+        use base64::{engine::general_purpose, Engine as _};
+        let encoded_payload = general_purpose::URL_SAFE.encode(payload);
+        let token = format!("header.{}.signature", encoded_payload);
+
+        // Combined header value (simulating multiple headers)
+        let combined_value = format!("Bearer {}, Bearer {}", token, token);
+
+        let request = Request::builder()
+            .header("Authorization", combined_value)
+            .body(lambda_http::Body::Empty)
+            .unwrap();
+
+        assert_eq!(super::get_sub(&request).unwrap(), "test-sub-multi");
     }
 }

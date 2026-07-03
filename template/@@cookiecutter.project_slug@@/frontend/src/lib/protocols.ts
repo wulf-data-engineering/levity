@@ -117,13 +117,40 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 	if (!init.method) {
 		init.method = body ? 'POST' : 'GET';
 	}
-	init.headers = {
-		...init.headers,
-		accept: contentType,
-		...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
-		...(body ? { 'content-type': contentType } : {}),
-		...(compressed ? { 'content-encoding': 'snappy' } : {})
-	};
+
+	// Create a plain object for headers to avoid case-sensitivity issues with duplicates
+	const headers: Record<string, string> = {};
+
+	// Copy existing headers (if any) and normalize keys to lowercase
+	if (init.headers) {
+		if (init.headers instanceof Headers) {
+			init.headers.forEach((value, key) => {
+				headers[key.toLowerCase()] = value;
+			});
+		} else if (Array.isArray(init.headers)) {
+			init.headers.forEach(([key, value]) => {
+				headers[key.toLowerCase()] = value;
+			});
+		} else {
+			Object.entries(init.headers as Record<string, string>).forEach(([key, value]) => {
+				headers[key.toLowerCase()] = value;
+			});
+		}
+	}
+
+	// Add/Override protocol headers
+	headers['accept'] = contentType;
+	if (authToken) {
+		headers['authorization'] = `Bearer ${authToken}`;
+	}
+	if (body) {
+		headers['content-type'] = contentType;
+	}
+	if (compressed) {
+		headers['content-encoding'] = 'snappy';
+	}
+
+	init.headers = headers;
 
 	init.body = body;
 
