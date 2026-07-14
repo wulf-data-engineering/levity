@@ -183,7 +183,7 @@ jobs:
           name: test-instance
           path: ./test-instance
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           token: ${{ github.token }}
           node-version: "24"
@@ -214,7 +214,7 @@ jobs:
         with:
           repo-token: ${{ github.token }}
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           token: ${{ github.token }}
           node-version: "24"
@@ -285,7 +285,7 @@ jobs:
           compose-file: "./test-instance/docker-compose.yml"
           services-log-level: info
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           token: ${{ github.token }}
           node-version: "24"
