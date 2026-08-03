@@ -141,7 +141,7 @@ jobs:
         run: cargo clippy
         continue-on-error: true
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.5
         with:
           tool: cargo-nextest
       - name: Run unit tests
@@ -275,7 +275,7 @@ jobs:
           workspaces: ./test-instance/backend
           cache-on-failure: true
       - name: Install cargo-lambda
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.5
         with:
           tool: cargo-lambda
       - name: Run docker compose
