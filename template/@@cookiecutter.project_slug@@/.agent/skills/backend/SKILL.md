@@ -38,6 +38,23 @@ To get an AWS SDK client, use the backend helper that takes care of aws & locals
 let config = backend::load_aws_config().await;
 ```
 
+### Adding Dependencies
+
+When adding external Rust crates or npm packages for infrastructure, **ALWAYS** use package manager CLI commands instead of manually editing `Cargo.toml` or `package.json`:
+
+```bash
+# Rust backend:
+cargo add <crate-name>
+cargo add <crate-name> --features <feature1,feature2>
+cargo add --dev <crate-name>
+
+# Infrastructure (npm):
+cd infrastructure && npm install <package-name>
+cd infrastructure && npm install -D <package-name>
+```
+
+**CRITICAL**: Do NOT write outdated versions directly into `Cargo.toml` or `infrastructure/package.json`. Always use the CLI to resolve latest versions and keep lockfiles in sync.
+
 ### Localization (I18n)
 
 If you introduce new end-user texts or messages, you **MUST** add them directly to the base `backend/locales/en.yml` file.
