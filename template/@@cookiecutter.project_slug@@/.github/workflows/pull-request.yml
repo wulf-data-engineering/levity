@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: pull-request
+          shared-key: backend-ci
           workspaces: ./backend -> target
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -180,7 +180,7 @@ jobs:
           repo-token: ${{ github.token }}
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: pull-request
+          shared-key: backend-ci
           workspaces: ./backend -> target
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
