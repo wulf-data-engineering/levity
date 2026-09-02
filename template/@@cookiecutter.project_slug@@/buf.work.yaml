@@ -1,0 +1,5 @@
+# Prevents false positive warnings in IDEs.
+# Helps language servers to recognize protocols/buf.yml.
+version: v1
+directories:
+  - protocols

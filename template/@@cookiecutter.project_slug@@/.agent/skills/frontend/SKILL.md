@@ -48,7 +48,20 @@ import { dev } from "$app/environment";
 Run `npm run test:unit` during development.
 
 Consult @../workflows/run-locally.md to test the changes in the browser.
-to test the changes in the browser.
+
+### Adding Dependencies
+
+When adding new npm packages to the frontend, **ALWAYS** use `npm install` instead of manually editing `frontend/package.json`:
+
+```bash
+# Add a runtime dependency:
+cd frontend && npm install <package-name>
+
+# Add a development dependency:
+cd frontend && npm install -D <package-name>
+```
+
+**CRITICAL**: Do NOT manually add outdated versions to `frontend/package.json`. Using `npm install` ensures you get the latest version and keeps `package-lock.json` in sync for CI.
 
 ### Localization (I18n)
 

@@ -23,6 +23,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         if: steps.cache.outputs.cache-hit != 'true'
         with:
+          shared-key: backend-ci
           workspaces: ./backend
           cache-on-failure: true
       - name: Install Protoc

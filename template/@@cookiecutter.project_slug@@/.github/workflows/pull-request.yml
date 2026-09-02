@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: pull-request
+          shared-key: backend-ci
           workspaces: ./backend -> target
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -166,10 +166,6 @@ jobs:
   test-e2e:
     name: Test end-to-end
     runs-on: ubuntu-latest
-    needs:
-      - test-backend
-      - test-frontend
-      - test-infrastructure
     env:
       CI: "true"
     steps:
@@ -180,7 +176,7 @@ jobs:
           repo-token: ${{ github.token }}
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: pull-request
+          shared-key: backend-ci
           workspaces: ./backend -> target
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
@@ -234,17 +230,12 @@ jobs:
           FRONTEND_PORT=$(grep -E '^FRONTEND_PORT=' ../.env | cut -d '=' -f2 | tr -d '\r' || echo 5173)
           FRONTEND_PORT=${FRONTEND_PORT:-5173}
           npx wait-on http://127.0.0.1:$FRONTEND_PORT --timeout 60000
+      - name: Install Playwright browsers and dependencies
+        working-directory: frontend/
+        run: npx playwright install --with-deps
       - name: Run Playwright tests
         working-directory: frontend/
-        run: |
-          PLAYWRIGHT_VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")
-          docker run --rm \
-            --network host \
-            -v $(pwd)/..:/work \
-            -w /work/frontend \
-            -e CI=true \
-            mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble \
-            npx playwright test
+        run: npx playwright test
       - name: Upload Playwright test results
         id: upload-playwright
         if: failure()
