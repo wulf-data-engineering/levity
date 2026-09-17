@@ -15,9 +15,6 @@ on:
         description: "Failed CI workflow run ID (optional; auto-detected if omitted)"
         required: false
         type: string
-  push:
-    branches:
-      - "test-autofix/**"
 
 permissions:
   contents: write
@@ -27,16 +24,17 @@ permissions:
 jobs:
   fix-dependabot:
     name: Fix Dependabot Breaking Changes
-    # Run when triggered manually or via failed dependabot CI
+    # Strictly run only for dependabot PRs on the origin repository
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' || (
+      github.event_name == 'workflow_dispatch' || (
         github.event.workflow_run.conclusion == 'failure' &&
-        github.event.workflow_run.actor.login == 'dependabot[bot]'
+        github.event.workflow_run.actor.login == 'dependabot[bot]' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
       )
     runs-on: ubuntu-latest
     env:
       GH_REPO: ${{ github.repository }}
+      GH_REPO_OWNER: ${{ github.repository_owner }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GA_GEMINI_MODEL: ${{ vars.GA_GEMINI_MODEL || 'gemini-3.8-flash' }}
@@ -48,22 +46,20 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           INPUT_CI_RUN_ID: ${{ inputs.ci_run_id }}
-          REF_NAME: ${{ github.ref_name }}
+          WORKFLOW_RUN_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             PR_NUMBER="$INPUT_PR_NUMBER"
             CI_RUN_ID="$INPUT_CI_RUN_ID"
-          elif [ "$EVENT_NAME" = "push" ]; then
-            # Format: test-autofix/<pr_number>
-            PR_NUMBER=$(echo "$REF_NAME" | sed 's|^test-autofix/||')
-            CI_RUN_ID=""
           else
             # workflow_run
-            PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+            PR_NUMBER="$WORKFLOW_RUN_PR_NUMBER"
             if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
-              PR_NUMBER=$(gh pr list -R "$GH_REPO" --head "${{ github.event.workflow_run.head_branch }}" --json number -q '.[0].number')
+              PR_NUMBER=$(gh pr list -R "$GH_REPO" --head "$WORKFLOW_RUN_HEAD_BRANCH" --json number -q '.[0].number')
             fi
-            CI_RUN_ID="${{ github.event.workflow_run.id }}"
+            CI_RUN_ID="$WORKFLOW_RUN_ID"
           fi
 
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
@@ -74,14 +70,39 @@ jobs:
           echo "Target PR: #$PR_NUMBER"
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
-          PR_DATA=$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json headRefName,headRepositoryOwner)
+          PR_DATA=$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json author,headRefName,headRepositoryOwner,isCrossRepository)
+          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.author.login')
           HEAD_BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
-          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.headRepositoryOwner.login')
+          HEAD_REPO_OWNER=$(echo "$PR_DATA" | jq -r '.headRepositoryOwner.login')
+          IS_CROSS_REPO=$(echo "$PR_DATA" | jq -r '.isCrossRepository')
 
+          echo "PR Author: $PR_AUTHOR"
           echo "Head branch: $HEAD_BRANCH"
-          echo "Head repository: $HEAD_REPO"
+          echo "Head repository owner: $HEAD_REPO_OWNER"
+          echo "Cross-repository: $IS_CROSS_REPO"
+
+          # Security guard: only operate on dependabot[bot] PRs within the base repository
+          if [ "$PR_AUTHOR" != "dependabot[bot]" ]; then
+            echo "Security guard: PR #$PR_NUMBER is authored by '$PR_AUTHOR', not 'dependabot[bot]'. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$IS_CROSS_REPO" = "true" ] || [ "$HEAD_REPO_OWNER" != "$GH_REPO_OWNER" ]; then
+            echo "Security guard: PR #$PR_NUMBER originates from an external fork. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [[ ! "$HEAD_BRANCH" =~ ^dependabot/ ]]; then
+            echo "Security guard: Branch '$HEAD_BRANCH' does not start with 'dependabot/'. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "skip=false" >> $GITHUB_OUTPUT
           echo "head_branch=$HEAD_BRANCH" >> $GITHUB_OUTPUT
-          echo "head_repo=$HEAD_REPO" >> $GITHUB_OUTPUT
+          echo "head_repo=$HEAD_REPO_OWNER" >> $GITHUB_OUTPUT
 
           if [ -z "$CI_RUN_ID" ] || [ "$CI_RUN_ID" = "null" ]; then
             CI_RUN_ID=$(gh run list -R "$GH_REPO" --workflow "Continuous Integration" --branch "$HEAD_BRANCH" --status failure --limit 1 --json databaseId -q '.[0].databaseId' || true)
@@ -91,6 +112,7 @@ jobs:
           echo "ci_run_id=$CI_RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Checkout PR branch
+        if: steps.resolve.outputs.skip != 'true'
         uses: actions/checkout@v7
         with:
           repository: ${{ github.repository }}
@@ -99,6 +121,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git hooks
+        if: steps.resolve.outputs.skip != 'true'
         run: |
           if [ ! -d .githooks ]; then
             git checkout origin/main -- .githooks 2>/dev/null || true
@@ -107,6 +130,10 @@ jobs:
           git config core.hooksPath .githooks
 
       - name: Ensure CI scripts and rules available
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           HAD_CALCULATE_COST=false
           HAD_FILTER_SCRIPT=false
@@ -125,32 +152,35 @@ jobs:
           echo "had_filter_script=$HAD_FILTER_SCRIPT" >> $GITHUB_ENV
           echo "had_dependabot_rule=$HAD_DEPENDABOT_RULE" >> $GITHUB_ENV
 
-          git fetch origin "${{ github.sha }}" 2>/dev/null || git fetch origin "${{ github.ref }}" 2>/dev/null || true
+          git fetch origin "$GITHUB_SHA" 2>/dev/null || git fetch origin "$GITHUB_REF" 2>/dev/null || true
 
           if [ "$HAD_CALCULATE_COST" = "false" ]; then
             mkdir -p .github/scripts
-            git show "${{ github.sha }}:.github/scripts/calculate_cost.py" > .github/scripts/calculate_cost.py 2>/dev/null || \
+            git show "$GITHUB_SHA:.github/scripts/calculate_cost.py" > .github/scripts/calculate_cost.py 2>/dev/null || \
               git show origin/main:.github/scripts/calculate_cost.py > .github/scripts/calculate_cost.py 2>/dev/null || true
           fi
 
           if [ "$HAD_FILTER_SCRIPT" = "false" ]; then
             mkdir -p .github/scripts
-            git show "${{ github.sha }}:.github/scripts/filter_ci_log.py" > .github/scripts/filter_ci_log.py 2>/dev/null || \
+            git show "$GITHUB_SHA:.github/scripts/filter_ci_log.py" > .github/scripts/filter_ci_log.py 2>/dev/null || \
               git show origin/main:.github/scripts/filter_ci_log.py > .github/scripts/filter_ci_log.py 2>/dev/null || true
           fi
 
           if [ "$HAD_DEPENDABOT_RULE" = "false" ]; then
             mkdir -p .agent/rules
-            git show "${{ github.sha }}:.agent/rules/dependabot-autofix.md" > .agent/rules/dependabot-autofix.md 2>/dev/null || \
+            git show "$GITHUB_SHA:.agent/rules/dependabot-autofix.md" > .agent/rules/dependabot-autofix.md 2>/dev/null || \
               git show origin/main:.agent/rules/dependabot-autofix.md > .agent/rules/dependabot-autofix.md 2>/dev/null || true
           fi
 
       - name: Check latest commit author
+        if: steps.resolve.outputs.skip != 'true'
         id: check_author
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           LATEST_AUTHOR=$(git log -1 --pretty=format:'%an')
           echo "Latest commit author: $LATEST_AUTHOR"
-          if [ "${{ github.event_name }}" = "workflow_run" ] && [ "$LATEST_AUTHOR" = "github-actions[bot]" ]; then
+          if [ "$EVENT_NAME" = "workflow_run" ] && [ "$LATEST_AUTHOR" = "github-actions[bot]" ]; then
             echo "Latest commit was already made by github-actions[bot]. Skipping to prevent loop."
             echo "skip=true" >> $GITHUB_OUTPUT
           else
@@ -158,7 +188,7 @@ jobs:
           fi
 
       - name: Detect modified subproject
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         id: detect
         run: |
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
@@ -184,22 +214,22 @@ jobs:
           echo "has_backend=$HAS_BACKEND" >> $GITHUB_OUTPUT
 
       - name: Install cookiecutter
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         run: pip install cookiecutter
 
       - name: Generate initial test instance
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         run: cookiecutter --no-input --output-dir . template/ project_slug="test-instance"
 
       - name: Set up Node.js
-        if: steps.check_author.outputs.skip != 'true' && (steps.detect.outputs.has_frontend == 'true' || steps.detect.outputs.has_infra == 'true')
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && (steps.detect.outputs.has_frontend == 'true' || steps.detect.outputs.has_infra == 'true')
         uses: actions/setup-node@v7
         with:
           node-version: "24"
 
       - name: Restore frontend cache
-        if: steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_frontend == 'true'
-        uses: actions/cache@v6
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_frontend == 'true'
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.npm
@@ -208,36 +238,37 @@ jobs:
           restore-keys: node-modules-cache-
 
       - name: Install Protoc
-        if: steps.check_author.outputs.skip != 'true' && (steps.detect.outputs.has_frontend == 'true' || steps.detect.outputs.has_backend == 'true')
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && (steps.detect.outputs.has_frontend == 'true' || steps.detect.outputs.has_backend == 'true')
         uses: arduino/setup-protoc@v3
 
       - name: Install frontend dependencies
-        if: steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_frontend == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_frontend == 'true'
         working-directory: test-instance/frontend
         run: |
           npm ci
           npm run gen:proto
 
       - name: Install infrastructure dependencies
-        if: steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_infra == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_infra == 'true'
         working-directory: test-instance/infrastructure
         run: npm ci
 
       - name: Set up Rust cache
-        if: steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_backend == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_backend == 'true'
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: backend-ci
           workspaces: ./test-instance/backend -> target
+          save-if: false
 
       - name: Install cargo-nextest
-        if: steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_backend == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_backend == 'true'
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
 
       - name: Install Antigravity CLI
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         run: |
           curl -fsSL https://antigravity.google/cli/install.sh | bash
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -245,7 +276,7 @@ jobs:
           echo "{\"modelProvider\": \"gemini\", \"model\": \"${GA_GEMINI_MODEL:-gemini-3.8-flash}\"}" > ~/.gemini/antigravity-cli/settings.json
 
       - name: Fetch and filter failed CI logs
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI_RUN_ID: ${{ steps.resolve.outputs.ci_run_id }}
@@ -261,7 +292,7 @@ jobs:
           fi
 
       - name: Execute Antigravity Agent
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         id: run_agy
         run: |
           set +e
@@ -299,15 +330,17 @@ jobs:
           fi
 
       - name: Commit and push changes
-        if: steps.check_author.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         id: commit_push
+        env:
+          HEAD_BRANCH: ${{ steps.resolve.outputs.head_branch }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Clean up test-instance if generated
           rm -rf test-instance
-
+          
           # Clean up temporarily injected files if they weren't in PR branch originally
           if [ "$had_calculate_cost" = "false" ]; then
             rm -f .github/scripts/calculate_cost.py
@@ -348,7 +381,7 @@ jobs:
               git commit -m "fix(deps): resolve breaking changes via Antigravity Agent"
             fi
 
-            git push origin "${{ steps.resolve.outputs.head_branch }}" --no-verify
+            git push origin "$HEAD_BRANCH" --no-verify
             echo "fix_applied=true" >> $GITHUB_OUTPUT
           else
             echo "No changes were applied by the agent."
@@ -356,7 +389,7 @@ jobs:
           fi
 
       - name: Post PR comment & cost label
-        if: steps.check_author.outputs.skip != 'true' && (steps.commit_push.outputs.fix_applied == 'true' || steps.commit_push.outputs.fix_applied == 'false')
+        if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && (steps.commit_push.outputs.fix_applied == 'true' || steps.commit_push.outputs.fix_applied == 'false')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
@@ -434,7 +467,7 @@ jobs:
           rm -f pr_comment.txt
 
       - name: Upload debug artifacts
-        if: always() && steps.check_author.outputs.skip != 'true'
+        if: always() && steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: antigravity-autofix-debug
@@ -446,3 +479,4 @@ jobs:
             /home/runner/.gemini/antigravity-cli/log/**
           if-no-files-found: ignore
           retention-days: 3
+
