@@ -47,7 +47,9 @@ jobs:
           shared-key: backend-ci
           workspaces: ./backend -> target
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
       - name: Check formatting
         id: format
         run: cargo fmt -- --check
@@ -124,7 +126,9 @@ jobs:
           key: node-modules-cache-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: node-modules-cache-
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
       - name: Install dependencies
         run: npm ci
       - name: Generate Protocol Buffer files
@@ -171,9 +175,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ github.token }}
+          tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: backend-ci
