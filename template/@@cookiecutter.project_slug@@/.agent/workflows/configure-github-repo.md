@@ -97,3 +97,25 @@ If there are differences, suggest to the user to configure these via `gh api`:
         "allow_deletions": false
       }'
     ```
+
+## Antigravity Dependabot Automation (Optional)
+
+Ask the user if they want to add **Antigravity-based Dependabot PR handling**:
+- **Successful Dependabot PRs**: Evaluates domain safety and auto-merges safe updates directly.
+- **Failed Dependabot PRs**: Headless Antigravity agent attempts to automatically fix breaking changes and compile errors.
+
+### User Decision
+
+1. **If the user confirms**:
+   - Continue with the skill @../skills/antigravity-dependabot/SKILL.md to install the workflows, scripts, rules, and configuration updates.
+   - Configure required GitHub Actions permissions:
+     - Ensure **Read and write permissions** are granted under **Settings > Actions > General > Workflow permissions**.
+     - Ensure **Allow GitHub Actions to create and approve pull requests** is enabled.
+   - **CRITICAL**: Request the user to add the `GEMINI_API_KEY` repository secret before merging the branch into `main`:
+     ```bash
+     gh secret set GEMINI_API_KEY
+     ```
+     Or manually in GitHub under **Settings > Secrets and variables > Actions**. Explain that the workflows require this key to execute the Antigravity agent.
+
+2. **If the user declines**:
+   - Inform the user that they can opt-in at any time later by asking the agent to apply the @../skills/antigravity-dependabot/SKILL.md skill.
