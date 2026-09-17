@@ -132,9 +132,9 @@ jobs:
           name: test-instance
           path: ./test-instance
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ github.token }}
+          tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ./test-instance/backend
@@ -213,9 +213,9 @@ jobs:
           name: test-instance
           path: ./test-instance
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ github.token }}
+          tool: protoc
       - name: Setup node
         uses: actions/setup-node@v7
         with:
@@ -267,9 +267,9 @@ jobs:
           name: test-instance
           path: ./test-instance
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
         with:
-          repo-token: ${{ github.token }}
+          tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ./test-instance/backend

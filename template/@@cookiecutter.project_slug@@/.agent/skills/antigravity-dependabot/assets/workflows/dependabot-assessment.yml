@@ -11,9 +11,6 @@ on:
         description: "Dependabot PR number to assess"
         required: true
         type: string
-  push:
-    branches:
-      - "test-assessment/**"
 
 permissions:
   contents: write
@@ -22,16 +19,17 @@ permissions:
 jobs:
   assess-dependabot:
     name: Assess Dependabot Safety & Auto-Merge
-    # Run when triggered manually or via successful dependabot CI
+    # Strictly run only for dependabot PRs on the origin repository
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' || (
+      github.event_name == 'workflow_dispatch' || (
         github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.actor.login == 'dependabot[bot]'
+        github.event.workflow_run.actor.login == 'dependabot[bot]' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
       )
     runs-on: ubuntu-latest
     env:
       GH_REPO: ${{ github.repository }}
+      GH_REPO_OWNER: ${{ github.repository_owner }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GA_GEMINI_MODEL: ${{ vars.GA_GEMINI_MODEL || 'gemini-3.8-flash' }}
@@ -42,18 +40,16 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-          REF_NAME: ${{ github.ref_name }}
+          WORKFLOW_RUN_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             PR_NUMBER="$INPUT_PR_NUMBER"
-          elif [ "$EVENT_NAME" = "push" ]; then
-            # Format: test-assessment/<pr_number>
-            PR_NUMBER=$(echo "$REF_NAME" | sed 's|^test-assessment/||')
           else
             # workflow_run
-            PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+            PR_NUMBER="$WORKFLOW_RUN_PR_NUMBER"
             if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
-              PR_NUMBER=$(gh pr list -R "$GH_REPO" --head "${{ github.event.workflow_run.head_branch }}" --json number -q '.[0].number')
+              PR_NUMBER=$(gh pr list -R "$GH_REPO" --head "$WORKFLOW_RUN_HEAD_BRANCH" --json number -q '.[0].number')
             fi
           fi
 
@@ -65,16 +61,42 @@ jobs:
           echo "Target PR: #$PR_NUMBER"
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
-          PR_DATA=$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json headRefName,headRepositoryOwner)
+          PR_DATA=$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json author,headRefName,headRepositoryOwner,isCrossRepository)
+          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.author.login')
           HEAD_BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
-          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.headRepositoryOwner.login')
+          HEAD_REPO_OWNER=$(echo "$PR_DATA" | jq -r '.headRepositoryOwner.login')
+          IS_CROSS_REPO=$(echo "$PR_DATA" | jq -r '.isCrossRepository')
 
+          echo "PR Author: $PR_AUTHOR"
           echo "Head branch: $HEAD_BRANCH"
-          echo "Head repository: $HEAD_REPO"
+          echo "Head repository owner: $HEAD_REPO_OWNER"
+          echo "Cross-repository: $IS_CROSS_REPO"
+
+          # Security guard: only operate on dependabot[bot] PRs within the base repository
+          if [ "$PR_AUTHOR" != "dependabot[bot]" ]; then
+            echo "Security guard: PR #$PR_NUMBER is authored by '$PR_AUTHOR', not 'dependabot[bot]'. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$IS_CROSS_REPO" = "true" ] || [ "$HEAD_REPO_OWNER" != "$GH_REPO_OWNER" ]; then
+            echo "Security guard: PR #$PR_NUMBER originates from an external fork. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [[ ! "$HEAD_BRANCH" =~ ^dependabot/ ]]; then
+            echo "Security guard: Branch '$HEAD_BRANCH' does not start with 'dependabot/'. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "skip=false" >> $GITHUB_OUTPUT
           echo "head_branch=$HEAD_BRANCH" >> $GITHUB_OUTPUT
-          echo "head_repo=$HEAD_REPO" >> $GITHUB_OUTPUT
+          echo "head_repo=$HEAD_REPO_OWNER" >> $GITHUB_OUTPUT
 
       - name: Checkout PR branch
+        if: steps.resolve.outputs.skip != 'true'
         uses: actions/checkout@v7
         with:
           repository: ${{ github.repository }}
@@ -83,12 +105,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Ensure CI scripts available
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GITHUB_SHA: ${{ github.sha }}
         run: |
           if [ ! -f .github/scripts/calculate_cost.py ]; then
-            git checkout "${{ github.sha }}" -- .github/scripts 2>/dev/null || git checkout origin/main -- .github/scripts 2>/dev/null || true
+            git checkout "$GITHUB_SHA" -- .github/scripts 2>/dev/null || git checkout origin/main -- .github/scripts 2>/dev/null || true
           fi
 
       - name: Check if already evaluated
+        if: steps.resolve.outputs.skip != 'true'
         id: check_status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -121,7 +147,7 @@ jobs:
           fi
 
       - name: Collect PR Context
-        if: steps.check_status.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_status.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
@@ -130,7 +156,7 @@ jobs:
           git diff origin/main...HEAD > pr_diff.patch
 
       - name: Install Antigravity CLI
-        if: steps.check_status.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_status.outputs.skip != 'true'
         run: |
           curl -fsSL https://antigravity.google/cli/install.sh | bash
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -138,7 +164,7 @@ jobs:
           echo "{\"modelProvider\": \"gemini\", \"model\": \"${GA_GEMINI_MODEL:-gemini-3.8-flash}\"}" > ~/.gemini/antigravity-cli/settings.json
 
       - name: Run Safety Assessment
-        if: steps.check_status.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_status.outputs.skip != 'true'
         id: assess
         run: |
           SCHEMA='{"type":"object","properties":{"safe":{"type":"boolean"},"reasoning":{"type":"string"},"considerations":{"type":"string"}},"required":["safe","reasoning","considerations"]}'
@@ -170,7 +196,7 @@ jobs:
           fi
 
       - name: Process Assessment Result
-        if: steps.check_status.outputs.skip != 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.check_status.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}

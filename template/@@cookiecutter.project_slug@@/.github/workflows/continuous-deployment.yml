@@ -28,7 +28,9 @@ jobs:
           cache-on-failure: true
       - name: Install Protoc
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
       - name: Install cargo-lambda and Zig
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -74,7 +76,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install Protoc
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: arduino/setup-protoc@v3
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
       - name: Build Frontend
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: ./frontend
