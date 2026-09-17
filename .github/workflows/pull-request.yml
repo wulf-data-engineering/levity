@@ -19,6 +19,9 @@ jobs:
         uses: marocchino/validate-dependabot@v3
         with:
           path: .github/dependabot.yml
+      - name: Run CI scripts tests
+        run: |
+          python3 -m unittest discover -s .github/scripts
       - uses: dorny/paths-filter@v4
         id: filters
         with:
