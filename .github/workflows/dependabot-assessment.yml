@@ -1,0 +1,256 @@
+name: Antigravity Dependabot Safety Assessment
+
+on:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Dependabot PR number to assess"
+        required: true
+        type: string
+  push:
+    branches:
+      - "test-assessment/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  assess-dependabot:
+    name: Assess Dependabot Safety & Auto-Merge
+    # Run when triggered manually or via successful dependabot CI
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' || (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.actor.login == 'dependabot[bot]'
+      )
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GA_GEMINI_MODEL: ${{ vars.GA_GEMINI_MODEL || 'gemini-3.8-flash' }}
+
+    steps:
+      - name: Resolve Target PR
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            PR_NUMBER="$INPUT_PR_NUMBER"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            # Format: test-assessment/<pr_number>
+            PR_NUMBER=$(echo "$REF_NAME" | sed 's|^test-assessment/||')
+          else
+            # workflow_run
+            PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+            if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+              PR_NUMBER=$(gh pr list -R "$GH_REPO" --head "${{ github.event.workflow_run.head_branch }}" --json number -q '.[0].number')
+            fi
+          fi
+
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "Error: Could not resolve PR number."
+            exit 1
+          fi
+
+          echo "Target PR: #$PR_NUMBER"
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+          PR_DATA=$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json headRefName,headRepositoryOwner)
+          HEAD_BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.headRepositoryOwner.login')
+
+          echo "Head branch: $HEAD_BRANCH"
+          echo "Head repository: $HEAD_REPO"
+          echo "head_branch=$HEAD_BRANCH" >> $GITHUB_OUTPUT
+          echo "head_repo=$HEAD_REPO" >> $GITHUB_OUTPUT
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ steps.resolve.outputs.head_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure CI scripts available
+        run: |
+          if [ ! -f .github/scripts/calculate_cost.py ]; then
+            git checkout "${{ github.sha }}" -- .github/scripts 2>/dev/null || git checkout origin/main -- .github/scripts 2>/dev/null || true
+          fi
+
+      - name: Check if already evaluated
+        id: check_status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # If manually triggered, proceed even if previously evaluated
+          if [ "$EVENT_NAME" != "workflow_run" ]; then
+            echo "Manually triggered ($EVENT_NAME). Proceeding with assessment."
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PR_DATA=$(gh pr view "$PR_NUMBER" --json autoMergeRequest,labels)
+          AUTO_MERGE=$(echo "$PR_DATA" | jq -r '.autoMergeRequest')
+          HAS_RISK_LABEL=$(echo "$PR_DATA" | jq -r '.labels[].name' | grep -x 'requires-human-review' || true)
+
+          echo "Auto-merge status: $AUTO_MERGE"
+          echo "Risk label: $HAS_RISK_LABEL"
+
+          if [ "$AUTO_MERGE" != "null" ] && [ -n "$AUTO_MERGE" ]; then
+            echo "Auto-merge is already enabled on PR #$PR_NUMBER. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          elif [ -n "$HAS_RISK_LABEL" ]; then
+            echo "PR #$PR_NUMBER already marked with requires-human-review label. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "PR #$PR_NUMBER has not been assessed yet."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Collect PR Context
+        if: steps.check_status.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
+        run: |
+          gh pr view "$PR_NUMBER" --json title,body > pr_info.json
+          git diff origin/main...HEAD > pr_diff.patch
+
+      - name: Install Antigravity CLI
+        if: steps.check_status.outputs.skip != 'true'
+        run: |
+          curl -fsSL https://antigravity.google/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          mkdir -p ~/.gemini/antigravity-cli
+          echo "{\"modelProvider\": \"gemini\", \"model\": \"${GA_GEMINI_MODEL:-gemini-3.8-flash}\"}" > ~/.gemini/antigravity-cli/settings.json
+
+      - name: Run Safety Assessment
+        if: steps.check_status.outputs.skip != 'true'
+        id: assess
+        run: |
+          SCHEMA='{"type":"object","properties":{"safe":{"type":"boolean"},"reasoning":{"type":"string"},"considerations":{"type":"string"}},"required":["safe","reasoning","considerations"]}'
+
+          agy -p "Evaluate the dependency changes in 'pr_diff.patch' and 'pr_info.json' according to @.agent/rules/dependabot-assessment.md. All unit tests, end-to-end tests, and linting have already run and passed successfully in CI on the generated template instance. Check if any newly introduced patterns or breaking changes in upstream are actually used in our template codebase (template/@@cookiecutter.project_slug@@/). Perform a business assessment if covered by a catch-all. Do not invoke subagents or background tasks; provide your decision directly in a single turn. Return structured output conforming to the schema." \
+            --model "${GA_GEMINI_MODEL:-gemini-3.8-flash}" \
+            --dangerously-skip-permissions \
+            --output-format json \
+            --json-schema "$SCHEMA" \
+            --effort low \
+            --print-timeout 3m > assessment_output.json
+
+          IS_SAFE=$(jq -r '.structured_output.safe // false' assessment_output.json)
+          jq -r '.structured_output.reasoning // "No reasoning provided."' assessment_output.json > reasoning.txt
+          jq -r '.structured_output.considerations // ""' assessment_output.json > considerations.txt
+
+          INPUT_TOKENS=$(jq -r '.usage.input_tokens // empty' assessment_output.json 2>/dev/null || true)
+          OUTPUT_TOKENS=$(jq -r '.usage.output_tokens // empty' assessment_output.json 2>/dev/null || true)
+          TOTAL_TOKENS=$(jq -r '.usage.total_tokens // empty' assessment_output.json 2>/dev/null || true)
+
+          echo "is_safe=$IS_SAFE" >> $GITHUB_OUTPUT
+          echo "input_tokens=$INPUT_TOKENS" >> $GITHUB_OUTPUT
+          echo "output_tokens=$OUTPUT_TOKENS" >> $GITHUB_OUTPUT
+          echo "total_tokens=$TOTAL_TOKENS" >> $GITHUB_OUTPUT
+
+          if [ -n "$INPUT_TOKENS" ] && [ -n "$OUTPUT_TOKENS" ] && [ "$INPUT_TOKENS" != "null" ]; then
+            export INPUT_TOKENS OUTPUT_TOKENS MODEL="${GA_GEMINI_MODEL:-gemini-3.8-flash}"
+            python3 .github/scripts/calculate_cost.py
+          fi
+
+      - name: Process Assessment Result
+        if: steps.check_status.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
+          IS_SAFE: ${{ steps.assess.outputs.is_safe }}
+          INPUT_TOKENS: ${{ steps.assess.outputs.input_tokens }}
+          OUTPUT_TOKENS: ${{ steps.assess.outputs.output_tokens }}
+          TOTAL_TOKENS: ${{ steps.assess.outputs.total_tokens }}
+          COST_STATUS: ${{ steps.assess.outputs.cost_status }}
+          COST_LABEL: ${{ steps.assess.outputs.cost_label }}
+          COST_ERROR: ${{ steps.assess.outputs.cost_error }}
+          EST_COST: ${{ steps.assess.outputs.est_cost }}
+        run: |
+          # Apply cost label on PR
+          if [ -n "$COST_LABEL" ] && [ "$COST_LABEL" != "null" ]; then
+            # Remove previous cost or token labels to avoid clutter
+            OLD_LABELS=$(gh pr view "$PR_NUMBER" --json labels -q '.labels[].name | select(startswith("cost:") or startswith("tokens") or startswith("~$") or startswith("<$") or . == "cost calculation failed")' || true)
+            for L in $OLD_LABELS; do
+              gh pr edit "$PR_NUMBER" --remove-label "$L" || true
+            done
+
+            if [ "$COST_STATUS" = "failed" ]; then
+              gh label create "cost calculation failed" --color "d73a4a" --description "Antigravity cost calculation failed" --force || true
+              gh pr edit "$PR_NUMBER" --add-label "cost calculation failed" || true
+              FAIL_MSG="⚠️ **Antigravity Cost Calculation Failed**"$'\n\n'"Could not calculate running cost for model \`${GA_GEMINI_MODEL:-gemini-3.8-flash}\`: $COST_ERROR"$'\n\n'"> 📊 **Usage**: $INPUT_TOKENS in / $OUTPUT_TOKENS out ($TOTAL_TOKENS total tokens)"
+              gh pr comment "$PR_NUMBER" --body "$FAIL_MSG" || true
+            else
+              gh label create "$COST_LABEL" --color "0E8A16" --description "Estimated Antigravity agent cost" --force || true
+              gh pr edit "$PR_NUMBER" --add-label "$COST_LABEL" || true
+            fi
+          fi
+
+          TOKEN_FOOTER=""
+          if [ -n "$INPUT_TOKENS" ] && [ -n "$OUTPUT_TOKENS" ] && [ "$INPUT_TOKENS" != "null" ]; then
+            TOKEN_FOOTER="---"$'\n'"> 📊 **Antigravity Consumption** (${GA_GEMINI_MODEL:-gemini-3.8-flash}): $INPUT_TOKENS in / $OUTPUT_TOKENS out ($TOTAL_TOKENS total) · Est. cost: $EST_COST"
+          fi
+
+          if [ "$IS_SAFE" = "true" ]; then
+            echo "Assessment verdict: SAFE to auto-merge."
+
+            {
+              echo "### 🤖 Antigravity Safety Assessment: Safe to merge"
+              echo ""
+              cat reasoning.txt
+              if [ -n "$TOKEN_FOOTER" ]; then
+                echo ""
+                echo "$TOKEN_FOOTER"
+              fi
+            } > review_body.txt
+
+            gh pr review "$PR_NUMBER" --approve --body-file review_body.txt
+            gh pr edit "$PR_NUMBER" --remove-label "requires-human-review" 2>/dev/null || true
+            gh pr merge "$PR_NUMBER" --auto --squash
+            rm -f review_body.txt
+          else
+            echo "Assessment verdict: REQUIRES HUMAN REVIEW."
+
+            # Ensure label exists
+            gh label create "requires-human-review" \
+              --color "D93F0B" \
+              --description "Dependabot upgrade requires human review" \
+              --force || true
+
+            gh pr edit "$PR_NUMBER" --add-label "requires-human-review"
+
+            {
+              echo "### ⚠️ Antigravity Safety Assessment: Human Review Recommended"
+              echo ""
+              echo "**Reasoning**:"
+              cat reasoning.txt
+              echo ""
+              echo "**Considerations for Reviewer**:"
+              cat considerations.txt
+              if [ -n "$TOKEN_FOOTER" ]; then
+                echo ""
+                echo "$TOKEN_FOOTER"
+              fi
+            } > risk_comment.txt
+
+            gh pr comment "$PR_NUMBER" --body-file risk_comment.txt
+            rm -f risk_comment.txt
+          fi
+
+          rm -f reasoning.txt considerations.txt pr_info.json pr_diff.patch assessment_output.json
