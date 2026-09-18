@@ -229,7 +229,7 @@ jobs:
 
       - name: Restore frontend cache
         if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && steps.detect.outputs.has_frontend == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.npm
