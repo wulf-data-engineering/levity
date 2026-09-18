@@ -37,7 +37,7 @@
 		"@inlang/paraglide-js": "^2.25.2",
 		"@inlang/paraglide-sveltekit": "^0.16.1",
 		"@internationalized/date": "^3.12.4",
-		"@lucide/svelte": "^1.45.0",
+		"@lucide/svelte": "^1.46.0",
 		"@playwright/test": "^1.63.0",
 		"@storybook/addon-docs": "^10.6.0",
 		"@storybook/addon-svelte-csf": "^5.1.3",
