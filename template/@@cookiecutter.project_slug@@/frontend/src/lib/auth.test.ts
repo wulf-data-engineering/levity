@@ -1,6 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import * as auth from './auth';
-import { get } from 'svelte/store';
 import type {
 	GetCurrentUserOutput,
 	SignInInput,
@@ -8,6 +6,70 @@ import type {
 	SignUpInput,
 	SignUpOutput
 } from 'aws-amplify/auth';
+
+const mockState = vi.hoisted(() => ({
+	signedIn: undefined as string | undefined
+}));
+
+const mockAmplify = vi.hoisted(() => ({
+	Amplify: {
+		configure: vi.fn()
+	}
+}));
+
+const mockAuthApi = vi.hoisted(() => ({
+	signIn: vi.fn((input: SignInInput) => {
+		if (input.password === 'done') {
+			mockState.signedIn = input.username;
+			const signInOutput: SignInOutput = { isSignedIn: true, nextStep: { signInStep: 'DONE' } };
+			return Promise.resolve(signInOutput);
+		} else if (input.password === 'confirm') {
+			mockState.signedIn = 'need to confirm!';
+			const signInOutput: SignInOutput = {
+				isSignedIn: false,
+				nextStep: { signInStep: 'CONFIRM_SIGN_UP' }
+			};
+			return Promise.resolve(signInOutput);
+		} else {
+			return Promise.reject('wrong');
+		}
+	}),
+	signOut: vi.fn(() => {
+		if (mockState.signedIn) {
+			mockState.signedIn = undefined;
+			return Promise.resolve();
+		} else {
+			return Promise.reject('not signed in');
+		}
+	}),
+	getCurrentUser: vi.fn(() => {
+		if (mockState.signedIn) {
+			const currentUser: GetCurrentUserOutput = {
+				username: mockState.signedIn,
+				userId: mockState.signedIn
+			};
+			return Promise.resolve(currentUser);
+		} else {
+			return Promise.reject('not signed in');
+		}
+	}),
+	signUp: vi.fn((input: SignUpInput) => {
+		const output: SignUpOutput = {
+			isSignUpComplete: false,
+			nextStep: {
+				signUpStep: 'CONFIRM_SIGN_UP',
+				codeDeliveryDetails: { deliveryMedium: 'EMAIL', destination: input.username }
+			}
+		};
+		return Promise.resolve(output);
+	})
+}));
+
+vi.mock('aws-amplify', () => mockAmplify);
+vi.mock('aws-amplify/auth', () => mockAuthApi);
+
+import * as auth from './auth';
+import { get } from 'svelte/store';
 
 type AuthCodeDeliveryDetails = {
 	destination: string;
@@ -18,21 +80,12 @@ type ConfirmSignUpSignUpStep = {
 };
 
 describe('auth', () => {
-	vi.mock('aws-amplify', async () => {
-		// You can return either values or functions — match how your code uses the module
-		return mockAmplify;
-	});
-
-	vi.mock('aws-amplify/auth', async () => {
-		return mockAuthApi;
-	});
-
 	afterEach(async () => {
 		vi.resetAllMocks();
 		try {
 			await auth.signOut();
 		} catch {
-			signedIn = undefined; // may not be set before signOut
+			mockState.signedIn = undefined; // may not be set before signOut
 		}
 	});
 
@@ -96,59 +149,3 @@ describe('auth', () => {
 		expect(get(auth.currentUser)).toBeNull();
 	});
 });
-
-const mockAmplify = {
-	Amplify: {
-		configure: vi.fn()
-	}
-};
-
-let signedIn: string | undefined = undefined;
-
-const mockAuthApi = {
-	signIn: vi.fn((input: SignInInput) => {
-		if (input.password == 'done') {
-			signedIn = input.username;
-			const signInOutput: SignInOutput = { isSignedIn: true, nextStep: { signInStep: 'DONE' } };
-			return Promise.resolve(signInOutput);
-		} else if (input.password == 'confirm') {
-			signedIn = 'need to confirm!';
-			const signInOutput: SignInOutput = {
-				isSignedIn: false,
-				nextStep: { signInStep: 'CONFIRM_SIGN_UP' }
-			};
-			return Promise.resolve(signInOutput);
-		} else {
-			return Promise.reject('wrong');
-		}
-	}),
-	signOut: vi.fn(() => {
-		if (signedIn) {
-			signedIn = undefined;
-			return Promise.resolve();
-		} else {
-			return Promise.reject('not signed in');
-		}
-	}),
-	getCurrentUser: vi.fn(() => {
-		if (signedIn) {
-			const currentUser: GetCurrentUserOutput = {
-				username: signedIn,
-				userId: signedIn
-			};
-			return Promise.resolve(currentUser);
-		} else {
-			return Promise.reject('not signed in');
-		}
-	}),
-	signUp: vi.fn((input: SignUpInput) => {
-		const output: SignUpOutput = {
-			isSignUpComplete: false,
-			nextStep: {
-				signUpStep: 'CONFIRM_SIGN_UP',
-				codeDeliveryDetails: { deliveryMedium: 'EMAIL', destination: input.username }
-			}
-		};
-		return Promise.resolve(output);
-	})
-};
