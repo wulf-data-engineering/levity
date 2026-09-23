@@ -39,6 +39,24 @@ We provide this capability as an **opt-in skill** (`antigravity-dependabot`) wit
    - Verifies changes using lightweight checks (e.g., `npm run lint && npm run check`, `cargo clippy && cargo check`).
    - Commits changes using `summary.txt` and pushes back to the PR branch.
 
+3. **Sequential Rebase Dispatcher (`dependabot-dispatcher.yml` & `dispatch_dependabot.py`)**:
+   - Triggers on `push: branches: [main]` (e.g. after a PR merges) and manual `workflow_dispatch`.
+   - Uses concurrency grouping (`group: dependabot-dispatcher`, `cancel-in-progress: false`) to process queues sequentially.
+   - Finds the oldest open Dependabot PR with auto-merge enabled. If it is `BEHIND` main, rebases it via native `gh pr update-branch <pr_number> --rebase`.
+   - Avoids duplicate rebase commands and leaves actively running PRs untouched.
+   - Prevents parallel CI storms and merge conflicts across concurrent Dependabot PRs.
+
+### GitHub App Token Integration (`$project-ci-bot`)
+
+When pull requests are merged or pushed using the default `GITHUB_TOKEN`, GitHub Actions intentionally suppresses subsequent `on: push` workflow triggers to prevent recursive execution loops. Consequently:
+- Automatic PR merges do not trigger downstream deployment pipelines (`continuous-deployment.yml`).
+- Automatic PR merges do not trigger the sequential dispatcher on `main`.
+
+To overcome this, repositories can configure a dedicated GitHub App (`$project-ci-bot`):
+- Uses `actions/create-github-app-token@v1` with `APP_ID` and `APP_PRIVATE_KEY` repository secrets.
+- Generates ephemeral installation tokens with `Contents: write` and `Pull requests: write` permissions.
+- Automatically falls back to `GITHUB_TOKEN` if GitHub App secrets are not configured.
+
 ### Loop Prevention
 
 To eliminate runaway agent cascades:
@@ -58,9 +76,9 @@ To eliminate runaway agent cascades:
 ## 3. Tool-Set Support
 
 - `template/@@cookiecutter.project_slug@@/.agent/skills/antigravity-dependabot/`:
-  - `SKILL.md`: Instructions for installing and enabling the workflows and configurations on demand.
-  - `assets/workflows/`: `dependabot-assessment.yml` and `dependabot-autofix.yml`.
-  - `assets/scripts/`: `calculate_cost.py`, `filter_ci_log.py`, and their unit test suites.
+  - `SKILL.md`: Instructions for installing and enabling the workflows, scripts, and GitHub App credentials on demand.
+  - `assets/workflows/`: `dependabot-assessment.yml`, `dependabot-autofix.yml`, and `dependabot-dispatcher.yml`.
+  - `assets/scripts/`: `calculate_cost.py`, `filter_ci_log.py`, `dispatch_dependabot.py`, and their unit test suites.
   - `assets/rules/`: `dependabot-assessment.md` and `dependabot-autofix.md`.
 
 ---

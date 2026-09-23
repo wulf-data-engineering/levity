@@ -95,6 +95,16 @@ jobs:
           echo "head_branch=$HEAD_BRANCH" >> $GITHUB_OUTPUT
           echo "head_repo=$HEAD_REPO_OWNER" >> $GITHUB_OUTPUT
 
+      - name: Generate GitHub App Token
+        if: steps.resolve.outputs.skip != 'true' && env.HAS_APP_ID == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        env:
+          HAS_APP_ID: ${{ secrets.APP_ID != '' }}
+
       - name: Checkout PR branch
         if: steps.resolve.outputs.skip != 'true'
         uses: actions/checkout@v7
@@ -198,7 +208,7 @@ jobs:
       - name: Process Assessment Result
         if: steps.resolve.outputs.skip != 'true' && steps.check_status.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
           IS_SAFE: ${{ steps.assess.outputs.is_safe }}
           INPUT_TOKENS: ${{ steps.assess.outputs.input_tokens }}
@@ -250,6 +260,9 @@ jobs:
             gh pr edit "$PR_NUMBER" --remove-label "requires-human-review" 2>/dev/null || true
             gh pr merge "$PR_NUMBER" --auto --squash
             rm -f review_body.txt
+
+            echo "Invoking Sequential Dependabot Dispatcher..."
+            python3 .github/scripts/dispatch_dependabot.py || true
           else
             echo "Assessment verdict: REQUIRES HUMAN REVIEW."
 
