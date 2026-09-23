@@ -111,6 +111,16 @@ jobs:
 
           echo "ci_run_id=$CI_RUN_ID" >> $GITHUB_OUTPUT
 
+      - name: Generate GitHub App Token
+        if: steps.resolve.outputs.skip != 'true' && env.HAS_APP_ID == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        env:
+          HAS_APP_ID: ${{ secrets.APP_ID != '' }}
+
       - name: Checkout PR branch
         if: steps.resolve.outputs.skip != 'true'
         uses: actions/checkout@v7
@@ -118,7 +128,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ steps.resolve.outputs.head_branch }}
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
 
       - name: Configure git hooks
         if: steps.resolve.outputs.skip != 'true'
@@ -393,7 +403,7 @@ jobs:
       - name: Post PR comment & cost label
         if: steps.resolve.outputs.skip != 'true' && steps.check_author.outputs.skip != 'true' && (steps.commit_push.outputs.fix_applied == 'true' || steps.commit_push.outputs.fix_applied == 'false')
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
           FIX_APPLIED: ${{ steps.commit_push.outputs.fix_applied }}
           INPUT_TOKENS: ${{ steps.run_agy.outputs.input_tokens }}

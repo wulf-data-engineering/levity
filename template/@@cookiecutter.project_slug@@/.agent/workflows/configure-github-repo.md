@@ -103,6 +103,7 @@ If there are differences, suggest to the user to configure these via `gh api`:
 Ask the user if they want to add **Antigravity-based Dependabot PR handling**:
 - **Successful Dependabot PRs**: Evaluates domain safety and auto-merges safe updates directly.
 - **Failed Dependabot PRs**: Headless Antigravity agent attempts to automatically fix breaking changes and compile errors.
+- **Sequential Rebase Dispatcher**: Automatically rebase-chains queued Dependabot PRs one at a time to prevent parallel CI storms.
 
 ### User Decision
 
@@ -116,6 +117,18 @@ Ask the user if they want to add **Antigravity-based Dependabot PR handling**:
      gh secret set GEMINI_API_KEY
      ```
      Or manually in GitHub under **Settings > Secrets and variables > Actions**. Explain that the workflows require this key to execute the Antigravity agent.
+   - **GitHub App Setup (`@@ cookiecutter.project_slug @@-ci-bot`) (Recommended for Auto-Merge & Rebase Chaining)**:
+     When GitHub Actions merges a PR using default `GITHUB_TOKEN`, GitHub suppresses downstream `on: push` workflows (like deployment and the sequential dispatcher). Setting up a dedicated GitHub App allows auto-merges to trigger downstream workflows:
+     1. Walk the user through creating a GitHub App named `@@ cookiecutter.project_slug @@-ci-bot` (or `$project-ci-bot`) under **Settings > Developer Settings > GitHub Apps** with:
+        - Webhook: Inactive.
+        - Repository Permissions: `Contents: Read and write`, `Pull requests: Read and write`, `Issues: Read and write`.
+     2. Install the app on the repository under **Install App** -> **Only select repositories**.
+     3. Generate a private key (`.pem`) and store secrets in GitHub:
+        ```bash
+        gh secret set APP_ID --body "<APP_ID>"
+        gh secret set APP_PRIVATE_KEY < path/to/private-key.pem
+        ```
+     *(Detailed step-by-step guidance is documented in @../skills/antigravity-dependabot/SKILL.md).*
 
 2. **If the user declines**:
    - Inform the user that they can opt-in at any time later by asking the agent to apply the @../skills/antigravity-dependabot/SKILL.md skill.
