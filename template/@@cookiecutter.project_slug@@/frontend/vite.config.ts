@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
 	process.env.VITE_COGNITO_LOCAL_PORT = env.COGNITO_LOCAL_PORT || '9229';
 
 	return {
+		envDir: '../',
 		plugins: [
 		tailwindcss(), 
 		paraglideVitePlugin({

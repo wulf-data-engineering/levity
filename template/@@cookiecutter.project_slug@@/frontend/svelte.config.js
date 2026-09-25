@@ -8,6 +8,9 @@ const config = {
 		adapter: adapter({
 			fallback: 'fallback.html'
 		}),
+		env: {
+			dir: '..'
+		},
 		prerender: {
 			handleHttpError: ({ status, path, referrer, message }) => {
 				if (status === 404) {
