@@ -2,6 +2,9 @@ name: Continuous Integration
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 env:
   CARGO_TERM_COLOR: always
@@ -45,7 +48,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: backend-ci
-          workspaces: ./backend -> target
+          workspaces: ./backend
+          cache-on-failure: true
       - name: Install Protoc
         uses: taiki-e/install-action@v2
         with:
@@ -66,20 +70,15 @@ jobs:
         id: tests
         run: cargo nextest run
         continue-on-error: true
-      - name: Check release-like profile
-        id: check
-        run: cargo check --profile sandbox
-        continue-on-error: true
       - name: Aggregate results and fail if any failed
         if: always() # ensure this runs even if earlier steps failed
         run: |
           echo "format outcome: ${{ steps.format.outcome }}"
           echo "clippy outcome: ${{ steps.clippy.outcome }}"
           echo "tests outcome:  ${{ steps.tests.outcome }}"
-          echo "check outcome:  ${{ steps.check.outcome }}"
 
           # If any step outcome is 'failure' then fail the job
-          for s in "${{ steps.format.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}" "${{ steps.check.outcome }}"; do
+          for s in "${{ steps.format.outcome }}" "${{ steps.clippy.outcome }}" "${{ steps.tests.outcome }}"; do
             if [ "$s" = "failure" ]; then
               echo "One or more checks failed."
               exit 1
@@ -87,6 +86,25 @@ jobs:
           done
 
           echo "All checks passed."
+  compile-backend:
+    name: Compile Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-ci
+          workspaces: ./backend
+          cache-on-failure: true
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - name: Compile sandbox profile
+        run: cargo build --profile sandbox
   test-infrastructure:
     name: Test Infrastructure
     runs-on: ubuntu-latest
@@ -181,7 +199,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: backend-ci
-          workspaces: ./backend -> target
+          workspaces: ./backend
+          cache-on-failure: true
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
         with:
