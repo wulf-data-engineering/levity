@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import * as Cdk from '../lib/app-stack';
+import { FoundationStack } from '../lib/foundation-stack';
 
 test('Infrastructure Created', () => {
   delete process.env.AWS_ENDPOINT_URL;
@@ -34,5 +35,43 @@ test('Infrastructure Created', () => {
   // Verify API Gateway
   template.hasResourceProperties('AWS::ApiGateway::RestApi', {
     Name: 'RestApi',
+  });
+});
+
+test('FoundationStack OIDC Trust Policy Supports Standard and Immutable Subjects', () => {
+  const app = new cdk.App();
+  const stack = new FoundationStack(app, 'FoundationTestStack', {
+    deploymentConfig: {
+      mode: 'environment',
+      environment: 'staging',
+      aws: true,
+      domainName: 'example.com',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      terminationProtection: false,
+      buildConfig: { build: false },
+    },
+    githubRepo: 'wulf-data-engineering/levity',
+  });
+  const template = Template.fromStack(stack);
+
+  template.hasResourceProperties('AWS::IAM::Role', {
+    RoleName: 'GitHubActionRole',
+    AssumeRolePolicyDocument: {
+      Statement: [
+        {
+          Action: 'sts:AssumeRoleWithWebIdentity',
+          Effect: 'Allow',
+          Condition: {
+            StringLike: {
+              'token.actions.githubusercontent.com:sub': [
+                'repo:wulf-data-engineering/levity:*',
+                'repo:wulf-data-engineering@*/levity@*:*',
+              ],
+            },
+          },
+        },
+      ],
+    },
   });
 });

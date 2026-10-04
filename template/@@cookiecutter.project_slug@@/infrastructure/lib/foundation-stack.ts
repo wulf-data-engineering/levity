@@ -63,10 +63,17 @@ export class FoundationStack extends cdk.Stack {
       clientIds: ['sts.amazonaws.com'],
     });
 
+    const [org, repo] = props.githubRepo.split('/');
+    const subConditions = [`repo:${props.githubRepo}:*`];
+    if (org && repo) {
+      // Support GitHub's immutable subject claim format (introduced July 2026: repo:ORG@ID/REPO@ID:*)
+      subConditions.push(`repo:${org}@*/${repo}@*:*`);
+    }
+
     const githubRole = new iam.Role(this, 'GitHubActionRole', {
       assumedBy: new iam.WebIdentityPrincipal(githubProvider.openIdConnectProviderArn, {
         StringLike: {
-          'token.actions.githubusercontent.com:sub': `repo:${props.githubRepo}:*`,
+          'token.actions.githubusercontent.com:sub': subConditions,
         },
       }),
       description: 'Role for GitHub Actions to deploy stacks',
