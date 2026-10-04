@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-ci
+          shared-key: backend-test
           workspaces: ./backend
           cache-on-failure: true
       - name: Install Protoc
@@ -96,7 +96,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-ci
+          shared-key: backend-compile
           workspaces: ./backend
           cache-on-failure: true
       - name: Install Protoc
@@ -198,7 +198,7 @@ jobs:
           tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-ci
+          shared-key: backend-e2e
           workspaces: ./backend
           cache-on-failure: true
       - name: Install cargo-lambda
