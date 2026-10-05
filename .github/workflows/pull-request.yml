@@ -2,9 +2,6 @@ name: Continuous Integration
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
 
 env:
   CARGO_TERM_COLOR: always
@@ -140,7 +137,7 @@ jobs:
           tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-test
+          shared-key: backend-test # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
       - name: Run clippy
@@ -189,7 +186,7 @@ jobs:
           tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-compile
+          shared-key: backend-compile # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
       - name: Compile sandbox profile
@@ -294,7 +291,7 @@ jobs:
           tool: protoc
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: backend-e2e
+          shared-key: backend-e2e # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
       - name: Install cargo-lambda
