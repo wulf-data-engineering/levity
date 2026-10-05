@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   # Builds the backend if it wasn't part of the cache
   build-backend:
+    if: github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.author.name, 'dependabot') && !contains(github.event.head_commit.author.email, 'dependabot') && !contains(github.actor, 'dependabot'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -54,6 +56,7 @@ jobs:
 
   # Builds the frontend if it wasn't part of the cache
   build-frontend:
+    if: github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.author.name, 'dependabot') && !contains(github.event.head_commit.author.email, 'dependabot') && !contains(github.actor, 'dependabot'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -92,6 +95,7 @@ jobs:
           retention-days: 1
 
   deploy-staging:
+    if: github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.author.name, 'dependabot') && !contains(github.event.head_commit.author.email, 'dependabot') && !contains(github.actor, 'dependabot'))
     needs: [build-backend, build-frontend]
     uses: ./.github/workflows/deploy.yml
     permissions:
@@ -104,6 +108,7 @@ jobs:
       certificateArn: ${{ vars.CERTIFICATE_ARN_STAGING }}
 
   deploy-production:
+    if: github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.author.name, 'dependabot') && !contains(github.event.head_commit.author.email, 'dependabot') && !contains(github.actor, 'dependabot'))
     needs: [deploy-staging]
     uses: ./.github/workflows/deploy.yml
     permissions:

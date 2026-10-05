@@ -1,0 +1,71 @@
+name: Rust Cache
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  backend-test:
+    name: Backend Test Cache
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-test # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./backend
+          cache-on-failure: true
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - name: Compile tests
+        run: cargo test --no-run
+
+  backend-compile:
+    name: Backend Compile Cache
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-compile # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./backend
+          cache-on-failure: true
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - name: Compile sandbox profile
+        run: cargo build --profile sandbox
+
+  backend-e2e:
+    name: Backend E2E Cache
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-e2e # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./backend
+          cache-on-failure: true
+      - name: Compile Backend
+        run: cargo build

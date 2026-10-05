@@ -1,0 +1,134 @@
+name: Rust Cache
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  seed-template:
+    name: Seed Template
+    runs-on: ubuntu-latest
+    outputs:
+      websocket-mock-changed: ${{ steps.filters.outputs.websocket-mock }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filters
+        with:
+          filters: |
+            websocket-mock:
+              - 'tools/websocket-mock/**'
+      - name: Cache pip
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-cache-cookiecutter
+      - name: Install cookiecutter
+        run: pip install cookiecutter
+      - name: Generate test template instance
+        run: |
+          cookiecutter --no-input --output-dir . template/ \
+            project_slug="test-instance"
+      - name: Upload test template instance
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-instance
+          path: test-instance/
+          include-hidden-files: true
+
+  test-websocket-mock:
+    name: Test Websocket Mock
+    runs-on: ubuntu-latest
+    needs: seed-template
+    if: needs.seed-template.outputs.websocket-mock-changed == 'true'
+    defaults:
+      run:
+        working-directory: ./tools/websocket-mock
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/websocket-mock
+          cache-on-failure: true
+      - name: Run cargo check
+        run: cargo check
+
+  backend-test:
+    name: Backend Test Cache
+    runs-on: ubuntu-latest
+    needs: seed-template
+    defaults:
+      run:
+        working-directory: ./test-instance/backend
+    steps:
+      - name: Download test template instance
+        uses: actions/download-artifact@v8
+        with:
+          name: test-instance
+          path: ./test-instance
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-test # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./test-instance/backend
+          cache-on-failure: true
+      - name: Compile tests
+        run: cargo test --no-run
+
+  backend-compile:
+    name: Backend Compile Cache
+    runs-on: ubuntu-latest
+    needs: seed-template
+    defaults:
+      run:
+        working-directory: ./test-instance/backend
+    steps:
+      - name: Download test template instance
+        uses: actions/download-artifact@v8
+        with:
+          name: test-instance
+          path: ./test-instance
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-compile # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./test-instance/backend
+          cache-on-failure: true
+      - name: Compile sandbox profile
+        run: cargo build --profile sandbox
+
+  backend-e2e:
+    name: Backend E2E Cache
+    runs-on: ubuntu-latest
+    needs: seed-template
+    defaults:
+      run:
+        working-directory: ./test-instance/backend
+    steps:
+      - name: Download test template instance
+        uses: actions/download-artifact@v8
+        with:
+          name: test-instance
+          path: ./test-instance
+      - name: Install Protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: backend-e2e # Keep in sync with .github/workflows/pull-request.yml
+          workspaces: ./test-instance/backend
+          cache-on-failure: true
+      - name: Compile Backend
+        run: cargo build
