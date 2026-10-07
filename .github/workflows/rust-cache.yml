@@ -69,16 +69,9 @@ jobs:
       run:
         working-directory: ./test-instance/backend
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          docker-images: false
-          swap-storage: false
+      - uses: actions/checkout@v7
+      - name: Free Disk Space
+        uses: ./.github/actions/free-disk-space
       - name: Download test template instance
         uses: actions/download-artifact@v8
         with:
