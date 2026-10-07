@@ -1,9 +1,13 @@
 name: Free Disk Space
-description: Free runner disk space by removing unused Docker images
+description: Free runner disk space by removing unused Docker images and Haskell runtime
 
 inputs:
   docker-images:
     description: "Remove Docker images"
+    required: false
+    default: "true"
+  haskell:
+    description: "Remove Haskell runtime"
     required: false
     default: "true"
   android:
@@ -12,10 +16,6 @@ inputs:
     default: "false"
   dotnet:
     description: "Remove .NET runtime"
-    required: false
-    default: "false"
-  haskell:
-    description: "Remove Haskell runtime"
     required: false
     default: "false"
 
