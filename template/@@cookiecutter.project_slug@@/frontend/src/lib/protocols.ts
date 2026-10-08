@@ -112,7 +112,7 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 
 	const contentType = asJson ? 'application/json' : 'application/x-protobuf';
 	const authToken = await getAuthToken();
-	
+
 	const init: RequestInit = options;
 	if (!init.method) {
 		init.method = body ? 'POST' : 'GET';
@@ -162,7 +162,9 @@ async function protocolImpl<Req = undefined, Res = undefined>(
 
 	if (!res.ok) {
 		const text = await res.text();
-		throw new Error(`Request failed with status ${res.status} (${res.statusText}): ${text || 'No response body'}`);
+		throw new Error(
+			`Request failed with status ${res.status} (${res.statusText}): ${text || 'No response body'}`
+		);
 	}
 
 	if (responseProto) {

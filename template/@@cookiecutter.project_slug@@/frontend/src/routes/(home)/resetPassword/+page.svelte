@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { requestPasswordReset } from './request';
-	import { ValidatedInput } from '$lib/components/validatedInput';
-	import { validateEmail } from '$lib/validation';
-	import { ValidatedForm } from '$lib/components/validatedForm';
-	// @ts-expect-error - Paraglide generates JS with JSDoc
-	import * as m from '$lib/paraglide/messages.js';
+	import { ValidatedInput } from '#lib/components/validatedInput/index.js';
+	import { validateEmail } from '#lib/validation.js';
+	import { ValidatedForm } from '#lib/components/validatedForm/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let email = $state('');
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { protocolCommand, protocolLoad, protocolRequest } from '$lib/protocols';
+import { protocolCommand, protocolLoad, protocolRequest } from '#lib/protocols.js';
 import { compress, uncompress } from 'snappyjs';
 import { BinaryReader, BinaryWriter } from '@bufbuild/protobuf/wire';
 
@@ -238,7 +238,9 @@ describe('protocols', () => {
 
 		await expect(
 			protocolRequest<ProtoMock, ProtoMock>('/', { value: 'ping' }, ProtoMock, ProtoMock)
-		).rejects.toThrowError('Request failed with status 500 (Internal Server Error): {"message":"Database crash"}');
+		).rejects.toThrowError(
+			'Request failed with status 500 (Internal Server Error): {"message":"Database crash"}'
+		);
 	});
 
 	it('should throw error on failed request with text error body', async () => {

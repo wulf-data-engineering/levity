@@ -1,5 +1,4 @@
-// @ts-expect-error - Paraglide generates JS with JSDoc
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /**
  * Checks if the given value is (most likely) a valid email address.
@@ -84,4 +83,3 @@ export function validatePasswordRepetition(newPassword: string, repetition: stri
 export function validateName(value: string) {
 	return value.trim().length > 0 ? null : m.validation_name_required();
 }
-

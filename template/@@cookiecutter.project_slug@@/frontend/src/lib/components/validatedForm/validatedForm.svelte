@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { WithElementRef } from '$lib/utils';
+	import type { WithElementRef } from '#lib/utils.js';
 	import type { HTMLFormAttributes } from 'svelte/elements';
 	import { setContext } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
