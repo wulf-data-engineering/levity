@@ -1,12 +1,11 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '#lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
-	import * as auth from '$lib/auth';
-	import { Toaster } from '$lib/components/ui/sonner/';
-	import { browser } from '$app/environment';
-	// @ts-expect-error - Paraglide generates JS with JSDoc
-	import { setLocale, locales } from '$lib/paraglide/runtime';
+	import * as auth from '#lib/auth.js';
+	import { Toaster } from '#lib/components/ui/sonner/index.js';
+	import { browser } from '$app/env';
+	import { setLocale, locales } from '#lib/paraglide/runtime.js';
 
 	if (browser) {
 		let lang = navigator.language.split('-')[0];
@@ -14,7 +13,8 @@
 		if (!locales.includes(lang as any)) {
 			lang = 'en';
 		}
-		setLocale(lang);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		setLocale(lang as any);
 		document.documentElement.lang = lang;
 	}
 	let hydrated = $state(false);

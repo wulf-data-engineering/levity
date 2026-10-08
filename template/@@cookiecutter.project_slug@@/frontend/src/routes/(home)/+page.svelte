@@ -1,18 +1,17 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import * as auth from '$lib/auth';
-	import { currentUser } from '$lib/auth';
+	import { dev } from '$app/env';
+	import * as auth from '#lib/auth.js';
+	import { currentUser } from '#lib/auth.js';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { toastError, toastSuccess } from './toasts';
 	import { onMount } from 'svelte';
-	import { validateEmail } from '$lib/validation';
-	import { ValidatedInput } from '$lib/components/validatedInput';
-	import { ValidatedForm } from '$lib/components/validatedForm';
-	// @ts-expect-error - Paraglide generates JS with JSDoc
-	import * as m from '$lib/paraglide/messages.js';
+	import { validateEmail } from '#lib/validation.js';
+	import { ValidatedInput } from '#lib/components/validatedInput/index.js';
+	import { ValidatedForm } from '#lib/components/validatedForm/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	async function signOut() {
 		try {
@@ -21,7 +20,10 @@
 			toastSuccess(m.auth_login_toast_sign_out_success(), m.auth_login_toast_sign_out_success());
 		} catch (err) {
 			console.error('Error signing out:', err);
-			toastError(m.auth_login_toast_sign_out_failed_title(), m.auth_login_toast_sign_out_failed_desc());
+			toastError(
+				m.auth_login_toast_sign_out_failed_title(),
+				m.auth_login_toast_sign_out_failed_desc()
+			);
 		} finally {
 			loading = false;
 		}
@@ -50,7 +52,10 @@
 		loading = true;
 
 		const resetRequired = async () => {
-			toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_reset());
+			toastError(
+				m.auth_login_toast_sign_in_failed_title(),
+				m.auth_login_toast_sign_in_failed_desc_reset()
+			);
 			await goto(`/resetPassword?email=${encodeURIComponent(email)}`);
 		};
 
@@ -61,12 +66,23 @@
 				// Redirect to the originally requested page
 				const redirectTo = page.url.searchParams.get('redirectTo');
 				if (redirectTo) await goto(redirectTo);
-				else toastSuccess(m.auth_login_toast_sign_in_success_title(), m.auth_login_toast_sign_in_success_desc());
+				else
+					toastSuccess(
+						m.auth_login_toast_sign_in_success_title(),
+						m.auth_login_toast_sign_in_success_desc()
+					);
 			} else if (result.nextStep.signInStep === 'CONFIRM_SIGN_UP') {
-				toastSuccess(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_confirm());
+				toastSuccess(
+					m.auth_login_toast_next_step_title(),
+					m.auth_login_toast_next_step_desc_confirm()
+				);
 				await goto(`/confirmSignUp?email=${encodeURIComponent(email)}`);
 			} else if (result.nextStep.signInStep === 'RESET_PASSWORD') await resetRequired();
-			else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signInStep }));
+			else
+				toastError(
+					m.auth_login_toast_next_step_title(),
+					m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signInStep })
+				);
 		} catch (err) {
 			console.error('Error signing in:', err);
 			if (
@@ -75,10 +91,17 @@
 					err.name === 'UserNotFoundException' ||
 					err.name === 'InvalidPasswordException')
 			)
-				toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_creds());
+				toastError(
+					m.auth_login_toast_sign_in_failed_title(),
+					m.auth_login_toast_sign_in_failed_desc_creds()
+				);
 			else if (err instanceof Error && err.name === 'PasswordResetRequiredException')
 				await resetRequired();
-			else toastError(m.auth_login_toast_sign_in_failed_title(), m.auth_login_toast_sign_in_failed_desc_generic());
+			else
+				toastError(
+					m.auth_login_toast_sign_in_failed_title(),
+					m.auth_login_toast_sign_in_failed_desc_generic()
+				);
 		} finally {
 			loading = false;
 		}

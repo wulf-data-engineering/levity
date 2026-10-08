@@ -1,9 +1,8 @@
 import { get } from 'svelte/store';
 import { toastError, toastSuccess } from '../toasts';
 import { goto } from '$app/navigation';
-import { authApi } from '$lib/auth';
-// @ts-expect-error - Paraglide generates JS with JSDoc
-import { getLocale } from '$lib/paraglide/runtime';
+import { authApi } from '#lib/auth.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
 
 /**
  * Request a password reset for the given email address using the Cognito API.

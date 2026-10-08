@@ -1,24 +1,22 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import * as auth from '$lib/auth';
+	import { dev } from '$app/env';
+	import * as auth from '#lib/auth.js';
 	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import * as InputOTP from '$lib/components/ui/input-otp';
-	import * as Card from '$lib/components/ui/card';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as InputOTP from '#lib/components/ui/input-otp/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { toastError, toastSuccess } from '../toasts';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { ValidatedForm } from '$lib/components/validatedForm';
+	import { ValidatedForm } from '#lib/components/validatedForm/index.js';
 
-	import { SignUpData } from '$lib/proto/sign_up_data/sign_up_data';
-	// @ts-expect-error - Paraglide generates JS with JSDoc, which svelte-check might complain about missing .d.ts
-	import { getLocale } from '$lib/paraglide/runtime';
-	// @ts-expect-error - Paraglide generates JS with JSDoc
-	import * as m from '$lib/paraglide/messages.js';
+	import { SignUpData } from '#lib/proto/sign_up_data/sign_up_data.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import * as m from '#lib/paraglide/messages.js';
 
-	import { validateName } from '$lib/validation';
-	import { ValidatedInput } from '$lib/components/validatedInput';
+	import { validateName } from '#lib/validation.js';
+	import { ValidatedInput } from '#lib/components/validatedInput/index.js';
 
 	let submitting = $state(false);
 
@@ -29,7 +27,10 @@
 	onMount(async () => {
 		let maybeEmail = page.url.searchParams.get('email');
 		if (!maybeEmail) {
-			toastError(m.auth_confirm_signup_toast_error_title(), m.auth_confirm_signup_toast_error_email_req());
+			toastError(
+				m.auth_confirm_signup_toast_error_title(),
+				m.auth_confirm_signup_toast_error_email_req()
+			);
 			await goto('/signUp');
 		} else {
 			email = maybeEmail;
@@ -51,11 +52,18 @@
 				} else {
 					await goto(`/?email=${encodeURIComponent(email)}`);
 				}
-			} else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: 'Next step' }));
+			} else
+				toastError(
+					m.auth_login_toast_next_step_title(),
+					m.auth_login_toast_next_step_desc_unimpl({ step: 'Next step' })
+				);
 		} catch (err) {
 			console.error('Error confirming sign up:', err);
 			if (err instanceof Error && err.name === 'CodeMismatchException') {
-				toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_wrong_code());
+				toastError(
+					m.auth_confirm_signup_toast_failed_title(),
+					m.auth_confirm_signup_toast_failed_desc_wrong_code()
+				);
 			} else if (err instanceof Error && err.name === 'ExpiredCodeException') {
 				try {
 					await get(auth.authApi).resendSignUpCode({ username: email! });
@@ -65,10 +73,21 @@
 					);
 				} catch {
 					if (dev)
-						toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_local()); // erased at build time
-					else toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_expired());
+						toastError(
+							m.auth_confirm_signup_toast_failed_title(),
+							m.auth_confirm_signup_toast_failed_desc_local()
+						); // erased at build time
+					else
+						toastError(
+							m.auth_confirm_signup_toast_failed_title(),
+							m.auth_confirm_signup_toast_failed_desc_expired()
+						);
 				}
-			} else toastError(m.auth_confirm_signup_toast_failed_title(), m.auth_confirm_signup_toast_failed_desc_generic());
+			} else
+				toastError(
+					m.auth_confirm_signup_toast_failed_title(),
+					m.auth_confirm_signup_toast_failed_desc_generic()
+				);
 		} finally {
 			submitting = false;
 		}
@@ -78,10 +97,16 @@
 		try {
 			submitting = true;
 			await get(auth.authApi).resendSignUpCode({ username: email! });
-			toastSuccess(m.auth_confirm_signup_toast_sent_title(), m.auth_confirm_signup_toast_sent_desc());
+			toastSuccess(
+				m.auth_confirm_signup_toast_sent_title(),
+				m.auth_confirm_signup_toast_sent_desc()
+			);
 		} catch (err) {
 			console.error('Error resending code:', err);
-			toastError(m.auth_confirm_signup_toast_error_title(), m.auth_confirm_signup_toast_error_resend());
+			toastError(
+				m.auth_confirm_signup_toast_error_title(),
+				m.auth_confirm_signup_toast_error_resend()
+			);
 		} finally {
 			submitting = false;
 		}

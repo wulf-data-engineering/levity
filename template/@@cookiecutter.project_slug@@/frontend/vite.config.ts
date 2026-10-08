@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
@@ -13,44 +15,67 @@ export default defineConfig(({ mode }) => {
 	return {
 		envDir: '../',
 		plugins: [
-		tailwindcss(), 
-		paraglideVitePlugin({
-			project: './project.inlang',
-			outdir: './src/lib/paraglide'
-		}),
-		sveltekit(), 
-		svelteTesting(), 
-		protoPlugin()
-	],
-	test: {
-		expect: { requireAssertions: true },
-		projects: [
-			{
-				extends: './vite.config.ts',
-				test: {
-					name: 'server',
-					environment: 'jsdom',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					setupFiles: ['./vitest-setup.js']
+			tailwindcss(),
+			paraglideVitePlugin({
+				project: './project.inlang',
+				outdir: './src/lib/paraglide'
+			}),
+			sveltekit({
+				preprocess: vitePreprocess(),
+				adapter: adapter({
+					fallback: 'fallback.html'
+				}),
+				env: {
+					dir: '..'
+				},
+				prerender: {
+					handleHttpError: ({ status, path, referrer, message }) => {
+						if (status === 404) {
+							// ignore 404s discovered during crawl
+							console.log(
+								`Ignoring not found for ${path} from ${referrer} with ${status} ${message}`
+							);
+							return;
+						}
+						// rethrow others
+						throw new Error(
+							`Prerender failed for ${path} from ${referrer} with ${status} ${message}`
+						);
+					}
 				}
-			}
-		]
-	},
-	server: {
-		port: parseInt(env.FRONTEND_PORT || '5173'),
-		proxy: {
-			// On dev redirect "/api/..." to cargo lambda watch "/lambda-url/.../"
-			'/api': {
-				target: `http://localhost:${env.BACKEND_PORT || '9000'}`,
-				changeOrigin: true,
-				secure: false,
-				rewrite: (path) => {
-					const withoutApi = path.replace(/^\/api/, '');
-					return `/lambda-url${withoutApi}/`;
+			}),
+			svelteTesting(),
+			protoPlugin()
+		],
+		test: {
+			expect: { requireAssertions: true },
+			projects: [
+				{
+					extends: './vite.config.ts',
+					test: {
+						name: 'server',
+						environment: 'jsdom',
+						include: ['src/**/*.{test,spec}.{js,ts}'],
+						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+						setupFiles: ['./vitest-setup.js']
+					}
+				}
+			]
+		},
+		server: {
+			port: parseInt(env.FRONTEND_PORT || '5173'),
+			proxy: {
+				// On dev redirect "/api/..." to cargo lambda watch "/lambda-url/.../"
+				'/api': {
+					target: `http://localhost:${env.BACKEND_PORT || '9000'}`,
+					changeOrigin: true,
+					secure: false,
+					rewrite: (path) => {
+						const withoutApi = path.replace(/^\/api/, '');
+						return `/lambda-url${withoutApi}/`;
+					}
 				}
 			}
 		}
-	}
 	};
 });

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Label } from '$lib/components/ui/label';
-	import { Input } from '$lib/components/ui/input';
-	import type { WithElementRef } from '$lib/utils';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import type { WithElementRef } from '#lib/utils.js';
 	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from 'svelte/elements';
-	import type { ValidatedFormContext } from '$lib/components/validatedForm/validatedForm.svelte';
+	import type { ValidatedFormContext } from '#lib/components/validatedForm/validatedForm.svelte';
 	import { getContext, onDestroy, onMount } from 'svelte';
 
 	// A string is an error message, null/undefined means valid.
@@ -28,6 +28,7 @@
 		ref = $bindable<HTMLInputElement | null>(null),
 		value = $bindable(),
 		files = $bindable(),
+		type,
 		id,
 		label,
 		info,
@@ -97,16 +98,32 @@
 		<Label for={id} class="mb-1">{label}</Label>
 	{/if}
 
-	<Input
-		{id}
-		{...restProps}
-		bind:ref
-		bind:value
-		aria-invalid={isInvalid ? 'true' : undefined}
-		aria-describedby={message ? messageId : undefined}
-		onblur={() => (touched = true)}
-		oninvalid={() => (touched = true)}
-	/>
+	{#if type === 'file'}
+		<Input
+			{id}
+			type="file"
+			{...restProps}
+			bind:ref
+			bind:value
+			bind:files
+			aria-invalid={isInvalid ? 'true' : undefined}
+			aria-describedby={message ? messageId : undefined}
+			onblur={() => (touched = true)}
+			oninvalid={() => (touched = true)}
+		/>
+	{:else}
+		<Input
+			{id}
+			{type}
+			{...restProps}
+			bind:ref
+			bind:value
+			aria-invalid={isInvalid ? 'true' : undefined}
+			aria-describedby={message ? messageId : undefined}
+			onblur={() => (touched = true)}
+			oninvalid={() => (touched = true)}
+		/>
+	{/if}
 
 	{#if message}
 		<small id={messageId} class={isInvalid ? 'text-destructive' : 'text-muted-foreground'}>

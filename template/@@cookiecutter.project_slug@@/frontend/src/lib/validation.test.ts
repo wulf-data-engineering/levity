@@ -6,9 +6,8 @@ import {
 	validateEmail,
 	validatePasswordRepetition,
 	validateName
-} from '$lib/validation';
-// @ts-expect-error - Paraglide generates JS with JSDoc
-import { setLocale } from '$lib/paraglide/runtime';
+} from '#lib/validation.js';
+import { setLocale } from '#lib/paraglide/runtime.js';
 
 describe('validation', () => {
 	it('check Emails', async () => {

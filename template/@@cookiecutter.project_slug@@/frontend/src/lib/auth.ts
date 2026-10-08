@@ -1,13 +1,12 @@
-import {writable, derived, get} from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 
-import {dev} from '$app/environment';
-import type {Amplify} from 'aws-amplify';
-import type {GetCurrentUserOutput} from 'aws-amplify/auth';
+import { dev } from '$app/env';
+import type { Amplify } from 'aws-amplify';
+import type { GetCurrentUserOutput } from 'aws-amplify/auth';
 import type * as Auth from 'aws-amplify/auth';
-import {SignUpData} from '$lib/proto/sign_up_data/sign_up_data';
+import { SignUpData } from '#lib/proto/sign_up_data/sign_up_data.js';
 import { loadConfig } from './config';
-// @ts-expect-error - Paraglide generates JS with JSDoc
-import { getLocale } from '$lib/paraglide/runtime';
+import { getLocale } from '#lib/paraglide/runtime.js';
 
 export type Amplify = typeof Amplify;
 export type AuthApi = typeof Auth;
@@ -78,43 +77,39 @@ export async function configureAuth() {
 }
 
 export async function loadCurrentUser() {
-    try {
-        currentUser.set(await get(authApi).getCurrentUser());
-    } catch {
-        currentUser.set(null);
-    }
+	try {
+		currentUser.set(await get(authApi).getCurrentUser());
+	} catch {
+		currentUser.set(null);
+	}
 }
 
 async function performAutoSignIn() {
-    await get(authApi).autoSignIn();
-    await loadCurrentUser();
+	await get(authApi).autoSignIn();
+	await loadCurrentUser();
 }
 
 /**
  * Signs up the user with given credentials and sign-up data.
  * If there is a current user, they are signed out first.
  */
-export async function signUp(
-    email: string,
-    password: string,
-    autoSignIn: boolean = true
-) {
-    if (get(isSignedIn)) await signOut();
+export async function signUp(email: string, password: string, autoSignIn: boolean = true) {
+	if (get(isSignedIn)) await signOut();
 
-    const result = await get(authApi).signUp({
-        username: email,
-        password: password,
-        options: {
-            userAttributes: {
-                email: email
-            },
-            clientMetadata: {
-                language: getLocale()
-            },
-            autoSignIn
-        }
-    });
-    return result;
+	const result = await get(authApi).signUp({
+		username: email,
+		password: password,
+		options: {
+			userAttributes: {
+				email: email
+			},
+			clientMetadata: {
+				language: getLocale()
+			},
+			autoSignIn
+		}
+	});
+	return result;
 }
 
 /**
@@ -122,49 +117,49 @@ export async function signUp(
  * If confirmation completes with auto signs in in production, the user is also signed in.
  */
 export async function confirmSignUp(email: string, otp: string, signUpData: SignUpData) {
-    const result = await get(authApi).confirmSignUp({
-        username: email,
-        confirmationCode: otp,
-        options: {
-            clientMetadata: {
-                sign_up_data: JSON.stringify(signUpData),
-                language: getLocale()
-            }
-        }
-    });
-  if (!result.isSignUpComplete) {
-        console.warn('User is not completely signed up in after confirm:', result.nextStep);
-    } else if (result.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
-        if (!dev /* not supported in Cognito local */) {
-            await performAutoSignIn();
-        }
-    }
-    return result;
+	const result = await get(authApi).confirmSignUp({
+		username: email,
+		confirmationCode: otp,
+		options: {
+			clientMetadata: {
+				sign_up_data: JSON.stringify(signUpData),
+				language: getLocale()
+			}
+		}
+	});
+	if (!result.isSignUpComplete) {
+		console.warn('User is not completely signed up in after confirm:', result.nextStep);
+	} else if (result.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
+		if (!dev /* not supported in Cognito local */) {
+			await performAutoSignIn();
+		}
+	}
+	return result;
 }
 
 /**
  * Signs in the user with given credentials.
  */
 export async function signIn(username: string, password: string) {
-    const user = await get(authApi).signIn({
-        username: username,
-        password: password,
-        options: {
-            authFlowType: dev ? 'USER_PASSWORD_AUTH' : 'USER_SRP_AUTH'
-        }
-    });
-    if (!user.isSignedIn) {
-        console.warn('User is not signed in after signIn:', user.nextStep);
-    } else {
-        await loadCurrentUser();
-    }
-    return user;
+	const user = await get(authApi).signIn({
+		username: username,
+		password: password,
+		options: {
+			authFlowType: dev ? 'USER_PASSWORD_AUTH' : 'USER_SRP_AUTH'
+		}
+	});
+	if (!user.isSignedIn) {
+		console.warn('User is not signed in after signIn:', user.nextStep);
+	} else {
+		await loadCurrentUser();
+	}
+	return user;
 }
 
 /**
  * Signs out the current user.
  */
 export async function signOut() {
-    await get(authApi).signOut({global: false});
-    currentUser.set(null);
+	await get(authApi).signOut({ global: false });
+	currentUser.set(null);
 }

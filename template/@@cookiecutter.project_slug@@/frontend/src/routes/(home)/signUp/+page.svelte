@@ -1,21 +1,20 @@
 <script lang="ts">
-	import * as auth from '$lib/auth';
+	import * as auth from '#lib/auth.js';
 	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { toastError, toastSuccess } from '../toasts';
-	import { ValidatedInput } from '$lib/components/validatedInput';
-	import { ValidatedForm } from '$lib/components/validatedForm';
+	import { ValidatedInput } from '#lib/components/validatedInput/index.js';
+	import { ValidatedForm } from '#lib/components/validatedForm/index.js';
 	import {
 		validateEmail,
 		validateNewPassword,
 		validatePasswordRepetition
-	} from '$lib/validation';
+	} from '#lib/validation.js';
 	import { onMount } from 'svelte';
-	import { protocolLoad } from '$lib/protocols';
-	import { PasswordPolicy } from '$lib/proto/password_policy/password_policy';
-	// @ts-expect-error - Paraglide generates JS with JSDoc
-	import * as m from '$lib/paraglide/messages.js';
+	import { protocolLoad } from '#lib/protocols.js';
+	import { PasswordPolicy } from '#lib/proto/password_policy/password_policy.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let email = $state('');
 	let password = $state('');
@@ -44,19 +43,27 @@
 				toastSuccess(m.auth_signup_toast_success_title(), m.auth_signup_toast_success_desc());
 				await goto('/');
 			} else if (result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-				toastSuccess(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_confirm());
+				toastSuccess(
+					m.auth_login_toast_next_step_title(),
+					m.auth_login_toast_next_step_desc_confirm()
+				);
 				const params = new URLSearchParams({
 					email
 				});
 				await goto(`/confirmSignUp?${params.toString()}`);
-			} else toastError(m.auth_login_toast_next_step_title(), m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signUpStep }));
+			} else
+				toastError(
+					m.auth_login_toast_next_step_title(),
+					m.auth_login_toast_next_step_desc_unimpl({ step: result.nextStep.signUpStep })
+				);
 		} catch (err) {
 			console.error('Error signing up:', err);
 			if (err instanceof Error && err.name === 'UsernameExistsException')
 				toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_exists());
 			else if (err instanceof Error && err.name === 'InvalidPasswordException')
 				toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_policy());
-			else toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_generic());
+			else
+				toastError(m.auth_signup_toast_failed_title(), m.auth_signup_toast_failed_desc_generic());
 		} finally {
 			submitting = false;
 		}
