@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: continuous-deployment-production
+  cancel-in-progress: false
+
 jobs:
   # Builds the backend if it wasn't part of the cache
   build-backend:
