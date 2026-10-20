@@ -3,6 +3,14 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
+[profile.dev]
+debug = "line-tables-only" # Keep file:line in backtraces, drop heavy variable/type DWARF data
+strip = "none" # Keep symbol names and line tables intact
+
+[profile.dev.package."*"]
+opt-level = "s" # Optimize 3rd-party dependencies for size (compiled once and cached)
+debug = false # Strip all debug info from dependencies
+
 [profile.release]
 codegen-units = 1 # Reduce binary size by compiling all code in one unit
 lto = "fat" # Enable best link-time optimization to reduce binary size
