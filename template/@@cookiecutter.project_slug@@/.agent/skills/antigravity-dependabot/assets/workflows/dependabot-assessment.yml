@@ -19,11 +19,15 @@ permissions:
 jobs:
   assess-dependabot:
     name: Assess Dependabot Safety & Auto-Merge
-    # Strictly run only for dependabot PRs on the origin repository
+    # Strictly run only for dependabot PRs (or consolidated security version-upgrade PRs) on the origin repository
     if: >-
       github.event_name == 'workflow_dispatch' || (
         github.event.workflow_run.conclusion == 'success' &&
-        (github.event.workflow_run.actor.login == 'dependabot[bot]' || github.event.workflow_run.actor.login == 'app/dependabot') &&
+        (
+          github.event.workflow_run.actor.login == 'dependabot[bot]' ||
+          github.event.workflow_run.actor.login == 'app/dependabot' ||
+          github.event.workflow_run.head_branch == 'dependabot/security-version-upgrades'
+        ) &&
         github.event.workflow_run.head_repository.full_name == github.repository
       )
     runs-on: ubuntu-latest
@@ -72,9 +76,16 @@ jobs:
           echo "Head repository owner: $HEAD_REPO_OWNER"
           echo "Cross-repository: $IS_CROSS_REPO"
 
-          # Security guard: only operate on dependabot PRs within the base repository
-          if [ "$PR_AUTHOR" != "dependabot[bot]" ] && [ "$PR_AUTHOR" != "app/dependabot" ]; then
-            echo "Security guard: PR #$PR_NUMBER is authored by '$PR_AUTHOR', not dependabot. Skipping."
+          # Security guard: only operate on dependabot PRs or bot-authored security version-upgrade PRs within the base repository
+          IS_ELIGIBLE_BOT=false
+          if [ "$PR_AUTHOR" = "dependabot[bot]" ] || [ "$PR_AUTHOR" = "app/dependabot" ]; then
+            IS_ELIGIBLE_BOT=true
+          elif [ "$HEAD_BRANCH" = "dependabot/security-version-upgrades" ] && [[ "$PR_AUTHOR" == *"[bot]" || "$PR_AUTHOR" == app/* ]]; then
+            IS_ELIGIBLE_BOT=true
+          fi
+
+          if [ "$IS_ELIGIBLE_BOT" != "true" ]; then
+            echo "Security guard: PR #$PR_NUMBER is authored by '$PR_AUTHOR' on '$HEAD_BRANCH', not eligible. Skipping."
             echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi

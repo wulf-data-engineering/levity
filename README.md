@@ -47,7 +47,7 @@ Levity is designed around **Google Antigravity** and ships with a **comprehensiv
 - **Opt‑in feature skills**: Complex cross‑cutting capabilities are kept out of the base blueprint so new projects stay lean, and can be integrated on demand by the agent using self‑contained skills (`SKILL.md` + parameterized `assets/`):
   - **`websockets-integration`**: Real‑time bidirectional WebSockets (API Gateway WebSocket API + Cognito custom authorizer + DynamoDB connection registry), asynchronous SQS background processing, and local emulation via `tools/websocket-mock` ([ADR‑009](/adr/009-websockets-async-processing.md)).
   - **`wasm-integration`**: High‑performance client‑side Rust WebAssembly crates (`frontend-wasm/`) compiled with `wasm-pack`, hot‑reloaded alongside Vite, and bundled in CDK and CI/CD.
-  - **`antigravity-dependabot`**: Autonomous CI workflows where headless Antigravity agents assess passing Dependabot PRs for domain safety and auto‑merge them, automatically repair failing Dependabot PRs from filtered CI logs, sequentially rebase‑chain queued PRs, and track token costs ([ADR‑007](/adr/007-antigravity-dependabot-automation.md)).
+  - **`antigravity-dependabot`**: Autonomous CI workflows where headless Antigravity agents assess passing Dependabot PRs for domain safety and auto‑merge them, automatically repair failing Dependabot PRs from filtered CI logs, remediate open Dependabot and CodeQL security alerts via consolidated version‑upgrade PRs and per‑finding code PRs, sequentially rebase‑chain queued PRs, and track token costs ([ADR‑007](/adr/007-antigravity-dependabot-automation.md), [ADR‑014](/adr/014-antigravity-security-remediation.md)).
 - **Skill derivation meta‑workflow (`/derive-skill`)**: Levity itself includes a meta‑workflow ([`.agent/workflows/derive-skill.md`](/.agent/workflows/derive-skill.md)) to extract complex features developed and tested in a template instance into new reusable, parameterized opt‑in skills.
 - **Guided developer workflows**: Interactive workflows guide developers through environment verification and AWS/GitHub bootstrapping (`/onboarding`, `/initial-setup`) as well as one‑command polyglot localization across frontend and backend dictionaries (`/translate-app`), alongside operational workflows for local execution, E2E testing, and dependency upgrades.
 
@@ -70,7 +70,7 @@ Levity is designed around **Google Antigravity** and ships with a **comprehensiv
 ## Repository layout (high level)
 
 ```
-/adr/                       - Architectural decision records (ADR-000 .. ADR-013)
+/adr/                       - Architectural decision records (ADR-000 .. ADR-014)
 /scripts/                   - Template verification utilities (check_defaults.py)
 /tools/websocket-mock/      - Local WebSocket API Gateway emulator in Rust/Axum
 /template/                  - Cookiecutter blueprint

@@ -15,13 +15,30 @@ import sys
 from typing import Any
 
 DEPENDABOT_AUTHORS = {"dependabot[bot]", "app/dependabot"}
+SECURITY_UPGRADE_BRANCH = "dependabot/security-version-upgrades"
+
+
+def is_eligible_pr(pr: dict[str, Any]) -> bool:
+    """Return True if the PR is a Dependabot PR or a consolidated security version-upgrade PR."""
+    author = pr.get("author", {}).get("login", "")
+    head_ref = pr.get("headRefName", "")
+    if author in DEPENDABOT_AUTHORS:
+        return True
+    if head_ref == SECURITY_UPGRADE_BRANCH and (
+        author in {"github-actions[bot]", "app/github-actions"}
+        or author.endswith("[bot]")
+        or author.startswith("app/")
+    ):
+        return True
+    return False
 
 
 def select_next_action(pull_requests: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str]:
     """Select the oldest eligible Dependabot PR and determine the required action.
 
     Eligibility:
-    1. Authored by dependabot[bot] or app/dependabot.
+    1. Authored by dependabot[bot] / app/dependabot, OR a bot-authored PR on
+       'dependabot/security-version-upgrades'.
     2. Has auto-merge enabled (autoMergeRequest is not None).
 
     Actions:
@@ -33,8 +50,7 @@ def select_next_action(pull_requests: list[dict[str, Any]]) -> tuple[dict[str, A
     candidates: list[dict[str, Any]] = []
 
     for pr in pull_requests:
-        author = pr.get("author", {}).get("login", "")
-        if author not in DEPENDABOT_AUTHORS:
+        if not is_eligible_pr(pr):
             continue
 
         auto_merge = pr.get("autoMergeRequest")

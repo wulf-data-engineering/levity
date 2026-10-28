@@ -1,0 +1,448 @@
+name: Antigravity Security Remediation
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_run:
+    workflows: ["CodeQL"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      max_individual_prs:
+        description: "Maximum number of individual code/replacement PRs to create in one run"
+        required: false
+        default: "3"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  security-events: read
+  dependabot-alerts: read
+
+concurrency:
+  group: security-remediation
+  cancel-in-progress: false
+
+jobs:
+  remediate-vulnerabilities:
+    name: Assess & Remediate Security Alerts
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GA_GEMINI_MODEL: ${{ vars.GA_GEMINI_MODEL || 'gemini-3.8-flash' }}
+      MAX_INDIVIDUAL_PRS: ${{ inputs.max_individual_prs || '3' }}
+
+    steps:
+      - name: Generate GitHub App Token
+        if: env.HAS_APP_ID == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        env:
+          HAS_APP_ID: ${{ secrets.APP_ID != '' }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity and hooks
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -d .githooks ]; then
+            chmod +x .githooks/* 2>/dev/null || true
+            git config core.hooksPath .githooks
+          fi
+
+      - name: Fetch open security alerts, PRs, and rolling tracking issue
+        id: fetch_alerts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --paginate "repos/$GH_REPO/dependabot/alerts?state=open&per_page=100" 2>/dev/null | jq -s 'map(select(type == "array")) | add // []' > /tmp/dependabot_alerts.json || echo "[]" > /tmp/dependabot_alerts.json
+          gh api --paginate "repos/$GH_REPO/code-scanning/alerts?state=open&per_page=100" 2>/dev/null | jq -s 'map(select(type == "array")) | add // []' > /tmp/codeql_alerts.json || echo "[]" > /tmp/codeql_alerts.json
+          gh pr list -R "$GH_REPO" --state open --limit 100 --json number,title,headRefName,body > /tmp/open_prs.json
+
+          ISSUE_DATA=$(gh issue list -R "$GH_REPO" --state open --search '"Security Alerts Requiring Human Decision" in:title' --json number,title,body | jq -c 'map(select(.title == "Security Alerts Requiring Human Decision")) | .[0] // empty')
+          if [ -n "$ISSUE_DATA" ]; then
+            ISSUE_NUMBER=$(echo "$ISSUE_DATA" | jq -r '.number')
+            echo "$ISSUE_DATA" | jq -r '.body // ""' > /tmp/rolling_issue_body.md
+            echo "rolling_issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          else
+            touch /tmp/rolling_issue_body.md
+            echo "rolling_issue_number=" >> $GITHUB_OUTPUT
+          fi
+
+          python3 .github/scripts/remediate_vulnerabilities.py plan \
+            --dependabot-json /tmp/dependabot_alerts.json \
+            --codeql-json /tmp/codeql_alerts.json \
+            --prs-json /tmp/open_prs.json \
+            --issue-body-file /tmp/rolling_issue_body.md \
+            --max-individual-prs "$MAX_INDIVIDUAL_PRS" \
+            --output /tmp/remediation_plan.json
+
+          SKIP_UPGRADES=$(jq -r '.skip_version_upgrades' /tmp/remediation_plan.json)
+          UPGRADE_COUNT=$(jq -r '.version_upgrades | length' /tmp/remediation_plan.json)
+          INDIVIDUAL_COUNT=$(jq -r '.individual_groups | length' /tmp/remediation_plan.json)
+          UNPATCHED_COUNT=$(jq -r '.unpatched_alerts | length' /tmp/remediation_plan.json)
+
+          echo "Consolidated upgrade candidates: $UPGRADE_COUNT (skip=$SKIP_UPGRADES)"
+          echo "Individual code/replacement groups (capped): $INDIVIDUAL_COUNT"
+          echo "Unpatched alerts for assessment: $UNPATCHED_COUNT"
+
+          if [ "$SKIP_UPGRADES" = "true" ] && [ "$INDIVIDUAL_COUNT" -eq 0 ] && [ "$UNPATCHED_COUNT" -eq 0 ]; then
+            echo "has_work=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_work=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up toolchains
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install cookiecutter and Protoc
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+
+      - name: Install cookiecutter CLI
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        run: pip install cookiecutter
+
+      - name: Install Antigravity CLI
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        run: |
+          curl -fsSL https://antigravity.google/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          mkdir -p ~/.gemini/antigravity-cli
+          echo "{\"modelProvider\": \"gemini\", \"model\": \"${GA_GEMINI_MODEL:-gemini-3.8-flash}\"}" > ~/.gemini/antigravity-cli/settings.json
+
+      - name: "Phase 1: Consolidated Version-Upgrade PR"
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          SKIP_UPGRADES=$(jq -r '.skip_version_upgrades' /tmp/remediation_plan.json)
+          echo "[]" > /tmp/promoted_packages.json
+
+          if [ "$SKIP_UPGRADES" = "true" ]; then
+            echo "Skipping Phase 1 (no new patchable version upgrades)."
+            exit 0
+          fi
+
+          git checkout -B dependabot/security-version-upgrades origin/main
+          cookiecutter --no-input --overwrite-if-exists --output-dir . template/ project_slug="test-instance"
+
+          APPLIED_SUMMARIES=""
+          ALERT_MARKERS=""
+
+          COUNT=$(jq -r '.version_upgrades | length' /tmp/remediation_plan.json)
+          for idx in $(seq 0 $((COUNT - 1))); do
+            ITEM=$(jq -c ".version_upgrades[$idx]" /tmp/remediation_plan.json)
+            ECOSYSTEM=$(echo "$ITEM" | jq -r '.ecosystem')
+            MANIFEST=$(echo "$ITEM" | jq -r '.manifest_path')
+            PKG=$(echo "$ITEM" | jq -r '.package')
+            PATCHED=$(echo "$ITEM" | jq -r '.patched_version')
+
+            # Map template manifest paths to test-instance for cargo/npm operations
+            WORK_MANIFEST="$MANIFEST"
+            if [[ "$MANIFEST" == template/@@cookiecutter.project_slug@@/* ]]; then
+              REL_PATH="${MANIFEST#template/@@cookiecutter.project_slug@@/}"
+              WORK_MANIFEST="test-instance/$REL_PATH"
+            fi
+            WORK_DIR=$(dirname "$WORK_MANIFEST")
+
+            echo "Attempting Phase 1 upgrade: $PKG -> >= $PATCHED in $WORK_DIR ($ECOSYSTEM)"
+            UPGRADE_OK=false
+
+            if [ "$ECOSYSTEM" = "cargo" ] || [ "$ECOSYSTEM" = "rust" ]; then
+              cp "$WORK_DIR/Cargo.toml" /tmp/Cargo.toml.bak
+              cp "$WORK_DIR/Cargo.lock" /tmp/Cargo.lock.bak
+              python3 .github/scripts/remediate_vulnerabilities.py update-cargo-pin \
+                --cargo-toml "$WORK_DIR/Cargo.toml" \
+                --package "$PKG" \
+                --version "$PATCHED"
+              if (cd "$WORK_DIR" && (cargo update -p "$PKG" --precise "$PATCHED" || cargo update -p "$PKG")); then
+                if ! cmp -s "$WORK_DIR/Cargo.lock" /tmp/Cargo.lock.bak; then
+                  # Copy back to template if inside test-instance
+                  if [[ "$MANIFEST" == template/@@cookiecutter.project_slug@@/* ]]; then
+                    TMPL_DIR=$(dirname "$MANIFEST")
+                    python3 .github/scripts/remediate_vulnerabilities.py update-cargo-pin \
+                      --cargo-toml "$TMPL_DIR/Cargo.toml" \
+                      --package "$PKG" \
+                      --version "$PATCHED"
+                    cp "$WORK_DIR/Cargo.lock" "$TMPL_DIR/Cargo.lock"
+                  fi
+                  UPGRADE_OK=true
+                fi
+              fi
+              if [ "$UPGRADE_OK" != "true" ]; then
+                cp /tmp/Cargo.toml.bak "$WORK_DIR/Cargo.toml"
+                cp /tmp/Cargo.lock.bak "$WORK_DIR/Cargo.lock"
+              fi
+            elif [ "$ECOSYSTEM" = "npm" ]; then
+              cp "$WORK_DIR/package.json" /tmp/package.json.bak
+              cp "$WORK_DIR/package-lock.json" /tmp/package-lock.json.bak
+              (cd "$WORK_DIR" && npm update "$PKG" --package-lock-only) || true
+              if cmp -s "$WORK_DIR/package-lock.json" /tmp/package-lock.json.bak; then
+                python3 .github/scripts/remediate_vulnerabilities.py add-npm-override \
+                  --package-json "$WORK_DIR/package.json" \
+                  --package "$PKG" \
+                  --version "$PATCHED"
+                (cd "$WORK_DIR" && npm install --package-lock-only) || true
+              fi
+              if ! cmp -s "$WORK_DIR/package-lock.json" /tmp/package-lock.json.bak; then
+                if [[ "$MANIFEST" == template/@@cookiecutter.project_slug@@/* ]]; then
+                  TMPL_DIR=$(dirname "$MANIFEST")
+                  if ! cmp -s "$WORK_DIR/package.json" /tmp/package.json.bak; then
+                    python3 .github/scripts/remediate_vulnerabilities.py add-npm-override \
+                      --package-json "$TMPL_DIR/package.json" \
+                      --package "$PKG" \
+                      --version "$PATCHED"
+                  fi
+                  cp "$WORK_DIR/package-lock.json" "$TMPL_DIR/package-lock.json"
+                fi
+                UPGRADE_OK=true
+              else
+                cp /tmp/package.json.bak "$WORK_DIR/package.json"
+                cp /tmp/package-lock.json.bak "$WORK_DIR/package-lock.json"
+              fi
+            fi
+
+            if [ "$UPGRADE_OK" = "true" ]; then
+              APPLIED_SUMMARIES="${APPLIED_SUMMARIES}"$'\n'"* Upgrade \`$PKG\` to \`>=$PATCHED\` in \`$MANIFEST\`"
+              for AID in $(echo "$ITEM" | jq -r '.alert_ids[]'); do
+                ALERT_MARKERS="${ALERT_MARKERS}"$'\n'"<!-- alert-id: $AID -->"
+              done
+            else
+              echo "Promoting $PKG ($MANIFEST) to Phase 2..."
+              jq ". + [$ITEM]" /tmp/promoted_packages.json > /tmp/promoted_packages.tmp && mv /tmp/promoted_packages.tmp /tmp/promoted_packages.json
+            fi
+          done
+
+          rm -rf test-instance /tmp/*.bak
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Upgrade vulnerable dependencies to patched versions" -m "${APPLIED_SUMMARIES#?}"
+            git push origin dependabot/security-version-upgrades --force-with-lease --no-verify
+
+            EXISTING_PR=$(jq -r '.existing_version_upgrade_pr // empty' /tmp/remediation_plan.json)
+            PR_BODY="### 🛡️ Consolidated Security Dependency Upgrades"$'\n'"${APPLIED_SUMMARIES}"$'\n'"${ALERT_MARKERS}"
+
+            if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+              gh pr edit "$EXISTING_PR" -R "$GH_REPO" --body "$PR_BODY"
+            else
+              gh pr create -R "$GH_REPO" \
+                --base main \
+                --head dependabot/security-version-upgrades \
+                --title "Upgrade vulnerable dependencies to patched versions" \
+                --body "$PR_BODY"
+            fi
+          fi
+
+          git checkout main
+
+          # Re-compute plan if any packages were promoted from Phase 1 to Phase 2
+          if [ "$(jq 'length' /tmp/promoted_packages.json)" -gt 0 ]; then
+            python3 .github/scripts/remediate_vulnerabilities.py plan \
+              --dependabot-json /tmp/dependabot_alerts.json \
+              --codeql-json /tmp/codeql_alerts.json \
+              --prs-json /tmp/open_prs.json \
+              --issue-body-file /tmp/rolling_issue_body.md \
+              --promoted-json /tmp/promoted_packages.json \
+              --max-individual-prs "$MAX_INDIVIDUAL_PRS" \
+              --output /tmp/remediation_plan.json
+          fi
+
+      - name: "Phase 2: Individual Code & Dependency Replacement PRs"
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "[]" > /tmp/unfixable_phase2.json
+          GROUP_COUNT=$(jq -r '.individual_groups | length' /tmp/remediation_plan.json)
+
+          if [ "$GROUP_COUNT" -eq 0 ]; then
+            echo "Skipping Phase 2 (no individual code/replacement groups to process)."
+            exit 0
+          fi
+
+          gh label create "requires-human-review" \
+            --color "D93F0B" \
+            --description "Security remediation requires human review" \
+            --force || true
+
+          for idx in $(seq 0 $((GROUP_COUNT - 1))); do
+            GROUP=$(jq -c ".individual_groups[$idx]" /tmp/remediation_plan.json)
+            BRANCH=$(echo "$GROUP" | jq -r '.branch')
+            GROUP_ID=$(echo "$GROUP" | jq -r '.group_id')
+
+            echo "=== Processing Phase 2 Group ($((idx + 1))/$GROUP_COUNT): $GROUP_ID on $BRANCH ==="
+            git checkout -B "$BRANCH" origin/main
+            echo "$GROUP" | jq '.' > vulnerability_group.json
+
+            set +e
+            agy -p "You are running headless in direct execution mode on the Levity template repository. Follow all instructions in @.agent/rules/vulnerability-remediation.md for Phase 2. Read 'vulnerability_group.json', apply the minimal code, workflow, feature-flag, or dependency-removal fix in batch, verify using the allowed lightweight checks, clean up any temporary 'test-instance/', and write 'remediation_result.json'. Preserve custom Jinja delimiters (@@ ... @@)." \
+              --model "${GA_GEMINI_MODEL:-gemini-3.8-flash}" \
+              --dangerously-skip-permissions \
+              --output-format json \
+              --effort low \
+              --print-timeout 5m > /tmp/agy_phase2_output.json
+            set -e
+
+            rm -rf test-instance vulnerability_group.json
+
+            FIXED=$(jq -r '.fixed // false' remediation_result.json 2>/dev/null || echo "false")
+            PR_TITLE=$(jq -r '.title // "Remediate security vulnerability"' remediation_result.json 2>/dev/null || echo "Remediate security vulnerability")
+            PR_SUMMARY=$(jq -r '.summary // "Automated security remediation by Antigravity."' remediation_result.json 2>/dev/null || echo "Automated security remediation by Antigravity.")
+            UNFIXABLE_REASON=$(jq -r '.unfixable_reason // "Automated remediation could not safely resolve this alert."' remediation_result.json 2>/dev/null || echo "Automated remediation could not safely resolve this alert.")
+            rm -f remediation_result.json
+
+            INPUT_TOKENS=$(jq -r '.usage.input_tokens // empty' /tmp/agy_phase2_output.json 2>/dev/null || true)
+            OUTPUT_TOKENS=$(jq -r '.usage.output_tokens // empty' /tmp/agy_phase2_output.json 2>/dev/null || true)
+            TOTAL_TOKENS=$(jq -r '.usage.total_tokens // empty' /tmp/agy_phase2_output.json 2>/dev/null || true)
+
+            if [ "$FIXED" = "true" ] && [ -n "$(git status --porcelain)" ]; then
+              git add .
+              git commit -m "$PR_TITLE" -m "$PR_SUMMARY"
+              git push origin "$BRANCH" --force-with-lease --no-verify
+
+              MARKERS=""
+              for AID in $(echo "$GROUP" | jq -r '.alert_ids[]'); do
+                MARKERS="${MARKERS}"$'\n'"<!-- alert-id: $AID -->"
+              done
+
+              TOKEN_FOOTER=""
+              COST_LABEL=""
+              if [ -f .github/scripts/calculate_cost.py ] && [ -n "$INPUT_TOKENS" ] && [ -n "$OUTPUT_TOKENS" ] && [ "$INPUT_TOKENS" != "null" ]; then
+                COST_OUT=$(mktemp)
+                GITHUB_OUTPUT="$COST_OUT" INPUT_TOKENS="$INPUT_TOKENS" OUTPUT_TOKENS="$OUTPUT_TOKENS" MODEL="${GA_GEMINI_MODEL:-gemini-3.8-flash}" python3 .github/scripts/calculate_cost.py || true
+                EST_COST=$(grep '^est_cost=' "$COST_OUT" | cut -d= -f2- || echo "N/A")
+                COST_LABEL=$(grep '^cost_label=' "$COST_OUT" | cut -d= -f2- || true)
+                rm -f "$COST_OUT"
+                TOKEN_FOOTER=$'\n'"---"$'\n'"> 📊 **Antigravity Consumption** (${GA_GEMINI_MODEL:-gemini-3.8-flash}): $INPUT_TOKENS in / $OUTPUT_TOKENS out ($TOTAL_TOKENS total) · Est. cost: $EST_COST"
+              fi
+
+              PR_BODY="### 🛡️ Antigravity Security Remediation"$'\n\n'"${PR_SUMMARY}"$'\n\n'"> [!IMPORTANT]"$'\n'"> This pull request modifies code, workflows, or dependency configurations and requires human review before merging."$'\n'"${MARKERS}${TOKEN_FOOTER}"
+
+              PR_URL=$(gh pr create -R "$GH_REPO" \
+                --base main \
+                --head "$BRANCH" \
+                --title "$PR_TITLE" \
+                --body "$PR_BODY" \
+                --label "requires-human-review")
+
+              if [ -n "$COST_LABEL" ] && [ "$COST_LABEL" != "null" ]; then
+                gh label create "$COST_LABEL" --color "0E8A16" --description "Estimated Antigravity agent cost" --force || true
+                gh pr edit "$PR_URL" --add-label "$COST_LABEL" || true
+              fi
+            else
+              echo "Group $GROUP_ID could not be automatically fixed; routing to Phase 3 tracking issue."
+              git reset --hard origin/main
+              git clean -fd
+              UNFIXABLE_ENTRY=$(echo "$GROUP" | jq --arg reason "$UNFIXABLE_REASON" '{
+                alert_id: (.alert_ids[0] // .group_id),
+                alert_number: (.alert_numbers[0] // ""),
+                package: (.package // .rule_id),
+                ecosystem: (.ecosystem // .kind),
+                manifest_path: (.manifest_path // (.locations[0].path // "")),
+                severity: .severity,
+                summary: ((.summaries[0] // .description) // ""),
+                reachable: true,
+                dev_only: false,
+                recommendation: "manual_refactor",
+                reasoning: $reason
+              }')
+              jq ". + [$UNFIXABLE_ENTRY]" /tmp/unfixable_phase2.json > /tmp/unfixable_phase2.tmp && mv /tmp/unfixable_phase2.tmp /tmp/unfixable_phase2.json
+            fi
+
+            git checkout main
+          done
+
+      - name: "Phase 3: Unpatched Alert Assessment & Rolling Issue"
+        if: steps.fetch_alerts.outputs.has_work == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          ROLLING_ISSUE_NUMBER: ${{ steps.fetch_alerts.outputs.rolling_issue_number }}
+        run: |
+          jq '.unpatched_alerts' /tmp/remediation_plan.json > unpatched_alerts.json
+          UNPATCHED_COUNT=$(jq 'length' unpatched_alerts.json)
+          UNFIXABLE_COUNT=$(jq 'length' /tmp/unfixable_phase2.json 2>/dev/null || echo "0")
+
+          echo "[]" > /tmp/final_assessments.json
+
+          if [ "$UNPATCHED_COUNT" -gt 0 ]; then
+            SCHEMA='{"type":"object","properties":{"assessments":{"type":"array","items":{"type":"object","properties":{"alert_id":{"type":"string"},"reachable":{"type":"boolean"},"dev_only":{"type":"boolean"},"recommendation":{"type":"string"},"reasoning":{"type":"string"}},"required":["alert_id","reachable","dev_only","recommendation","reasoning"]}}},"required":["assessments"]}'
+
+            set +e
+            agy -p "Follow @.agent/rules/vulnerability-remediation.md for Phase 3. Inspect 'unpatched_alerts.json' and check whether each vulnerable package is reachable in our production codebase or restricted to dev/build tooling. Do NOT dismiss any alerts and do NOT modify any files. Return structured JSON output conforming to the schema." \
+              --model "${GA_GEMINI_MODEL:-gemini-3.8-flash}" \
+              --dangerously-skip-permissions \
+              --output-format json \
+              --json-schema "$SCHEMA" \
+              --effort low \
+              --print-timeout 3m > /tmp/agy_phase3_output.json
+            set -e
+
+            # Merge agy assessments with metadata from unpatched_alerts.json
+            jq -s '
+              (.[0] // []) as $meta |
+              ((.[1].structured_output.assessments) // []) as $assess |
+              [
+                $meta[] as $m |
+                (($assess | map(select(.alert_id == $m.alert_id)) | .[0]) // {}) as $a |
+                ($m + $a)
+              ]
+            ' unpatched_alerts.json /tmp/agy_phase3_output.json > /tmp/final_assessments.json
+          fi
+
+          rm -f unpatched_alerts.json
+
+          if [ "$UNFIXABLE_COUNT" -gt 0 ]; then
+            jq -s '.[0] + .[1]' /tmp/final_assessments.json /tmp/unfixable_phase2.json > /tmp/final_assessments.tmp && mv /tmp/final_assessments.tmp /tmp/final_assessments.json
+          fi
+
+          TOTAL_NEW=$(jq 'length' /tmp/final_assessments.json)
+          if [ "$TOTAL_NEW" -eq 0 ] && [ -z "$ROLLING_ISSUE_NUMBER" ]; then
+            echo "No unpatched alerts to report and no existing rolling issue."
+            exit 0
+          fi
+
+          python3 .github/scripts/remediate_vulnerabilities.py render-issue \
+            --existing-body-file /tmp/rolling_issue_body.md \
+            --assessments-json /tmp/final_assessments.json \
+            --plan-json /tmp/remediation_plan.json \
+            --repo "$GH_REPO" \
+            --output /tmp/rendered_issue_body.md
+
+          gh label create "requires-human-review" \
+            --color "D93F0B" \
+            --description "Security alert requires human decision" \
+            --force || true
+
+          if [ -n "$ROLLING_ISSUE_NUMBER" ]; then
+            gh issue edit "$ROLLING_ISSUE_NUMBER" -R "$GH_REPO" --body-file /tmp/rendered_issue_body.md
+          else
+            gh issue create -R "$GH_REPO" \
+              --title "Security Alerts Requiring Human Decision" \
+              --body-file /tmp/rendered_issue_body.md \
+              --label "requires-human-review"
+          fi
