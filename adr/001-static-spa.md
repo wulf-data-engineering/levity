@@ -1,6 +1,6 @@
-# ADR‑001 — Static SPA with Selective SSG for Web Deliverables
+# ADR‑001 — Static SPA with Selective SSG for Web Deliverables
 
-**Status**: Proposed  
+**Status**: Superceded by [ADR‑010](./010-cloudfront-spa-routing-and-split-stacks.md)  
 **Date**: 2025‑07‑11
 
 ---
@@ -19,7 +19,7 @@ Key characteristics:
 | Language & tooling | TypeScript (executed via **Node.js/npm** runtime), Vite, ESLint, Prettier.                                                                       |
 | QA tooling         | **vitest** for unit tests (in `src/`), **Playwright** for UI/E2E tests (in `tests/`).                                                            |
 
-A minimal Node 18 **Lambda\@Edge** (or CloudFront Function) is associated with the default CloudFront behavior to rewrite path
+A minimal **Lambda\@Edge** (or CloudFront Function) is associated with the default CloudFront behavior to rewrite path
 `/foo` to `/foo.html`.
 
 **What we mean by _Selective SSG_.** Only routes whose HTML output is identical for every user (e.g. marketing pages, documentation, legal pages) are prerendered at build time. Any route that depends on session‑specific or rapidly changing data is served as a regular SPA route and hydrates on the client. Developers opt‑in or out per route via SvelteKit’s `export const prerender = true | false` flag.

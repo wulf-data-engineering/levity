@@ -1,6 +1,6 @@
 # ADR-005 — DynamoDB as the Primary Data Store for Backend Services
 
-**Status**: Proposed  
+**Status**: Superceded by [ADR‑013](./013-dynamodb-composite-keys-ttl-and-serde-flatten.md)  
 **Date**: 2025‑07‑11
 
 ---

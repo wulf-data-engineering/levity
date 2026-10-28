@@ -1,6 +1,6 @@
 # ADR-004 — Protobuf‑over‑HTTP/1.1 as the Remote‑API Contract
 
-**Status**: Proposed  
+**Status**: Superceded by [ADR‑012](./012-snappy-protobuf-and-breaking-checks.md)  
 **Date**: 2025‑07‑11  
 **Deciders**: Tool‑set maintainers
 

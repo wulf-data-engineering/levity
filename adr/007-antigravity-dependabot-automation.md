@@ -53,7 +53,7 @@ When pull requests are merged or pushed using the default `GITHUB_TOKEN`, GitHub
 - Automatic PR merges do not trigger the sequential dispatcher on `main`.
 
 To overcome this, repositories can configure a dedicated GitHub App (`$project-ci-bot`):
-- Uses `actions/create-github-app-token@v1` with `APP_ID` and `APP_PRIVATE_KEY` repository secrets.
+- Uses `actions/create-github-app-token` with `APP_ID` and `APP_PRIVATE_KEY` repository secrets.
 - Generates ephemeral installation tokens with `Contents: write` and `Pull requests: write` permissions.
 - Automatically falls back to `GITHUB_TOKEN` if GitHub App secrets are not configured.
 
@@ -69,7 +69,7 @@ To eliminate runaway agent cascades:
 - **Log Filtering**: `filter_ci_log.py` strips runner boilerplate (timestamps, setup, teardown) and truncates intermediate logs to keep prompts lean.
 - **Constrained Prompts**: Agents are instructed not to invoke subagents, browse external sites, or reproduce full changelogs.
 - **Usage Transparency**: Both workflows run `calculate_cost.py`, querying the LiteLLM pricing catalog to calculate real estimated running costs based on actual input/output tokens, tagging PRs with compact cost labels (`<$0.01` or `~$X.XXX`) and posting step summaries.
-- **Standardized Model**: Both assessment and autofix workflows standardize on `GA_GEMINI_MODEL` (defaulting to `gemini-3.8-flash`).
+- **Standardized Model**: Both assessment and autofix workflows standardize on `GA_GEMINI_MODEL` (defaulting to a fast Gemini Flash model).
 
 ---
 

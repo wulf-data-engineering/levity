@@ -16,11 +16,11 @@ The `UserRepo` handles access to the `users` table.
 ```rust
 pub struct UserRepo {
     client: Client,
-    table_name: String,
+    table_name: crate::shared::aws_config::SsmParameter,
 }
 
 impl UserRepo {
-    pub fn new(client: Client, table_name: String) -> Self;
+    pub fn new(client: Client, table_name: crate::shared::aws_config::SsmParameter) -> Self;
     pub async fn insert(&self, user_data: UserData) -> Result<(), anyhow::Error>;
     pub async fn read(&self, username: &str) -> Result<Option<User>, anyhow::Error>;
     // Example for a table specific GSI
@@ -34,51 +34,55 @@ impl UserRepo {
 
 To use repositories in Lambda functions, follow this pattern:
 
-1.  **Infrastructure**: Pass the DynamoDB table to the Lambda construct.
+1.  **Infrastructure**: Create the `VersionedTable` and an SSM `StringParameter` holding the table name, then pass both to the Lambda construct.
 
     ```typescript
     // infrastructure/lib/constructs/backend.ts
     const usersTable = new VersionedTable(this, 'UsersTable', { ... });
-    const identity = new Identity(this, 'Identity', { deploymentConfig, usersTable });
+    const usersTableParam = new ssm.StringParameter(this, 'UsersTableParam', {
+      parameterName: '/@@ cookiecutter.project_slug @@/users-table',
+      stringValue: usersTable.tableName,
+    });
+    const identity = new Identity(this, 'Identity', {
+      deploymentConfig,
+      usersTable,
+      usersTableParam,
+    });
     ```
 
-2.  **Lambda Construct**: Pass the table name as an environment variable and grant permissions.
+2.  **Lambda Construct**: Grant both DynamoDB table data permissions and SSM parameter read permissions to the Lambda.
 
     ```typescript
     // infrastructure/lib/constructs/backend/identity.ts
     this.cognitoHandler = backendLambda(this, "CognitoHandlerFunction", {
-      // ...
-      environment: {
-        USERS_TABLE_NAME: props.usersTable.tableName,
-      },
+      deploymentConfig: props.deploymentConfig,
+      binaryName: "cognito-handler",
     });
     props.usersTable.grantReadWriteData(this.cognitoHandler);
+    props.usersTableParam.grantRead(this.cognitoHandler);
     ```
 
-3.  **Lambda Main**: Read the environment variable and initialize the repository.
+3.  **Lambda Main**: Initialize `SsmParameter` (which caches in release mode and fetches fresh in debug/test mode so LocalStack redeployments work seamlessly) and create the repository.
 
     ```rust
     // backend/src/cognito-handler.rs
-    #[cfg(debug_assertions)]
-    fn get_table_name() -> String {
-        std::env::var("USERS_TABLE_NAME").unwrap_or_else(|_| "users".to_string())
-    }
-
-    #[cfg(not(debug_assertions))]
-    fn get_table_name() -> String {
-        std::env::var("USERS_TABLE_NAME").expect("USERS_TABLE_NAME must be set")
-    }
-
     #[tokio::main]
     async fn main() -> Result<(), Error> {
-        let table_name = get_table_name();
-        let config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-        let client = aws_sdk_dynamodb::Client::new(&config);
+        backend::shared::lambda::init_logger();
+
+        let config = load_aws_config().await;
+        let table_name = backend::shared::aws_config::SsmParameter::new(
+            &config,
+            "/@@ cookiecutter.project_slug @@/users-table",
+        );
+
+        let client = Client::new(&config);
         let repo = backend::shared::users::UserRepo::new(client, table_name);
 
         run(service_fn(move |event| {
             let repo = repo.clone();
-            async move { function_handler(event, &repo).await }
+            let config = config.clone();
+            async move { function_handler(event, &repo, &config).await }
         })).await
     }
     ```

@@ -1,18 +1,18 @@
 # ADR-002 — Rust‑based AWS Lambda Functions as the Default Compute Unit
 
-**Status**: Proposed  
+**Status**: Superceded by [ADR‑011](./011-arm64-rust-lambdas-and-ssm-config.md)  
 **Date**: 2025‑07‑11
 
 ---
 
 ## 1. Design & Technology Decision
 
-Every piece of backend compute **SHALL be implemented as a Rust 2021 AWS Lambda Function** built with `cargo lambda`.
+Every piece of backend compute **SHALL be implemented as a Rust AWS Lambda Function** built with `cargo lambda`.
 The function artifacts are compiled for the `provided.al2` custom runtime (or the future official Rust runtime when available) and deployed through AWS CDK.
 
 | Aspect             | Choice                                                                                               |
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| Language           | **Rust 1.79+** (2021 edition)                                                                        |
+| Language           | **Rust**                                                                                             |
 | Package format     | ZIP artifact uploaded by CDK; switch to container image only if >50 MB                               |
 | Runtime            | Custom runtime (`bootstrap`) on Amazon Linux 2                                                       |
 | Invocation sources | HTTP API Gateway v2, Cognito, EventBridge, SQS, DynamoDB Streams                                     |
