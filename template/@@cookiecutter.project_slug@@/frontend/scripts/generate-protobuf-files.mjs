@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const protoDir = path.resolve(new URL('../../protocols', import.meta.url).pathname);
-const outDir = path.resolve(new URL('../src/lib/proto', import.meta.url).pathname);
+const protoDir = path.resolve(fileURLToPath(new URL('../../protocols', import.meta.url)));
+const outDir = path.resolve(fileURLToPath(new URL('../src/lib/proto', import.meta.url)));
 
 // recursively collect all .proto files
 function getProtoFiles(dir) {
@@ -30,8 +31,6 @@ if (protoFiles.length === 0) {
 console.log('[proto] Generating TypeScript from .proto files:');
 protoFiles.forEach((f) => console.log('  ', f));
 
-const protoFilesArg = protoFiles.join(' ');
-
 // --- CLEAN THE OUTPUT FOLDER ---
 if (fs.existsSync(outDir)) {
 	console.log('[proto] Cleaning output folder', outDir);
@@ -40,8 +39,16 @@ if (fs.existsSync(outDir)) {
 fs.mkdirSync(outDir, { recursive: true });
 
 // --- RUN PROTOC ---
-execSync(
-	`protoc -I ${protoDir} ${protoFilesArg} --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=${outDir} --ts_proto_opt=esModuleInterop=true,outputJsonMethods=true,forceLong=string`,
+execFileSync(
+	'protoc',
+	[
+		'-I',
+		protoDir,
+		...protoFiles,
+		'--plugin=./node_modules/.bin/protoc-gen-ts_proto',
+		`--ts_proto_out=${outDir}`,
+		'--ts_proto_opt=esModuleInterop=true,outputJsonMethods=true,forceLong=string'
+	],
 	{ stdio: 'inherit' }
 );
 
