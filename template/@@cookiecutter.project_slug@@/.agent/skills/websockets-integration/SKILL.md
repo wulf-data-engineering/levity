@@ -17,17 +17,17 @@ Make sure the required dependencies are added.
 
 Add the following to `backend/Cargo.toml` under `[dependencies]`:
 ```toml
-uuid = { version = "1.10", features = ["v4"] }
-aws-sdk-sqs = "1"
-aws-sdk-apigatewaymanagement = "1"
-rand = "0.8"
+uuid = { version = "1.29.0", features = ["v4"] }
+aws-sdk-sqs = { version = "1.97.0", default-features = false, features = ["default-https-client", "rt-tokio"] }
+aws-sdk-apigatewaymanagement = { version = "1.80.0", default-features = false, features = ["default-https-client", "rt-tokio"] }
+rand = "0.8.5"
 ```
 
 Use `cargo update` to get the latest versions of the dependencies.
 
 Update the `aws_lambda_events` dependency to include `apigw` and `builders`:
 ```toml
-aws_lambda_events = { version = "1", default-features = false, features = ["sqs", "cognito", "apigw", "builders"] }
+aws_lambda_events = { version = "1.2.1", default-features = false, features = ["sqs", "cognito", "apigw", "builders"] }
 ```
 
 Add the base WebSocket handling targets:

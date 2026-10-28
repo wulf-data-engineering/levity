@@ -90,5 +90,8 @@
 	"imports": {
 		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
+	},
+	"overrides": {
+		"postcss-selector-parser": "^6.1.5"
 	}
 }

@@ -9,6 +9,9 @@ on:
       - 'tools/websocket-mock/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
 
