@@ -5,12 +5,13 @@ description: Instructions and assets for adding automated Dependabot safety asse
 
 # Antigravity Dependabot Automation
 
-This skill equips your repository with autonomous Antigravity CI workflows to handle Dependabot pull requests end-to-end:
-1. **Safety Assessment (`dependabot-assessment.yml`)**: When a Dependabot PR passes CI checks, the assessment agent evaluates domain safety, breaking changes, and business implications of catch-all branches (`_ => ...`). If safe, it approves and enables auto-merge. If risky, it flags the PR with `requires-human-review` and details specific considerations for human reviewers.
+This skill equips your repository with autonomous Antigravity CI workflows to handle Dependabot pull requests and security alerts end-to-end:
+1. **Safety Assessment (`dependabot-assessment.yml`)**: When a Dependabot PR (or consolidated security version-upgrade PR) passes CI checks, the assessment agent evaluates domain safety, breaking changes, and business implications of catch-all branches (`_ => ...`). If safe, it approves and enables auto-merge. If risky, it flags the PR with `requires-human-review` and details specific considerations for human reviewers.
 2. **Automated Repair (`dependabot-autofix.yml`)**: When a Dependabot PR fails CI checks, the auto-fix agent inspects filtered failure logs (`filter_ci_log.py`), directly repairs breaking changes in code or configuration within a strict turn budget (2–4 turns), verifies using lightweight checks, and commits fixes with a concise summary.
-3. **Sequential Dispatcher (`dependabot-dispatcher.yml`)**: Automatically chains and rebases queued Dependabot PRs with auto-merge enabled one by one (`gh pr update-branch --rebase`), preventing parallel CI storms.
-4. **GitHub App Token Integration (`$project-ci-bot`)**: Uses a dedicated GitHub App to allow auto-merged PRs to trigger downstream `on: push` workflows (like deployment and the sequential dispatcher) without `GITHUB_TOKEN` event suppression.
-5. **Usage & Cost Tracking**: Calculates token consumption and estimated cost using the LiteLLM pricing catalog via `calculate_cost.py`, applying compact PR cost labels and posting summary comments.
+3. **Security Vulnerability Remediation (`security-remediation.yml`)**: Runs daily (plus manual `workflow_dispatch` and after `CodeQL` on `main`) to assess open Dependabot and CodeQL security alerts, opening **1 consolidated PR** for all patchable version upgrades (`dependabot/security-version-upgrades`), **up to 3 grouped PRs per run** (`security/fix-<slug>`, labeled `requires-human-review`) for alerts requiring code or dependency configuration changes, and maintaining a single rolling issue (**`Security Alerts Requiring Human Decision`**) for unpatched alerts.
+4. **Sequential Dispatcher (`dependabot-dispatcher.yml`)**: Automatically chains and rebases queued Dependabot PRs with auto-merge enabled one by one (`gh pr update-branch --rebase`), preventing parallel CI storms.
+5. **GitHub App Token Integration (`$project-ci-bot`)**: Uses a dedicated GitHub App to allow auto-merged PRs and bot-created remediation PRs to trigger downstream `on: push` and `on: pull_request` workflows without `GITHUB_TOKEN` event suppression.
+6. **Usage & Cost Tracking**: Calculates token consumption and estimated cost using the LiteLLM pricing catalog via `calculate_cost.py`, applying compact PR cost labels and posting summary comments.
 
 ---
 
@@ -53,9 +54,11 @@ To enable automatic downstream triggering and rebase chaining, configure a dedic
    - **Permissions**:
      - Under **Repository permissions**:
        - **Contents**: `Read and write` (to update/rebase branches and push commits).
-       - **Pull requests**: `Read and write` (to review, approve, comment, and set auto-merge).
-       - **Issues**: `Read and write` (to manage comments).
-       - **Workflows**: `Read and write` (optional, needed if Dependabot PRs modify workflow files).
+       - **Pull requests**: `Read and write` (to create, review, approve, comment, and set auto-merge).
+       - **Issues**: `Read and write` (to manage comments and the rolling security tracking issue).
+       - **Workflows**: `Read and write` (needed if Dependabot or CodeQL remediation PRs modify workflow files).
+       - **Dependabot alerts**: `Read-only` (optional, for querying Dependabot alerts).
+       - **Code scanning alerts**: `Read-only` (optional, for querying CodeQL alerts).
        - **Metadata**: `Read-only` (default).
    - **Where can this GitHub App be installed?**: Select **Only on this account**.
    - Click **Create GitHub App**.
@@ -81,27 +84,41 @@ To enable automatic downstream triggering and rebase chaining, configure a dedic
 
 ## Installing Assets
 
-Copy the assets provided by this skill into your repository:
+The workflows in this skill are modular: you can install **Dependabot PR Automation**, **Security Vulnerability Remediation (`security-remediation.yml`)**, or both independently.
 
-### 1. Workflows
-Copy workflow files into `.github/workflows/`:
-- `assets/workflows/dependabot-assessment.yml` -> `.github/workflows/dependabot-assessment.yml`
-- `assets/workflows/dependabot-autofix.yml` -> `.github/workflows/dependabot-autofix.yml`
-- `assets/workflows/dependabot-dispatcher.yml` -> `.github/workflows/dependabot-dispatcher.yml`
+> **Important Note on Security Vulnerability Remediation (`security-remediation.yml`)**:
+> GitHub Code Scanning (CodeQL) requires either a **public (open-source) repository** or a **GitHub Advanced Security license** on private repositories. Ask the user whether they want to enable `security-remediation.yml` in addition to (or independently from) the Dependabot PR workflows. If either Dependabot Alerts or Code Scanning is disabled on the repository, `security-remediation.yml` gracefully skips the disabled alert source.
 
-### 2. Scripts & Tests
-Copy Python helper scripts and their unit tests into `.github/scripts/`:
-- `assets/scripts/calculate_cost.py` -> `.github/scripts/calculate_cost.py`
-- `assets/scripts/filter_ci_log.py` -> `.github/scripts/filter_ci_log.py`
-- `assets/scripts/dispatch_dependabot.py` -> `.github/scripts/dispatch_dependabot.py`
-- `assets/scripts/test_calculate_cost.py` -> `.github/scripts/test_calculate_cost.py`
-- `assets/scripts/test_filter_ci_log.py` -> `.github/scripts/test_filter_ci_log.py`
-- `assets/scripts/test_dispatch_dependabot.py` -> `.github/scripts/test_dispatch_dependabot.py`
+### Option A: Dependabot PR Automation (Works on all repositories)
 
-### 3. Agent Rules
-Copy headless CI rules into `.agent/rules/`:
-- `assets/rules/dependabot-assessment.md` -> `.agent/rules/dependabot-assessment.md`
-- `assets/rules/dependabot-autofix.md` -> `.agent/rules/dependabot-autofix.md`
+1. **Workflows** (`.github/workflows/`):
+   - `assets/workflows/dependabot-assessment.yml` -> `.github/workflows/dependabot-assessment.yml`
+   - `assets/workflows/dependabot-autofix.yml` -> `.github/workflows/dependabot-autofix.yml`
+   - `assets/workflows/dependabot-dispatcher.yml` -> `.github/workflows/dependabot-dispatcher.yml`
+2. **Scripts & Tests** (`.github/scripts/`):
+   - `assets/scripts/calculate_cost.py` -> `.github/scripts/calculate_cost.py`
+   - `assets/scripts/filter_ci_log.py` -> `.github/scripts/filter_ci_log.py`
+   - `assets/scripts/dispatch_dependabot.py` -> `.github/scripts/dispatch_dependabot.py`
+   - `assets/scripts/test_calculate_cost.py` -> `.github/scripts/test_calculate_cost.py`
+   - `assets/scripts/test_filter_ci_log.py` -> `.github/scripts/test_filter_ci_log.py`
+   - `assets/scripts/test_dispatch_dependabot.py` -> `.github/scripts/test_dispatch_dependabot.py`
+3. **Agent Rules** (`.agent/rules/`):
+   - `assets/rules/dependabot-assessment.md` -> `.agent/rules/dependabot-assessment.md`
+   - `assets/rules/dependabot-autofix.md` -> `.agent/rules/dependabot-autofix.md`
+
+### Option B: Security Vulnerability Remediation (Opt-In — Open Source or GitHub Advanced Security)
+
+Can be installed alongside Option A or completely standalone:
+
+1. **Workflow** (`.github/workflows/`):
+   - `assets/workflows/security-remediation.yml` -> `.github/workflows/security-remediation.yml`
+2. **Scripts & Tests** (`.github/scripts/`):
+   - `assets/scripts/remediate_vulnerabilities.py` -> `.github/scripts/remediate_vulnerabilities.py`
+   - `assets/scripts/test_remediate_vulnerabilities.py` -> `.github/scripts/test_remediate_vulnerabilities.py`
+   - `assets/scripts/calculate_cost.py` -> `.github/scripts/calculate_cost.py` *(shared cost calculator)*
+   - `assets/scripts/test_calculate_cost.py` -> `.github/scripts/test_calculate_cost.py`
+3. **Agent Rule** (`.agent/rules/`):
+   - `assets/rules/vulnerability-remediation.md` -> `.agent/rules/vulnerability-remediation.md`
 
 ---
 
@@ -170,10 +187,24 @@ __pycache__/
 2. Concurrency group `dependabot-dispatcher` with `cancel-in-progress: false` ensures PRs are rebased sequentially.
 3. Generates a GitHub App installation token if `APP_ID` is configured (or falls back to `GITHUB_TOKEN`).
 4. Executes `dispatch_dependabot.py`:
-   - Evaluates all open Dependabot PRs with auto-merge enabled.
+   - Evaluates all open Dependabot PRs (and `dependabot/security-version-upgrades` PRs) with auto-merge enabled.
    - Selects the oldest candidate (FIFO).
    - If `BEHIND` main, rebases it using `gh pr update-branch <pr_number> --rebase`.
    - If already in progress, leaves it untouched.
+
+### Security Vulnerability Remediation Flow (`security-remediation.yml`)
+1. Triggers daily via `schedule`, after `CodeQL` finishes on `main`, or via manual `workflow_dispatch`.
+2. Queries open Dependabot security alerts and open CodeQL code-scanning alerts via the GitHub API and deduplicates against open PRs and the rolling tracking issue (`remediate_vulnerabilities.py plan`).
+3. **Phase 1 (Consolidated Version-Upgrade PR)**:
+   - Applies all patchable version upgrades (`cargo update -p`, `npm update`, or `package.json` `overrides`) on a single branch `dependabot/security-version-upgrades`.
+   - Any package that fails to upgrade cleanly is rolled back from the batch branch and promoted to Phase 2.
+   - Opens/updates a single PR that automatically flows through Safety Assessment (`dependabot-assessment.yml`) and Auto-Fix (`dependabot-autofix.yml`).
+4. **Phase 2 (Individual Code & Dependency Replacement PRs)**:
+   - Groups CodeQL alerts by `rule.id` and promoted Dependabot alerts by package, prioritized by severity and capped at 3 PRs per run.
+   - Runs `agy` headless on `security/fix-<slug>` to apply code, workflow, Cargo feature, or dependency-removal fixes and opens 1 PR per group labeled `requires-human-review`.
+5. **Phase 3 (Unpatched Alert Assessment & Rolling Issue)**:
+   - Evaluates unpatched alerts (`first_patched_version == null`) for production reachability using `agy` without auto-dismissing them.
+   - Creates or updates the single rolling GitHub Issue **`Security Alerts Requiring Human Decision`** with reachability analysis and ready-to-run `gh api` dismissal commands.
 
 ---
 
@@ -186,7 +217,7 @@ Always verify your implementation:
    ```bash
    python3 -m unittest discover -s .github/scripts
    ```
-   Ensure all 24 tests pass without errors.
+   Ensure all unit tests pass without errors.
 
 2. **Verify CI Workflow Syntax**:
    Ensure YAML files are valid and GitHub Actions secret/permission prerequisites are fulfilled.

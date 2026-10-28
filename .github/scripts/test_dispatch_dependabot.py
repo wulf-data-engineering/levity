@@ -66,6 +66,34 @@ class TestDispatchDependabot(unittest.TestCase):
         self.assertEqual(candidate, pr)
         self.assertEqual(action, "rebase")
 
+    def test_security_version_upgrades_bot_pr_supported(self):
+        pr = {
+            "number": 15,
+            "author": {"login": "levity-ci-bot[bot]"},
+            "headRefName": "dependabot/security-version-upgrades",
+            "autoMergeRequest": {"enabledAt": "2026-09-19T10:00:00Z"},
+            "createdAt": "2026-09-19T09:00:00Z",
+            "mergeStateStatus": "BEHIND",
+            "comments": [],
+        }
+        candidate, action = select_next_action([pr])
+        self.assertEqual(candidate, pr)
+        self.assertEqual(action, "rebase")
+
+    def test_non_security_bot_pr_ignored(self):
+        pr = {
+            "number": 16,
+            "author": {"login": "levity-ci-bot[bot]"},
+            "headRefName": "security/fix-codeql-rule",
+            "autoMergeRequest": {"enabledAt": "2026-09-19T10:00:00Z"},
+            "createdAt": "2026-09-19T09:00:00Z",
+            "mergeStateStatus": "BEHIND",
+            "comments": [],
+        }
+        candidate, action = select_next_action([pr])
+        self.assertIsNone(candidate)
+        self.assertEqual(action, "no_candidates")
+
     def test_already_requested_rebase_not_duplicated(self):
         pr = {
             "number": 12,

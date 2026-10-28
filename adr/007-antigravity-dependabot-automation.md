@@ -1,6 +1,6 @@
 # ADR‑007 — Antigravity Dependabot Automation Skill
 
-**Status**: Proposed  
+**Status**: Superceded by [ADR‑014](./014-antigravity-security-remediation.md)  
 **Date**: 2026‑09‑17
 
 ---
