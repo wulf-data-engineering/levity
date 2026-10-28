@@ -136,7 +136,7 @@ npx cdk deploy CertificateStack \
      -c domain=@@ cookiecutter.domain_name @@ \
 ```
 
-+**Action:** Capture the `CertificateArnOutput` from both the staging and production deployment outputs.
+**Action:** Capture the `CertificateArnOutput` from both the staging and production deployment outputs.
 
 ## Configure GitHub Variables
 
@@ -153,8 +153,8 @@ Offer to the user to store variables in the GitHub repository using the `gh` CLI
     # Set Variables
     gh variable set DOMAIN_STAGING -b"staging.@@ cookiecutter.domain_name @@" -R <org/repo>
     gh variable set DOMAIN_PRODUCTION -b"@@ cookiecutter.domain_name @@" -R <org/repo>
-+    gh variable set CERTIFICATE_ARN_STAGING -b"<CertificateArnStaging>" -R <org/repo>
-+    gh variable set CERTIFICATE_ARN_PRODUCTION -b"<CertificateArnProduction>" -R <org/repo>
+    gh variable set CERTIFICATE_ARN_STAGING -b"<CertificateArnStaging>" -R <org/repo>
+    gh variable set CERTIFICATE_ARN_PRODUCTION -b"<CertificateArnProduction>" -R <org/repo>
     gh variable set AWS_ROLE_ARN_STAGING -b"<GitHubRoleArn>" -R <org/repo>
     gh variable set AWS_ROLE_ARN_PRODUCTION -b"<GitHubRoleArn>" -R <org/repo>
     ```

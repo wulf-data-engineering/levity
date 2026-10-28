@@ -18,7 +18,7 @@ All first‑party mobile apps **SHALL be produced by wrapping the Svelte web bun
 | State persistence | IndexedDB + optional encrypted store via Tauri plugin                                                      |
 | Updates           | Full‑app updates through App Store / Play Store; hot‑reload disabled for production per store policy       |
 | CI packaging      | Manual Fastlane lanes (`fastlane ios beta`, `fastlane android beta`) triggered by GitHub workflow dispatch |
-| Minimum OS        | iOS 15+, Android 11+                                                                                       |
+| Minimum OS        | Modern iOS and Android WebView targets                                                                     |
 
 **Why not React‑Native / Capacitor?**
 Keeping one Svelte codebase avoids divergence between web and mobile UIs, and Rust aligns with the rest of the stack for native extensions.
@@ -58,7 +58,7 @@ Guidelines:
 | **`/iac/cdk/push-topics.ts`**                    | CDK construct to create SNS/APNs keys and FCM tokens, outputs to Secrets Manager for mobile build.                                             |
 | **CI workflow** (`.github/workflows/mobile.yml`) | Matrix of iOS/Android: installs Tauri CLI, Rust, Xcode / Android SDK; builds, signs, runs Playwright E2E in emulator, stores artifact IPA/AAB. |
 | **Docs** (`/docs/tauri-mobile-guidelines.md`)    | Store checklist, icon sizes, push setup, debugging tips.                                                                                       |
-| **Gemini CLI prompt pack**                       | Hints: “Prefer Tauri command bridge for native; avoid DOM‑breaking plugins; keep packaging size <40 MB.”                                       |
+| **Antigravity agent guidance**                   | Hints: “Prefer Tauri command bridge for native; avoid DOM‑breaking plugins; keep packaging size <40 MB.”                                       |
 
 ---
 
