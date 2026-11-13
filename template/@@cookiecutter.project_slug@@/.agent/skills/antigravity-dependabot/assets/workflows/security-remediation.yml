@@ -22,7 +22,6 @@ permissions:
   pull-requests: write
   issues: write
   security-events: read
-  dependabot-alerts: read
 
 concurrency:
   group: security-remediation
@@ -46,7 +45,7 @@ jobs:
       - name: Generate GitHub App Token
         if: env.HAS_APP_ID == 'true'
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
@@ -71,10 +70,11 @@ jobs:
       - name: Fetch open security alerts, PRs, and rolling tracking issue
         id: fetch_alerts
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api --paginate "repos/$GH_REPO/dependabot/alerts?state=open&per_page=100" 2>/dev/null | jq -s 'map(select(type == "array")) | add // []' > /tmp/dependabot_alerts.json || echo "[]" > /tmp/dependabot_alerts.json
-          gh api --paginate "repos/$GH_REPO/code-scanning/alerts?state=open&per_page=100" 2>/dev/null | jq -s 'map(select(type == "array")) | add // []' > /tmp/codeql_alerts.json || echo "[]" > /tmp/codeql_alerts.json
+          (gh api --paginate "repos/$GH_REPO/dependabot/alerts?state=open&per_page=100" 2>/dev/null || GH_TOKEN="$GITHUB_TOKEN_FALLBACK" gh api --paginate "repos/$GH_REPO/dependabot/alerts?state=open&per_page=100" 2>/dev/null) | jq -s 'map(select(type == "array")) | add // []' > /tmp/dependabot_alerts.json || echo "[]" > /tmp/dependabot_alerts.json
+          (gh api --paginate "repos/$GH_REPO/code-scanning/alerts?state=open&per_page=100" 2>/dev/null || GH_TOKEN="$GITHUB_TOKEN_FALLBACK" gh api --paginate "repos/$GH_REPO/code-scanning/alerts?state=open&per_page=100" 2>/dev/null) | jq -s 'map(select(type == "array")) | add // []' > /tmp/codeql_alerts.json || echo "[]" > /tmp/codeql_alerts.json
           gh pr list -R "$GH_REPO" --state open --limit 100 --json number,title,headRefName,body > /tmp/open_prs.json
 
           ISSUE_DATA=$(gh issue list -R "$GH_REPO" --state open --search '"Security Alerts Requiring Human Decision" in:title' --json number,title,body | jq -c 'map(select(.title == "Security Alerts Requiring Human Decision")) | .[0] // empty')
