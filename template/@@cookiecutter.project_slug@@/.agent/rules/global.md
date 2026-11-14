@@ -28,6 +28,19 @@ During feature development check if deployment workflow needs modifications.
 
 **CRITICAL**: Note that formatting is handled automatically by the `pre-commit` hook. Linting and type-checking are automatically enforced by the `pre-push` hook. You do not need to run formatters or linters manually before committing.
 
+## Code Search & File Traversal Rules (CRITICAL)
+
+NEVER search, index, or read inside `target/`, `node_modules/`, `dist/`, or `.git/` directories.
+
+1. **Built-in Search Tools (`grep_search`, `find_by_name`):**
+   - Always pass exclusion globs if the tool supports it (e.g., exclude `**/target/**`, `**/node_modules/**`).
+   - Prefer scoping your search path directly to source directories (e.g., `backend/src/`, `infrastructure/lib/`, `frontend/e2e/`) instead of the workspace or sub project root `.`, `backend/`, `frontend/`.
+
+2. **Terminal / CLI Searches:**
+   - **PREFER `rg` (ripgrep)** over `grep` or `find`, as `rg` automatically respects `.gitignore` and skips binary files.
+   - If you must use `grep`, ALWAYS append: `--exclude-dir={target,node_modules,.git,dist} -I` (the `-I` flag ignores binary files completely).
+   - If you must use `find`, ALWAYS prune build folders: `find . -name "target" -prune -o -name "node_modules" -prune -o ...`
+
 ## Internationalization (I18N)
 
 This application is built to be polyglot. 
