@@ -107,7 +107,7 @@ If you need to define resources for a specific API Gateway lambda (e.g. Paramete
 
 Run `cargo nextest run` during development.
 
-If applicable consult `.agent/workflows/run-locally.md` to test the changes in the browser.
+If applicable consult `.agent/skills/run-locally/SKILL.md` to test the changes in the browser.
 
 #### IAM Permissions
 

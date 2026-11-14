@@ -1,0 +1,16 @@
+{
+  "branch-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "edit_file|write_file|replace_file_content|multi_replace_file_content|write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./scripts/check_branch.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,37 +1,23 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: Git commit workflow and commit message formatting rules when staging or committing changes.
 ---
 
 # Committing
 
-## User's request
+## Build & Tests Work
 
-Do not proactively commit.
-Wait for user's request to commit.
+Make sure tests and the build pass before committing.
 
-## Build & Tests work
+## Separate Diff and Add/Commit
 
-Make sure that tests work before committing.
-Make sure that the build works before committing.
-
-## Separate diff and add+commit
-
-Don't run `git status && ... && git commit ...` together.
-
-First do `git diff` (part of your allow list).
-Then run `git add` and `git commit`.
+Do not chain `git status && ... && git commit ...` together. Run `git diff HEAD`, `git add`, and `git commit` as separate commands so command prefix-matching works cleanly.
 
 ## Commit Message Rules
 
-You tend to create commit messages based on your last action, not the difference to last commit:
-Reflect the changes in all changed files since last commit. Not just your last action.
-`git diff` helps you to understand it.
+Reflect the changes across **all** modified files since `HEAD` (check `git diff HEAD`), not just your last action. Focus on the functional change in the subject line.
 
-Focus on the functional change in the subject line.
-
-Structure commit messages as follows:
-
-- **Subject Line**: Imperative, starting with upper case, max. 80 characters.
+- **Subject Line**: Imperative, starting with upper case, max 80 characters.
   - **CRITICAL**: Do NOT use prefixes like `feat:`, `fix:`, `chore:`.
 - **Body**: Separated by a blank line. Provide details, using bullet points if required.
 

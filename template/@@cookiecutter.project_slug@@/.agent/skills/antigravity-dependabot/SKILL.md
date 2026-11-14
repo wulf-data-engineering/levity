@@ -126,14 +126,7 @@ Can be installed alongside Option A or completely standalone:
 
 Update existing project configuration files as follows:
 
-### 1. Update `.agent/rules/changing-files.md`
-To permit the headless CI agent to apply fixes directly to checked-out Dependabot PR branches without attempting to branch off, add the following exception to `.agent/rules/changing-files.md`:
-
-```markdown
-**Exception**: In automated headless CI environments (such as repairing a Dependabot PR branch), do NOT create a new branch. Apply changes directly to the checked-out PR branch.
-```
-
-### 2. Update `.github/workflows/pull-request.yml`
+### 1. Update `.github/workflows/pull-request.yml`
 Add a step to the `check-dependabot` job in `.github/workflows/pull-request.yml` to run the CI script unit tests automatically:
 
 ```yaml
@@ -151,7 +144,7 @@ Add a step to the `check-dependabot` job in `.github/workflows/pull-request.yml`
           python3 -m unittest discover -s .github/scripts
 ```
 
-### 3. Update `.gitignore`
+### 2. Update `.gitignore`
 Add Python cache patterns to `.gitignore`:
 
 ```gitignore
