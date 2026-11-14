@@ -48,7 +48,7 @@ Levity is designed around **Google Antigravity** and ships with a **comprehensiv
   - **`websockets-integration`**: Real‑time bidirectional WebSockets (API Gateway WebSocket API + Cognito custom authorizer + DynamoDB connection registry), asynchronous SQS background processing, and local emulation via `tools/websocket-mock` ([ADR‑009](/adr/009-websockets-async-processing.md)).
   - **`wasm-integration`**: High‑performance client‑side Rust WebAssembly crates (`frontend-wasm/`) compiled with `wasm-pack`, hot‑reloaded alongside Vite, and bundled in CDK and CI/CD.
   - **`antigravity-dependabot`**: Autonomous CI workflows where headless Antigravity agents assess passing Dependabot PRs for domain safety and auto‑merge them, automatically repair failing Dependabot PRs from filtered CI logs, remediate open Dependabot and CodeQL security alerts via consolidated version‑upgrade PRs and per‑finding code PRs, sequentially rebase‑chain queued PRs, and track token costs ([ADR‑007](/adr/007-antigravity-dependabot-automation.md), [ADR‑014](/adr/014-antigravity-security-remediation.md)).
-- **Skill derivation meta‑workflow (`/derive-skill`)**: Levity itself includes a meta‑workflow ([`.agent/workflows/derive-skill.md`](/.agent/workflows/derive-skill.md)) to extract complex features developed and tested in a template instance into new reusable, parameterized opt‑in skills.
+- **Skill derivation meta‑workflow (`/derive-skill`)**: Levity itself includes a meta‑skill ([`.agent/skills/derive-skill/SKILL.md`](/.agent/skills/derive-skill/SKILL.md)) to extract complex features developed and tested in a template instance into new reusable, parameterized opt‑in skills.
 - **Guided developer workflows**: Interactive workflows guide developers through environment verification and AWS/GitHub bootstrapping (`/onboarding`, `/initial-setup`) as well as one‑command polyglot localization across frontend and backend dictionaries (`/translate-app`), alongside operational workflows for local execution, E2E testing, and dependency upgrades.
 
 ---
@@ -79,9 +79,9 @@ Levity is designed around **Google Antigravity** and ships with a **comprehensiv
 /template/…/protocols/      - Protocol Buffer API contracts (.proto)
 /template/…/infrastructure/ - AWS CDK constructs (Foundation, Certificate & App stacks)
 /template/…/.githooks/      - Pre-commit formatting and pre-push linting hooks
-/template/…/.agent/         - Rules, core & opt-in Skills, and Workflows for Antigravity
+/template/…/.agent/         - Rules, hooks, and core & opt-in Skills for Antigravity
 /template/…/.github/        - CI/CD pipelines, Rust cache warming, dependency management
-/.agent/                    - Rules, Skills, and Workflows (/derive-skill, etc.) for template evolution
+/.agent/                    - Rules, hooks, and Skills (/derive-skill, etc.) for template evolution
 /.github/                   - CI/CD pipelines and autonomous Dependabot workflows for template itself
 ```
 

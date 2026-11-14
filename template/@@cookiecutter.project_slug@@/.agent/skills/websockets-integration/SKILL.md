@@ -318,4 +318,4 @@ Take a look at all instructions in this skill and verify you followed all of the
 
 **Verify that your implementation is running.** 
 Do not pass a new feature based on this skill over to the user without making sure it works locally. Test the integration end-to-end to ensure the background processing and WebSocket responses flow correctly before completing your task.
-Use @../../workflows/run-locally.md to start the environment
+Use @../run-locally/SKILL.md to start the environment

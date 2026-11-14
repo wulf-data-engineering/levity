@@ -2,55 +2,26 @@
 trigger: always_on
 ---
 
-This repository contains a **cookiecutter template** for generating applications in `template/@@cookiecutter.project_slug@@/`.
+This repository contains a **cookiecutter template** for generating Levity applications in `template/@@cookiecutter.project_slug@@/` (variables defined in `template/cookiecutter.json`).
 
-The template's rules apply to you if you change the template:
+## Repository Layout & Context
 
-Ref: @../../template/@@cookiecutter.project_slug@@/.agent/rules/global.md
-Ref: @../../template/@@cookiecutter.project_slug@@/.agent/skills/backend/SKILL.md
-Ref: @../../template/@@cookiecutter.project_slug@@/.agent/skills/frontend/SKILL.md
-Ref: @../../template/@@cookiecutter.project_slug@@/.agent/skills/protocols/SKILL.md
-Ref: @../../template/@@cookiecutter.project_slug@@/.agent/skills/database/SKILL.md
+- `.`: **Template repository** (`.github/workflows/` runs template CI).
+- `template/@@cookiecutter.project_slug@@/`: **Template source** — when modifying it, the template's rules and skills in `template/@@cookiecutter.project_slug@@/.agent/` also apply.
+- `../levity-instances/<project_slug>/`: **Temporary template instance** for building and testing.
+  > If reading or writing in `../levity-instances/` is blocked by workspace access controls, ask the user to allow it via **Settings > Non-Workspace File Access** (or project **File Access Policy**).
 
-## Template Structure
+## Building & Testing
 
-The source code for the generated project lives in `template/`.
+Never run `npm run build|check|test|lint`, `cargo update|check|test`, etc. directly inside `template/` subdirectories.
+Follow the `template_development` skill and use `/instantiate-template` (`@../skills/instantiate-template/SKILL.md`) to test inside `../levity-instances/<project_slug>/`.
 
-- @../../template/cookiecutter.json: Defines the variables and default values.
-- `template/@@cookiecutter.project_slug@@/`: The root of the cookiecutter template.
+## Planning, ADRs & Commits
 
-## Wording
-
-- `.` is the **template repo/repository**.
-- `template/@@cookiecutter.project_slug@@/` is the **template**.
-- `../levity-instances/<project_slug>/` is a **template instance** when generated.
-
-> **Note**: The `.. /levity-instances/` directory is outside of the workspace. In case of read or write failures you **MUST** ask the user to allow it via
-> _Settings > Agent > File Access > Agent Non-Workspace File Access_.
-
-## Important Paths
-
-- `template/`: Source of the template
-- `template/cookiecutter.json`: Configuration
-- `template/@@cookiecutter.project_slug@@/.agent`: AI rules and workflows for generated projects
-- `.github/workflows/`: CI/CD for the template itself (linting, testing generation)
-- `..levity-instances/`: Temporary instances of generated projects
-
-## Template Application Context
-
-The `template/` directory contains the source for a **Levity Application**.
-Even when working on the template repo itself, you must understand the architecture and rules of the application it generates.
-
-## Building and Test
-
-Never run `npm run build|check` or `cargo update|check` etc. directly in the `template/` sub directories.
-Apply the skill @../skills/template_development/
-If you need to check the code, create a test instance using @../workflows/initiate-template.md.
+- **Planning**: If the user asks for a _plan_ (or `/plan`), do **not** modify any files until the user approves the plan.
+- **ADRs**: Before implementing a feature, check `adr/` to see if an existing ADR becomes obsolete or a new ADR is needed, and suggest changes to the user. *(Ignore in headless CI runs.)*
+- **Commits**: Do not run `git commit` unless explicitly requested by the user.
 
 ## MCP Usage
 
-Prefer MCP usage over command line tools if MCP supports the intended action.
-E.g. looking into a Github PR is easily done with Github MCP. It doesn't require usage of `gh` which might need manual approval by the developer.
-Other examples for Github are search issues, create comments, or manage pull requests.
-Use `gh` just for actions not supported by the MCP like repository configuration.
-That applies to all MCP servers.
+Prefer configured MCP servers (e.g., `github`) over networked CLI tools like `gh` when MCP supports the action, as MCP tools run without requiring manual sandbox elevation.

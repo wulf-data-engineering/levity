@@ -21,7 +21,7 @@ We keep the base Cookiecutter blueprint intentionally lean and package domain ex
 | -------------- | ------- | --------- |
 | **Core Domain Skills** | Guide day‑to‑day development across the default layers (frontend, backend, database, protocols) alongside workspace rules and operational workflows. | `.agent/skills/<layer>/SKILL.md` |
 | **Opt‑In Feature Skills** | On‑demand architectural extensions (e.g., `websockets-integration`, `wasm-integration`, `antigravity-dependabot`) applied by the agent only when requested by the developer. | `.agent/skills/<feature>/SKILL.md` + parameterized `assets/lib/` and `assets/examples/` |
-| **Template Evolution Skills & Meta‑Workflow** | Guide maintenance of the template repository itself (`template_development`, `dependabot_changes`) and extract new opt‑in skills from working test instances via `/derive-skill`. | `/.agent/skills/` & `/.agent/workflows/derive-skill.md` |
+| **Template Evolution Skills & Meta‑Workflow** | Guide maintenance of the template repository itself (`template_development`, `dependabot_changes`) and extract new opt‑in skills from working test instances via `/derive-skill`. | `/.agent/skills/` |
 
 ### Skill Derivation Meta‑Workflow (`/derive-skill`)
 
@@ -35,7 +35,7 @@ Instead of hand‑crafting skills or using brittle raw git diffs, new opt‑in s
 
 ## 3. Tool‑Set Support
 
-- `/.agent/workflows/derive-skill.md`: Step‑by‑step meta‑workflow for extracting verified instance changes into reusable template skills.
+- `/.agent/skills/derive-skill/SKILL.md`: Step‑by‑step meta‑skill for extracting verified instance changes into reusable template skills.
 - `template/@@cookiecutter.project_slug@@/.agent/skills/`:
   - Core domain skills for the default application stack.
   - Opt‑in feature skills (`wasm-integration`, `websockets-integration`, `antigravity-dependabot`) with ready‑to‑copy `assets/`.

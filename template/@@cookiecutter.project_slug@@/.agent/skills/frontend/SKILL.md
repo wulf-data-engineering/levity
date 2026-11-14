@@ -47,7 +47,7 @@ import { dev } from "$app/environment";
 
 Run `npm run test:unit` during development.
 
-Consult @../workflows/run-locally.md to test the changes in the browser.
+Consult @../run-locally/SKILL.md to test the changes in the browser.
 
 ### Adding Dependencies
 

@@ -2,19 +2,8 @@
 trigger: always_on
 ---
 
-Never make changes in this repository on the `main` branch.
+Never edit repository files on `main` (enforced by `.agent/hooks.json` `PreToolUse` hook).
 
-**CRITICAL**: Before performing any edit to any file in this repository, you **MUST** first check the current branch and changes:
-```bash
-// turbo
-git status
-```
-
-If the output is `main`, you are **FORBIDDEN** from editing any file. You **MUST** stop and ask the user to switch to a feature branch.
-If `main` has pending changes, inform the user about that.
-
-**CRITICAL**: If this repository is on a branch that is not yours, it might be used by another agent!
-
-Then check out a branch. The name of a test instance is a good branch name.
-
-**Exception**: In automated headless CI environments (such as repairing a Dependabot PR branch), do NOT create a new branch. Apply changes directly to the checked-out PR branch.
+- If the repository is on `main`, stop and ask the user to switch to (or create) a feature branch.
+- If the repository is on another branch you did not create, confirm with the user—it may belong to another agent.
+- **Exception**: In automated headless CI environments (`CI=true`, e.g., repairing a Dependabot PR branch), apply changes directly to the checked-out PR branch without creating a new branch.

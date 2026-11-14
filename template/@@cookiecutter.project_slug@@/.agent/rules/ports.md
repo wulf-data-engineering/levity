@@ -1,15 +1,16 @@
 ---
-trigger: always_on
+trigger: glob
+globs: "docker-compose*.yml, .env*, **/vite.config.*, **/playwright.config.*, **/*.sh"
+description: Ensure all service ports are configurable via environment variables and .env defaults.
 ---
 
 # Port Configurability
 
-When developing features that introduce new ports (e.g. adding a new docker container, internal service, or testing tool), you **MUST** ensure the port configuration is scalable.
+When adding or modifying services, containers, or dev/test tools that expose ports, never hardcode ports exclusively in config files (`docker-compose.yml`, `vite.config.ts`, etc.).
 
-Never hardcode ports exclusively in configuration files (like `docker-compose.yml`, `vite.config.ts`, etc.).
 Always make ports configurable via environment variables and define defaults in:
 - `.env.example`
-- `.env` (if it exists, check using `cat`, it's in .gitignore)
+- `.env` (check with `read_file` if it exists; it is gitignored)
 
-### Why?
-When developers run multiple instances of the application simultaneously (e.g. working on two feature branches or multiple apps), they need to rely on the `.env` file to easily switch ports and avoid port occupancy conflicts.
+## Why
+Developers running multiple instances simultaneously (e.g., across feature branches or apps) rely on `.env` to override ports without conflicts.
