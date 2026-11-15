@@ -5,7 +5,9 @@ updates:
   - package-ecosystem: "github-actions"
     directories:
       - "/"
+      - ".github/actions/*/"
       - "template/*/.github/workflows/"
+      - "template/*/.github/actions/*/"
     schedule:
       interval: "daily"
       time: "09:00"
