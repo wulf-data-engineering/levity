@@ -3,6 +3,7 @@ node_modules
 
 # Protobuf files
 src/lib/proto
+src/lib/paraglide
 
 # Output
 .output
