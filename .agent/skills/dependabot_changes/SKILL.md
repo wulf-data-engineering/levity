@@ -59,7 +59,9 @@ Some top-level dependabot configuration like Github Actions covers the template 
   - package-ecosystem: "github-actions"
     directories:
       - "/"
-      - "template/*/"
+      - ".github/actions/*/"
+      - "template/*/.github/workflows/"
+      - "template/*/.github/actions/*/"
 ```
 
 ## Testing Dependabot Configs
