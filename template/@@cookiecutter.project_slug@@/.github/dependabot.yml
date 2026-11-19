@@ -78,10 +78,10 @@ updates:
           - "lambda*"
         update-types:
           - "major"
-  # Backend's toolchain
+  # Rust toolchain
   - package-ecosystem: "rust-toolchain"
     directories:
-      - "backend/"
+      - "/"
     schedule:
       interval: "weekly"
       time: "09:00"

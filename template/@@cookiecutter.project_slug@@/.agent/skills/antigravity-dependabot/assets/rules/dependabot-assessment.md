@@ -47,7 +47,7 @@ When an upstream update introduces new patterns, enum variants, or breaking API 
    - AWS SDK clients (Rust AWS SDK crates, `@aws-sdk/*`, `@aws-amplify/*`).
    - Auth, token verification, session management, or cryptography libraries.
    - Database / data store clients (e.g., DynamoDB clients).
-3. **Toolchain & Compiler Updates**: Rust toolchain upgrades (`rust-toolchain` in `backend/`).
+3. **Toolchain & Compiler Updates**: Rust toolchain upgrades (`rust-toolchain` at root).
 
 ## Required Output Schema
 - `safe` (boolean): `true` if safe to auto-merge, `false` if human review is needed.
