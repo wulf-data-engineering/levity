@@ -61,6 +61,7 @@ jobs:
         with:
           workspaces: tools/websocket-mock
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Run cargo check
         run: cargo check
 
@@ -89,6 +90,7 @@ jobs:
           shared-key: backend-test # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Compile tests
         run: cargo test --no-run
 
@@ -114,6 +116,7 @@ jobs:
           shared-key: backend-compile # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Compile sandbox profile
         run: cargo build --profile sandbox
 
@@ -139,5 +142,6 @@ jobs:
           shared-key: backend-e2e # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./test-instance/backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Compile Backend
         run: cargo build

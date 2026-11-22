@@ -49,7 +49,8 @@ jobs:
         with:
           shared-key: backend-test # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./backend
-          cache-on-failure: true
+          save-if: false
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Install Protoc
         uses: taiki-e/install-action@v2
         with:
@@ -98,7 +99,8 @@ jobs:
         with:
           shared-key: backend-compile # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./backend
-          cache-on-failure: true
+          save-if: false
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Install Protoc
         uses: taiki-e/install-action@v2
         with:
@@ -200,7 +202,8 @@ jobs:
         with:
           shared-key: backend-e2e # Keep in sync with .github/workflows/rust-cache.yml
           workspaces: ./backend
-          cache-on-failure: true
+          save-if: false
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
         with:
