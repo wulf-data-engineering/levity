@@ -30,6 +30,7 @@ jobs:
           shared-key: backend-test # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Install Protoc
         uses: taiki-e/install-action@v2
         with:
@@ -50,6 +51,7 @@ jobs:
           shared-key: backend-compile # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Install Protoc
         uses: taiki-e/install-action@v2
         with:
@@ -74,5 +76,6 @@ jobs:
           shared-key: backend-e2e # Keep in sync with .github/workflows/pull-request.yml
           workspaces: ./backend
           cache-on-failure: true
+          add-rust-environment-hash-key: false # prevent other toolchain on Github servers to poison the cache key
       - name: Compile Backend
         run: cargo build
